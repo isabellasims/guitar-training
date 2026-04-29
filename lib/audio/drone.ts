@@ -1,6 +1,21 @@
 import * as Tone from "tone";
 
+import { midiToFrequency } from "@/lib/audio/noteUtils";
+
 let oscillator: Tone.Oscillator | null = null;
+/** User-facing drone level (0–1 linear, before ducking). */
+let baseLinear = 0.2;
+/**
+ * Multiplier applied while pitch detection is listening.
+ * 0.2 → about 80% quieter than base (matches “duck drone by 80%” spec).
+ */
+let duckMultiplier = 1;
+
+function refreshDroneOutputVolume(): void {
+  if (!oscillator) return;
+  const effective = Math.max(0.0001, Math.min(1, baseLinear * duckMultiplier));
+  oscillator.volume.value = Tone.gainToDb(effective);
+}
 
 /**
  * Starts a simple sine drone at the given frequency (Hz).
@@ -9,9 +24,16 @@ let oscillator: Tone.Oscillator | null = null;
 export async function startDrone(frequency: number, volume = 0.2): Promise<void> {
   await Tone.start();
   stopDrone();
+  baseLinear = Math.max(0.0001, Math.min(1, volume));
+  duckMultiplier = 1;
   oscillator = new Tone.Oscillator(frequency, "sine").toDestination();
-  oscillator.volume.value = Tone.gainToDb(volume);
+  refreshDroneOutputVolume();
   oscillator.start();
+}
+
+/** Convenience: drone at MIDI pitch. */
+export async function startDroneMidi(midi: number, volume = 0.2): Promise<void> {
+  await startDrone(midiToFrequency(midi), volume);
 }
 
 export function stopDrone(): void {
@@ -20,10 +42,24 @@ export function stopDrone(): void {
     oscillator.dispose();
     oscillator = null;
   }
+  duckMultiplier = 1;
 }
 
 export function setDroneVolumeLinear(linear: number): void {
-  if (!oscillator) return;
-  const v = Math.max(0.001, Math.min(1, linear));
-  oscillator.volume.value = Tone.gainToDb(v);
+  baseLinear = Math.max(0.0001, Math.min(1, linear));
+  refreshDroneOutputVolume();
+}
+
+/** True while a Tone drone is running. */
+export function isDroneActive(): boolean {
+  return oscillator != null;
+}
+
+/**
+ * While `true`, drone output is reduced so the mic path can hear the guitar.
+ * Safe to call when no drone is playing (no-op).
+ */
+export function setDroneDucked(ducked: boolean): void {
+  duckMultiplier = ducked ? 0.2 : 1;
+  refreshDroneOutputVolume();
 }

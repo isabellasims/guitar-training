@@ -7,7 +7,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { PitchDetector as PitchDetectorClass } from "pitchy";
 import { Mic, MicOff } from "lucide-react";
 
-import { matchesPitch, midiToFrequency } from "@/lib/audio/noteUtils";
+import { setDroneDucked } from "@/lib/audio/drone";
+import {
+  frequencyToMidi,
+  matchesPitch,
+  midiToFrequency,
+  midiToPlainEnglishNote,
+} from "@/lib/audio/noteUtils";
 
 const LISTEN_MS = 4000;
 const DELAY_MS = 200;
@@ -50,6 +56,7 @@ export function PitchMicPanel({
   const targetHz = midiToFrequency(targetMidi);
 
   const cleanupAudio = useCallback(() => {
+    setDroneDucked(false);
     if (rafRef.current != null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -98,6 +105,7 @@ export function PitchMicPanel({
       detectorRef.current = detector;
       const data = new Float32Array(analyser.fftSize);
 
+      setDroneDucked(true);
       setPhase("arming");
       await new Promise((r) => setTimeout(r, DELAY_MS));
       setPhase("listening");
@@ -116,18 +124,29 @@ export function PitchMicPanel({
           setResult(lastMatch ? "correct" : "incorrect");
           if (!lastMatch) {
             const parts: string[] = [];
+            const expectedLabel = midiToPlainEnglishNote(targetMidi);
             if (bestHz != null && bestClarity >= CLARITY_MIN) {
-              parts.push(
-                `Loudest clear reading was about ${bestHz.toFixed(0)} Hz (target ${targetHz.toFixed(0)} Hz).`,
-              );
+              const heardLabel = midiToPlainEnglishNote(frequencyToMidi(bestHz));
+              if (heardLabel === expectedLabel) {
+                parts.push(
+                  `We heard something centered on ${heardLabel}, but not steady enough within ±${TOLERANCE_CENTS} cents. Try holding the note a little longer.`,
+                );
+              } else {
+                parts.push(
+                  `We heard ${heardLabel}. This exercise asked for ${expectedLabel}.`,
+                );
+              }
             } else if (totalFrames > 0 && quietFrames / totalFrames > 0.7) {
               parts.push(
                 "Input stayed very quiet — check mic permission, input device, and volume.",
               );
             } else if (bestHz != null) {
+              const heardLabel = midiToPlainEnglishNote(frequencyToMidi(bestHz));
               parts.push(
-                `Heard pitch near ${bestHz.toFixed(0)} Hz but not confidently enough — try a cleaner, sustained note.`,
+                `Something like ${heardLabel} seemed closest, but the pitch was not clear enough to count. Try a cleaner, sustained note. You need ${expectedLabel}.`,
               );
+            } else {
+              parts.push(`You need ${expectedLabel}.`);
             }
             setLastHeardSummary(parts.join(" ") || null);
           }
@@ -262,7 +281,7 @@ export function PitchMicPanel({
         {phase === "listening" ? (
           <p className="text-sm text-ink-soft">
             {liveHz != null
-              ? `${liveHz.toFixed(1)} Hz · clarity ${(liveClarity ?? 0).toFixed(2)}`
+              ? `${midiToPlainEnglishNote(frequencyToMidi(liveHz))} · ${liveHz.toFixed(1)} Hz · clarity ${(liveClarity ?? 0).toFixed(2)}`
               : liveClarity != null
                 ? `No pitch yet · clarity ${liveClarity.toFixed(2)} (need ≥${CLARITY_MIN})`
                 : "Waiting for audio…"}

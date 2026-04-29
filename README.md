@@ -30,7 +30,9 @@ Personal **guitar theory practice** app aligned with the written manual [`guitar
 | Shell routes: Home, Session, Tracks, Library, Settings | Done |
 | Pitch lab (`/dev/pitch-test`) | Done (mic + Pitchy, ±25 cents, 200ms delay, 3s window) |
 | Library sine drone stub (Tone.js) | Done (pre-rendered drone MP3s later) |
-| Fretboard SVG component | Not yet |
+| Drone ducking while pitch mic listens (~80% reduction) | Done (`lib/audio/drone.ts` + `PitchMicPanel`) |
+| Single-note reference playback (Tone synth) | Done (`lib/audio/referenceNote.ts`, Library demo) |
+| Fretboard SVG component | Not yet (**Phase 2**) |
 | Card types + session builder + SRS | Not yet |
 | Track A–D full node lists from manual | Stub only in `lib/tracks/tracks.ts` |
 | Track D chord audio bank | Not yet |
@@ -99,9 +101,20 @@ guitar-practice-plan.html    # Canonical manual in git; copied to public for sta
 - **`npm run dev`** — Local development ([http://localhost:3000](http://localhost:3000)).
 - **`npm run build`** — Production build + PWA service worker output under `public/` (generated files are gitignored where applicable).
 
+### Build phases (roadmap)
+
+1. **Phase 0 — Setup** — Next.js, PWA, Dexie, shells, design tokens. **Done.**
+2. **Phase 1 — Audio** — Pitch detection, drone (sine → MP3s later), **drone ducking**, **reference-note playback**. **Done** (MP3 asset generation still optional).
+3. **Phase 2 — Fretboard** — SVG neck, highlights, labels, tap, left-handed mirror. **Next.**
+4. **Phase 3 — Track A** — Nodes from manual, first card types, session builder stub, streak.
+5. **Phase 4 — Tracks B & C** — Note-finding, shape recall, chord-tone cards, SRS wiring.
+6. **Phase 5 — Track D** — Chord audio bank, `chord-change-mc`.
+
 ### Deployment
 
 - **Vercel** + GitHub: push to `main` to deploy.
+
+**If the UI suddenly looks unstyled (plain HTML):** the service worker may be serving an old document or stylesheet. Do a hard refresh, or in DevTools → Application → **Unregister** the service worker and **Clear site data**, then reload. Production builds use **NetworkFirst** for HTML/CSS caches to reduce this after deploys.
 - **PWA:** Add to Home Screen from Safari/Chrome; iOS has storage and mic quirks — test early.
 - **Pitch lab** requires **localhost** or **HTTPS** for `getUserMedia`.
 
