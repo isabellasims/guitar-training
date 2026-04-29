@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --paper: #ede2cd;
+  --paper-soft: #f4ead6;
+  --paper-deep: #d9c9a8;
+  --ink: #1d1612;
+  --ink-soft: #3a2e22;
+  --ink-mute: #6b5a45;
+  --rust: #a8401f;
+  --rust-deep: #7a2c14;
+  --burgundy: #5a2520;
+  --gold: #8e6a2f;
+  --gold-soft: #b8964f;
+  --rule: #b8a378;
+  --background: var(--paper);
+  --foreground: var(--ink);
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  min-height: 100dvh;
+  background-image: radial-gradient(
+      circle at 20% 10%,
+      rgba(168, 64, 31, 0.04) 0%,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 80%,
+      rgba(90, 37, 32, 0.04) 0%,
+      transparent 40%
+    );
+}
+
+@layer utilities {
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+}

@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hear It. Find It. Play It. — A 16-Week Practice Manual</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,300..900,0..100,0..1&family=Crimson+Pro:ital,wght@0,300..700;1,300..700&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #ede2cd;
+    --paper-soft: #f4ead6;
+    --paper-deep: #d9c9a8;
+    --ink: #1d1612;
+    --ink-soft: #3a2e22;
+    --ink-mute: #6b5a45;
+    --rust: #a8401f;
+    --rust-deep: #7a2c14;
+    --burgundy: #5a2520;
+    --gold: #8e6a2f;
+    --gold-soft: #b8964f;
+    --rule: #b8a378;
+    --shadow: rgba(29, 22, 18, 0.08);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Crimson Pro', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.55;
+    background-image: radial-gradient(circle at 20% 10%, rgba(168, 64, 31, 0.04) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(90, 37, 32, 0.04) 0%, transparent 40%);
+    min-height: 100vh;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; opacity: 0.35; z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' /%3E%3CfeColorMatrix values='0 0 0 0 0.11 0 0 0 0 0.08 0 0 0 0 0.07 0 0 0 0.18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .container { max-width: 1140px; margin: 0 auto; padding: 60px 48px 120px; position: relative; z-index: 2; }
+  .hero { border-bottom: 1px solid var(--rule); padding-bottom: 72px; margin-bottom: 80px; }
+  .hero-meta { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 64px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-mute); }
+  .hero-meta .left { color: var(--rust); font-weight: 500; }
+  .edition-mark { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.32em; text-transform: uppercase; color: var(--rust); margin-bottom: 28px; font-weight: 500; }
+  h1.title { font-family: 'Fraunces', serif; font-weight: 400; font-variation-settings: "opsz" 144, "SOFT" 50; font-size: clamp(56px, 9vw, 124px); line-height: 0.92; letter-spacing: -0.035em; color: var(--ink); margin-bottom: 48px; }
+  h1.title .it { font-style: italic; font-weight: 300; color: var(--rust); font-variation-settings: "opsz" 144, "SOFT" 100; }
+  h1.title .dot { color: var(--rust); }
+  .subtitle { font-size: 22px; line-height: 1.45; color: var(--ink-soft); max-width: 720px; margin-bottom: 56px; }
+  .pull-quote { border-left: 3px solid var(--rust); padding: 8px 0 8px 28px; font-family: 'Fraunces', serif; font-style: italic; font-weight: 300; font-size: 20px; line-height: 1.5; color: var(--ink-soft); max-width: 680px; }
+  .section { margin-bottom: 96px; scroll-margin-top: 40px; }
+  .section-head { display: grid; grid-template-columns: 80px 1fr; gap: 24px; align-items: baseline; margin-bottom: 48px; border-bottom: 1px solid var(--rule); padding-bottom: 24px; }
+  .section-num { font-family: 'Fraunces', serif; font-weight: 200; font-size: 56px; line-height: 1; color: var(--rust); font-variation-settings: "opsz" 144; }
+  .section-title-block .kicker { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 8px; font-weight: 500; }
+  .section-title-block h2 { font-family: 'Fraunces', serif; font-weight: 400; font-variation-settings: "opsz" 144; font-size: 44px; line-height: 1.05; letter-spacing: -0.02em; }
+  .section-title-block h2 em { font-style: italic; font-weight: 300; color: var(--rust); }
+  .lead { font-size: 20px; line-height: 1.55; color: var(--ink-soft); max-width: 760px; margin-bottom: 32px; }
+  .lead .key { color: var(--rust); font-style: italic; }
+  .tracks-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
+  .track-card { border: 1px solid var(--rule); background: var(--paper-soft); padding: 28px 24px 24px; transition: transform 0.4s ease, box-shadow 0.4s ease; }
+  .track-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px var(--shadow); }
+  .track-card.t-a { grid-column: span 6; background: var(--ink); color: var(--paper-soft); border-color: var(--ink); }
+  .track-card.t-b { grid-column: span 3; }
+  .track-card.t-c { grid-column: span 3; }
+  .track-card.t-d { grid-column: span 4; }
+  .track-card.t-e { grid-column: span 4; }
+  .track-card.t-f { grid-column: span 4; }
+  .track-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 16px; font-weight: 500; display: flex; justify-content: space-between; }
+  .track-card .track-tag { color: var(--rust); }
+  .track-card.t-a .track-tag { color: var(--gold-soft); }
+  .track-name { font-family: 'Fraunces', serif; font-weight: 400; font-variation-settings: "opsz" 144; font-size: 26px; line-height: 1.05; letter-spacing: -0.015em; margin-bottom: 14px; }
+  .track-name em { font-style: italic; font-weight: 300; }
+  .track-desc { font-size: 15px; line-height: 1.5; color: var(--ink-soft); }
+  .track-card.t-a .track-desc { color: var(--paper-deep); font-size: 16px; }
+  .track-meta { margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--rule); font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-mute); display: flex; justify-content: space-between; }
+  .track-card.t-a .track-meta { border-color: var(--ink-soft); color: var(--paper-deep); }
+  .par-seq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 48px; }
+  .par-seq-block { border: 1px solid var(--rule); padding: 32px 28px; }
+  .par-seq-block.parallel { background: var(--paper-soft); }
+  .par-seq-block.sequential { background: var(--ink); color: var(--paper-soft); border-color: var(--ink); }
+  .par-seq-block h3 { font-family: 'Fraunces', serif; font-weight: 400; font-style: italic; font-size: 28px; line-height: 1.1; margin-bottom: 8px; letter-spacing: -0.015em; }
+  .par-seq-block.parallel h3 { color: var(--rust); }
+  .par-seq-block.sequential h3 { color: var(--gold-soft); }
+  .par-seq-block .subhead { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; margin-bottom: 24px; }
+  .par-seq-block.parallel .subhead { color: var(--ink-mute); }
+  .par-seq-block.sequential .subhead { color: var(--paper-deep); }
+  .par-seq-list { list-style: none; }
+  .par-seq-list li { padding: 12px 0; border-bottom: 1px solid var(--rule); font-size: 16px; line-height: 1.45; display: flex; align-items: baseline; gap: 12px; }
+  .par-seq-block.sequential .par-seq-list li { border-color: var(--ink-soft); color: var(--paper-deep); }
+  .par-seq-list li:last-child { border-bottom: none; }
+  .par-seq-list li .marker { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; flex-shrink: 0; width: 36px; }
+  .par-seq-block.parallel .par-seq-list li .marker { color: var(--rust); }
+  .par-seq-block.sequential .par-seq-list li .marker { color: var(--gold-soft); }
+  .par-seq-list li strong { color: var(--ink); font-weight: 600; }
+  .par-seq-block.sequential .par-seq-list li strong { color: var(--paper-soft); }
+  .timing-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 48px; font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+  .timing-grid .tg-cell { padding: 14px 8px; background: var(--paper-soft); border: 1px solid var(--rule); text-align: center; color: var(--ink-soft); }
+  .timing-grid .tg-cell.head { background: var(--ink); color: var(--paper-soft); font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; }
+  .timing-grid .tg-cell.label { background: var(--paper-deep); color: var(--ink); font-weight: 600; text-align: left; padding-left: 14px; }
+  .timing-grid .tg-cell.start { background: var(--rust); color: var(--paper-soft); font-weight: 600; }
+  .timing-grid .tg-cell.active { background: #d4be8e; color: var(--ink); }
+  .timing-grid .tg-cell.empty { background: var(--paper); color: var(--paper-deep); }
+  .track-detail { margin-bottom: 56px; padding-top: 8px; }
+  .end-state { background: var(--paper-soft); border-left: 3px solid var(--gold); padding: 14px 24px; margin-bottom: 32px; font-style: italic; color: var(--ink-soft); font-size: 17px; }
+  .end-state strong { font-style: normal; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 6px; }
+  .phase { border-left: 2px solid var(--rule); padding: 4px 0 4px 28px; margin-bottom: 32px; position: relative; }
+  .phase::before { content: ""; position: absolute; left: -5px; top: 12px; width: 8px; height: 8px; background: var(--rust); border-radius: 50%; }
+  .phase-weeks { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rust); margin-bottom: 8px; }
+  .phase-title { font-family: 'Fraunces', serif; font-weight: 500; font-size: 22px; line-height: 1.25; margin-bottom: 12px; letter-spacing: -0.01em; }
+  .phase-title em { font-style: italic; font-weight: 400; color: var(--rust-deep); }
+  .phase-body { color: var(--ink-soft); font-size: 17px; line-height: 1.55; }
+  .phase-body p { margin-bottom: 10px; }
+  .phase-body ul { list-style: none; margin: 8px 0; }
+  .phase-body ul li { padding-left: 22px; margin-bottom: 6px; position: relative; }
+  .phase-body ul li::before { content: "—"; position: absolute; left: 0; color: var(--gold); }
+  .phase-body strong { font-weight: 600; color: var(--ink); }
+  .caged-explainer { background: var(--paper-soft); border: 1px solid var(--rule); padding: 36px 40px; margin-bottom: 40px; position: relative; }
+  .caged-explainer::before { content: "C-A-G-E-D"; position: absolute; top: 14px; right: 24px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.32em; color: var(--rust); font-weight: 500; }
+  .caged-explainer h4 { font-family: 'Fraunces', serif; font-weight: 400; font-style: italic; font-size: 26px; line-height: 1.15; margin-bottom: 20px; color: var(--rust-deep); letter-spacing: -0.015em; max-width: 600px; }
+  .caged-explainer p { margin-bottom: 14px; color: var(--ink-soft); font-size: 17px; }
+  .caged-explainer .shape-list { list-style: none; margin: 16px 0 8px; padding: 16px 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .caged-explainer .shape-list li { padding: 6px 0; font-size: 16px; color: var(--ink-soft); display: grid; grid-template-columns: 160px 1fr; gap: 16px; }
+  .caged-explainer .shape-list li strong { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; color: var(--rust); font-weight: 600; }
+  .solo-picks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin: 24px 0 32px; }
+  .solo-pick { border: 1px solid var(--rule); padding: 20px; background: var(--paper); }
+  .solo-pick .num { font-family: 'Fraunces', serif; font-style: italic; font-weight: 300; font-size: 32px; color: var(--rust); line-height: 1; margin-bottom: 10px; }
+  .solo-pick .song { font-family: 'Fraunces', serif; font-weight: 500; font-size: 18px; margin-bottom: 4px; line-height: 1.2; }
+  .solo-pick .artist { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 10px; }
+  .solo-pick .why { font-size: 14px; color: var(--ink-soft); line-height: 1.45; }
+  .song-vocab { border: 1px solid var(--rule); background: var(--paper-soft); margin-bottom: 40px; }
+  .song-vocab .song-row { display: grid; grid-template-columns: 50px 1fr 200px 1.2fr; gap: 24px; padding: 18px 28px; border-bottom: 1px solid var(--rule); align-items: baseline; }
+  .song-vocab .song-row:last-child { border-bottom: none; }
+  .song-vocab .song-row.head { background: var(--ink); color: var(--paper-soft); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 500; }
+  .song-vocab .order { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: var(--rust); font-weight: 500; }
+  .song-vocab .head .order { color: var(--gold-soft); }
+  .song-vocab .title { font-family: 'Fraunces', serif; font-weight: 500; font-size: 18px; line-height: 1.2; }
+  .song-vocab .head .title { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--paper-deep); font-weight: 500; }
+  .song-vocab .artist-col { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.1em; color: var(--ink-mute); }
+  .song-vocab .head .artist-col { color: var(--paper-deep); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; }
+  .song-vocab .why { font-size: 14px; color: var(--ink-soft); line-height: 1.4; }
+  .song-vocab .head .why { color: var(--paper-deep); font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; }
+  .stages { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 24px 0 32px; }
+  .stage { border: 1px solid var(--rule); padding: 20px 18px; background: var(--paper-soft); }
+  .stage .num { font-family: 'Fraunces', serif; font-style: italic; font-weight: 200; font-size: 48px; line-height: 1; color: var(--rust); margin-bottom: 12px; }
+  .stage .name { font-family: 'Fraunces', serif; font-weight: 500; font-size: 17px; margin-bottom: 8px; line-height: 1.2; }
+  .stage .detail { font-size: 14px; color: var(--ink-soft); line-height: 1.4; }
+  .daily-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: start; }
+  .schedule-table { border: 1px solid var(--rule); background: var(--paper-soft); }
+  .schedule-row { display: grid; grid-template-columns: 100px 60px 1fr; gap: 16px; padding: 16px 24px; border-bottom: 1px solid var(--rule); align-items: baseline; }
+  .schedule-row:last-child { border-bottom: none; }
+  .schedule-row.header { background: var(--ink); color: var(--paper-soft); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; font-weight: 500; }
+  .schedule-row.section-divider { background: var(--paper-deep); font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--rust-deep); font-weight: 600; grid-template-columns: 1fr; padding: 10px 24px; }
+  .schedule-time { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--rust); font-weight: 500; }
+  .schedule-row.header .schedule-time { color: var(--gold-soft); }
+  .schedule-track { font-family: 'Fraunces', serif; font-weight: 600; font-size: 18px; color: var(--ink); }
+  .schedule-row.header .schedule-track { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--paper-deep); font-weight: 500; }
+  .schedule-activity { font-size: 16px; color: var(--ink-soft); }
+  .schedule-row.header .schedule-activity { color: var(--paper-deep); }
+  .daily-side { padding-top: 12px; }
+  .daily-side h3 { font-family: 'Fraunces', serif; font-weight: 400; font-style: italic; font-size: 26px; line-height: 1.2; margin-bottom: 18px; color: var(--rust-deep); letter-spacing: -0.01em; }
+  .daily-side p { margin-bottom: 14px; color: var(--ink-soft); font-size: 17px; }
+  .week-pattern { margin-top: 20px; padding: 18px 22px; background: var(--ink); color: var(--paper-soft); border-left: 3px solid var(--rust); }
+  .week-pattern .label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold-soft); margin-bottom: 12px; }
+  .week-pattern ol { list-style: none; counter-reset: weekday; }
+  .week-pattern ol li { counter-increment: weekday; padding: 6px 0 6px 56px; position: relative; color: var(--paper-deep); font-size: 15px; line-height: 1.45; }
+  .week-pattern ol li::before { content: "Day " counter(weekday); position: absolute; left: 0; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--rust); font-weight: 600; }
+  .week-pattern ol li strong { color: var(--paper-soft); font-weight: 500; }
+  .week-grid-wrap { overflow-x: auto; margin: 0 -24px; padding: 0 24px; }
+  .week-grid-note { background: var(--paper-soft); border-left: 3px solid var(--gold); padding: 14px 24px; margin-bottom: 24px; font-style: italic; color: var(--ink-soft); font-size: 16px; max-width: 800px; }
+  table.week-grid { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 980px; }
+  table.week-grid th { background: var(--ink); color: var(--paper-soft); text-align: left; padding: 14px 10px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 500; border: 1px solid var(--ink); }
+  table.week-grid th:first-child { width: 50px; }
+  table.week-grid td { padding: 11px 10px; border: 1px solid var(--rule); background: var(--paper-soft); vertical-align: top; color: var(--ink-soft); line-height: 1.35; }
+  table.week-grid td.week-num { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--rust); background: var(--paper); text-align: center; }
+  table.week-grid td.empty { color: var(--paper-deep); text-align: center; background: var(--paper); }
+  table.week-grid tr:hover td:not(.week-num):not(.empty) { background: #f7eed9; }
+  .callout { background: var(--ink); color: var(--paper-soft); padding: 56px; margin: 80px 0 40px; border: 1px solid var(--ink); }
+  .callout-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold-soft); margin-bottom: 24px; font-weight: 500; }
+  .callout h3 { font-family: 'Fraunces', serif; font-weight: 300; font-style: italic; font-size: 38px; line-height: 1.15; margin-bottom: 28px; letter-spacing: -0.015em; max-width: 880px; }
+  .callout h3 em { color: var(--rust); font-weight: 400; }
+  .callout p { font-size: 18px; line-height: 1.6; color: var(--paper-deep); max-width: 760px; margin-bottom: 14px; }
+  .closing { border-top: 1px solid var(--rule); padding-top: 60px; margin-top: 80px; text-align: center; }
+  .closing-mark { font-family: 'Fraunces', serif; font-style: italic; font-weight: 300; font-size: 56px; color: var(--rust); line-height: 1; margin-bottom: 24px; }
+  .closing p { font-family: 'Fraunces', serif; font-style: italic; font-weight: 300; font-size: 22px; line-height: 1.5; color: var(--ink-soft); max-width: 600px; margin: 0 auto 12px; }
+  .colophon { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-mute); margin-top: 40px; }
+  .toc { border: 1px solid var(--rule); padding: 24px 32px; margin-bottom: 80px; background: var(--paper-soft); }
+  .toc-title { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 16px; font-weight: 500; }
+  .toc-list { list-style: none; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 32px; }
+  .toc-list li a { display: flex; align-items: baseline; gap: 12px; padding: 6px 0; color: var(--ink); text-decoration: none; font-family: 'Fraunces', serif; font-size: 17px; transition: color 0.2s; border-bottom: 1px dotted var(--rule); }
+  .toc-list li a:hover { color: var(--rust); }
+  .toc-list li a .num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--rust); font-weight: 500; flex-shrink: 0; }
+  .cross-dep { background: var(--paper-deep); padding: 20px 28px; margin-bottom: 8px; border-left: 3px solid var(--rust); font-size: 17px; line-height: 1.5; color: var(--ink); max-width: 900px; }
+  .cross-dep strong { color: var(--rust-deep); }
+  h4.subhead-h { font-family: 'Fraunces', serif; font-weight: 500; font-size: 22px; margin-top: 40px; margin-bottom: 16px; letter-spacing: -0.01em; }
+  @media (max-width: 900px) {
+    .container { padding: 40px 24px 80px; }
+    h1.title { font-size: 64px; }
+    .section-head { grid-template-columns: 1fr; gap: 8px; }
+    .section-num { font-size: 36px; }
+    .section-title-block h2 { font-size: 32px; }
+    .tracks-grid { grid-template-columns: 1fr; }
+    .track-card.t-a, .track-card.t-b, .track-card.t-c, .track-card.t-d, .track-card.t-e, .track-card.t-f { grid-column: span 1; }
+    .par-seq-grid { grid-template-columns: 1fr; }
+    .daily-grid { grid-template-columns: 1fr; gap: 32px; }
+    .solo-picks, .stages { grid-template-columns: 1fr; }
+    .toc-list { grid-template-columns: 1fr; }
+    .callout { padding: 36px 28px; }
+    .callout h3 { font-size: 26px; }
+    .song-vocab .song-row { grid-template-columns: 1fr; gap: 4px; }
+    .timing-grid { grid-template-columns: repeat(4, 1fr); font-size: 9px; }
+    .caged-explainer .shape-list li { grid-template-columns: 1fr; gap: 4px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header class="hero">
+  <div class="hero-meta">
+    <span class="left">A practice manual</span>
+    <span>16 weeks · 6 tracks · ~45 min/day</span>
+  </div>
+  <div class="edition-mark">Second Edition · Revised &amp; Expanded</div>
+  <div class="eyebrow">For Bella · Mayer / Hazel · Electric Guitar</div>
+  <h1 class="title">Hear it<span class="dot">.</span><br/>Find it<span class="dot">.</span><br/><span class="it">Play it.</span></h1>
+  <p class="subtitle">A theory plan for moving from <em>pentatonic purgatory</em> to intentional, soulful soloing — built around scale degrees, fretboard fluency, and chord-tone targeting, with hero solos and song vocabulary as the application layer.</p>
+  <blockquote class="pull-quote">The goal at week 16: you put on an Am backing track, you hear a melody in your head, you know it starts on the 5th, your hand goes there, and you play what you imagined.</blockquote>
+</header>
+
+<nav class="toc">
+  <div class="toc-title">Contents</div>
+  <ul class="toc-list">
+    <li><a href="#framing"><span class="num">I.</span><span>The Framing</span></a></li>
+    <li><a href="#tracks"><span class="num">II.</span><span>The Six Tracks</span></a></li>
+    <li><a href="#parallel"><span class="num">III.</span><span>Parallel &amp; Sequential</span></a></li>
+    <li><a href="#track-a"><span class="num">IV.</span><span>Track A — Scale Degrees</span></a></li>
+    <li><a href="#track-b"><span class="num">V.</span><span>Track B — Note Finding</span></a></li>
+    <li><a href="#track-c"><span class="num">VI.</span><span>Track C — Fretboard &amp; CAGED</span></a></li>
+    <li><a href="#track-d"><span class="num">VII.</span><span>Track D — Chord Changes</span></a></li>
+    <li><a href="#track-e"><span class="num">VIII.</span><span>Track E — Hero Solo</span></a></li>
+    <li><a href="#track-f"><span class="num">IX.</span><span>Track F — Song Vocabulary</span></a></li>
+    <li><a href="#transpose"><span class="num">X.</span><span>Transposition Practice</span></a></li>
+    <li><a href="#daily"><span class="num">XI.</span><span>Daily Structure</span></a></li>
+    <li><a href="#weeks"><span class="num">XII.</span><span>Week-by-Week</span></a></li>
+    <li><a href="#priorities"><span class="num">XIII.</span><span>Priorities</span></a></li>
+  </ul>
+</nav>
+
+<section class="section" id="framing">
+  <div class="section-head">
+    <div class="section-num">I</div>
+    <div class="section-title-block">
+      <div class="kicker">The Framing</div>
+      <h2>Six skills, one <em>fused</em> ability.</h2>
+    </div>
+  </div>
+  <p class="lead">The gap — <span class="key">hear note → search 10 notes → find it</span> — is six skills, not one. <strong>Scale degrees</strong> tell you <em>which</em> note you want. <strong>Note finding</strong> and <strong>shape memory</strong> tell you <em>where</em> it lives. <strong>CAGED</strong> ties chord shapes to chord tones across the entire neck. <strong>Chord-change hearing</strong> tells you <em>what's underneath you</em> in real time. The <strong>hero solo</strong> and <strong>song vocabulary</strong> are where everything fuses into actual playing.</p>
+  <p class="lead">Every note is measured against the <em>tonic</em>, not the last note you played. The tonic is always there — droning under the music — and your ear is already measuring against it instinctively. You're not learning a new sense; you're learning to consciously notice what your ear has been doing all along.</p>
+</section>
+
+<section class="section" id="tracks">
+  <div class="section-head">
+    <div class="section-num">II</div>
+    <div class="section-title-block">
+      <div class="kicker">The Six Tracks</div>
+      <h2>Run in <em>parallel.</em> Mostly.</h2>
+    </div>
+  </div>
+  <div class="tracks-grid">
+    <article class="track-card t-a">
+      <div class="track-tag"><span>Track A · The Spine</span><span>Wk 1+</span></div>
+      <div class="track-name">Scale <em>Degrees</em></div>
+      <p class="track-desc">Hear any note's function in the key — root, 3rd, 5th, 7th, etc. — instead of measuring intervals from the last note. The skill that translates ear into fretboard.</p>
+      <div class="track-meta"><span>15–20 min</span><span>Daily</span></div>
+    </article>
+    <article class="track-card t-b">
+      <div class="track-tag"><span>Track B</span><span>Wk 1+</span></div>
+      <div class="track-name">Note <em>Finding</em></div>
+      <p class="track-desc">Random recall across all six strings. Independent, mechanical.</p>
+      <div class="track-meta"><span>5–7 min</span><span>Daily</span></div>
+    </article>
+    <article class="track-card t-c">
+      <div class="track-tag"><span>Track C</span><span>Wk 1+</span></div>
+      <div class="track-name">Fretboard &amp; <em>CAGED</em></div>
+      <p class="track-desc">Scale shapes &amp; chord-tone maps. A natural minor → pentatonic boxes → CAGED.</p>
+      <div class="track-meta"><span>10 min</span><span>Daily</span></div>
+    </article>
+    <article class="track-card t-d">
+      <div class="track-tag"><span>Track D</span><span>Wk 3+</span></div>
+      <div class="track-name">Hearing <em>Chord Changes</em></div>
+      <p class="track-desc">Identify what changed when the chord moves — I, IV, V, vi — in real time. Keeps you oriented inside any song.</p>
+      <div class="track-meta"><span>5–10 min</span><span>From Wk 3</span></div>
+    </article>
+    <article class="track-card t-e">
+      <div class="track-tag"><span>Track E</span><span>Wk 6+</span></div>
+      <div class="track-name">Hero <em>Solo</em></div>
+      <p class="track-desc">Mayer or Hazel. Learn by ear. Analyze through scale degrees and CAGED. Transpose. The deep lab.</p>
+      <div class="track-meta"><span>15–20 min</span><span>From Wk 6</span></div>
+    </article>
+    <article class="track-card t-f">
+      <div class="track-tag"><span>Track F · NEW</span><span>Wk 5+</span></div>
+      <div class="track-name">Song <em>Vocabulary</em></div>
+      <p class="track-desc">A new song every 2–3 weeks. Light analysis. The volume layer that keeps theory tied to real music.</p>
+      <div class="track-meta"><span>15 min, rotating</span><span>From Wk 5</span></div>
+    </article>
+  </div>
+</section>
+
+<section class="section" id="parallel">
+  <div class="section-head">
+    <div class="section-num">III</div>
+    <div class="section-title-block">
+      <div class="kicker">Order of Operations</div>
+      <h2>Parallel &amp; <em>Sequential</em></h2>
+    </div>
+  </div>
+  <p class="lead">Almost everything runs in parallel. Almost. Here's the explicit map.</p>
+
+  <div class="par-seq-grid">
+    <div class="par-seq-block parallel">
+      <h3>Run in Parallel</h3>
+      <div class="subhead">Across Tracks</div>
+      <ul class="par-seq-list">
+        <li><span class="marker">A+B</span><span><strong>Scale degrees + note finding.</strong> Different parts of the brain. Both run from Day 1.</span></li>
+        <li><span class="marker">+C</span><span><strong>Fretboard shapes.</strong> A natural minor shape needed for Wk 2 minor drone work — must start Wk 1.</span></li>
+        <li><span class="marker">+D</span><span><strong>Chord-change hearing.</strong> Joins Wk 3 once tonic recognition has set in.</span></li>
+        <li><span class="marker">+F</span><span><strong>Song vocabulary.</strong> Joins Wk 5, once you have the 1, 5, and 3 of a key.</span></li>
+        <li><span class="marker">+E</span><span><strong>Hero solo.</strong> Joins Wk 6 — analytical work needs Track A's stable tones in place.</span></li>
+        <li><span class="marker">∞</span><span><strong>Transposition.</strong> Recurring 5-min micro-practice from Wk 5 onward.</span></li>
+      </ul>
+    </div>
+    <div class="par-seq-block sequential">
+      <h3>Must Be Sequential</h3>
+      <div class="subhead">Within Each Track</div>
+      <ul class="par-seq-list">
+        <li><span class="marker">A</span><span><strong>Stable tones (1, 5, 3) before tense tones (7, 4, 2, 6).</strong> Chord tones are home base — tense tones only make sense as motion away.</span></li>
+        <li><span class="marker">A</span><span><strong>One-chord drones before two-chord vamps.</strong> Tracking moving chord tones requires fixed ones first.</span></li>
+        <li><span class="marker">C</span><span><strong>One shape solid before adding the next.</strong> Connection only works between fluent positions.</span></li>
+        <li><span class="marker">D</span><span><strong>I-IV-V before adding vi. Major before minor.</strong></span></li>
+        <li><span class="marker">E</span><span><strong>Learn the solo → analyze it → transpose it.</strong> Cannot be done out of order.</span></li>
+        <li><span class="marker">F</span><span><strong>Songs in roughly increasing complexity.</strong> Major-key clarity before minor-key blues phrasing.</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="cross-dep">
+    <strong>The only meaningful cross-track dependency:</strong> Track E (hero solo <em>analysis</em>) is much more productive once Track A has reached at least the stable tones. You can <em>learn</em> the solo by ear before that — but the scale-degree analysis won't have anywhere to land.
+  </div>
+
+  <h4 class="subhead-h">Track Entry Timeline</h4>
+  <div class="timing-grid">
+    <div class="tg-cell head">Track</div><div class="tg-cell head">Wk 1–2</div><div class="tg-cell head">Wk 3–4</div><div class="tg-cell head">Wk 5</div><div class="tg-cell head">Wk 6</div><div class="tg-cell head">Wk 7–10</div><div class="tg-cell head">Wk 11–16</div>
+    <div class="tg-cell label">A · Degrees</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
+    <div class="tg-cell label">B · Notes</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
+    <div class="tg-cell label">C · Fretboard</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
+    <div class="tg-cell label">D · Changes</div><div class="tg-cell empty">—</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
+    <div class="tg-cell label">F · Songs</div><div class="tg-cell empty">—</div><div class="tg-cell empty">—</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
+    <div class="tg-cell label">E · Hero Solo</div><div class="tg-cell empty">—</div><div class="tg-cell empty">—</div><div class="tg-cell empty">—</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
+    <div class="tg-cell label">∞ Transpose</div><div class="tg-cell empty">—</div><div class="tg-cell empty">—</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
+  </div>
+</section>
+
+<section class="section" id="track-a">
+  <div class="section-head">
+    <div class="section-num">IV</div>
+    <div class="section-title-block">
+      <div class="kicker">Track A — The Spine</div>
+      <h2>Scale <em>Degrees</em></h2>
+    </div>
+  </div>
+  <div class="track-detail">
+    <p class="lead">Each scale degree has a fixed <em>character</em> — stable, tense, sweet, pulling, restless, home. Learn the seven sounds once and they apply in every key forever. This is the layer that makes "hear it → play it" possible.</p>
+    <div class="end-state"><strong>End State · Wk 16</strong>Over a backing track in any common key, you can hear any in-key note and instantly know its degree. You can target chord tones (1, 3, 5, b7) when soloing, using the rest of the scale as connective tissue.</div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 1–2 · Hear the Tonic</div>
+      <div class="phase-title">Lock the key center into your ear.</div>
+      <div class="phase-body">
+        <ul>
+          <li><strong>10 min:</strong> loop a C major drone (YouTube). Listen, hum along, let C lodge into your ear.</li>
+          <li><strong>5 min:</strong> play random notes from the C major scale over the drone. Feel how each one pulls or rests. Don't name them yet.</li>
+          <li><strong>Week 2:</strong> repeat with an A minor drone, using the A natural minor shape from Track C.</li>
+        </ul>
+        <p><em>The missing skill that makes everything else work. Most people skip it.</em></p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 3–5 · Stable Tones (1, 5, 3)</div>
+      <div class="phase-title">The chord tones. The home base of every solo.</div>
+      <div class="phase-body">
+        <ul>
+          <li><strong>Week 3 — The Root (1):</strong> drone in C, sing the root, find every C on the fretboard. The <em>"home, arrived"</em> feeling.</li>
+          <li><strong>Week 4 — The 5th:</strong> sing G over C drone. Find every G. The <em>"stable, hovering"</em> character.</li>
+          <li><strong>Week 5 — The 3rd:</strong> sing E over C drone. The <em>color</em> note — what makes major sound major. Then repeat 1-5-3 in A minor (A, E, C — note the b3 sound).</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 6–9 · Tense Tones (7, 4, 2, 6)</div>
+      <div class="phase-title">The in-between notes that create motion.</div>
+      <div class="phase-body">
+        <ul>
+          <li><strong>Week 6 — The 7:</strong> sits a half-step under the root and pulls hard toward it. The b7 is the bluesy/Hazel sound.</li>
+          <li><strong>Week 7 — The 4:</strong> suspended, leans into the 3.</li>
+          <li><strong>Week 8 — The 2:</strong> light tension, easy to resolve in either direction.</li>
+          <li><strong>Week 9 — The 6:</strong> wistful in major, dark in minor (b6).</li>
+        </ul>
+        <p>Same drill each week: drone in the key, sing the degree, feel its character, find every instance on the fretboard. Use <strong>Functional Ear Trainer</strong> (free) for 5 min/day reinforcement.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 10–13 · Escape Pentatonic Purgatory</div>
+      <div class="phase-title">From "pool of equal notes" to <em>chord tones with connectors.</em></div>
+      <div class="phase-body">
+        <ul>
+          <li><strong>Week 10:</strong> solo over an Am vamp using <em>only</em> chord tones (A, C, E). Three notes. Phrasing-driven. Restrictive on purpose.</li>
+          <li><strong>Week 11:</strong> add b7 (G). Four notes that define blues vocabulary.</li>
+          <li><strong>Week 12:</strong> add the rest of the minor pentatonic — but as <em>passing tones between chord tones</em>, not equal members.</li>
+          <li><strong>Week 13:</strong> two-chord vamp (Am → Dm). Chord tones now <em>move</em> when the chord changes.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 14–16 · Integration</div>
+      <div class="phase-title">Solo over real progressions, naming chord-tone targets in advance.</div>
+      <div class="phase-body">
+        <p>Record yourself. Listen back. Identify which scale degree each phrase landed on. Notice when phrases resolve vs. just stop.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="track-b">
+  <div class="section-head">
+    <div class="section-num">V</div>
+    <div class="section-title-block">
+      <div class="kicker">Track B — Foundation</div>
+      <h2>Note <em>Finding</em></h2>
+    </div>
+  </div>
+  <div class="track-detail">
+    <p class="lead">Your original plan, untouched. Pure spatial recall — separate from ear training, both reinforce each other. <strong>Tools:</strong> Fretboard Trainer app, Fretuoso, Justin Guitar's note finder, or a deck of cards labeled with notes.</p>
+    <div class="end-state"><strong>End State · Wk 12</strong>Any note, any string, called out at random — under 2 seconds. Past Wk 12, drop to maintenance.</div>
+
+    <div class="phase">
+      <div class="phase-weeks">Week 1</div>
+      <div class="phase-title">Solidify the E string.</div>
+      <div class="phase-body"><p>Chromatic scale on E daily: A — A♯ — B — C — C♯ — D — D♯ — E — F — F♯ — G — G♯. <strong>5 min/day.</strong></p></div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Weeks 2–3</div>
+      <div class="phase-title">Random recall on E and A.</div>
+      <div class="phase-body"><p>Someone calls "G" → you find it on E instantly → then on A. <strong>10 min/day.</strong> Goal: no hesitation, automatic retrieval.</p></div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Week 4</div>
+      <div class="phase-title">Add C on all 6 strings.</div>
+      <div class="phase-body"><p>Random recall: "Find C on the G string." Chromatic scale on D, G, B, high E (incorporating C).</p></div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Weeks 5–6</div>
+      <div class="phase-title">Add F (Wk 5), then G (Wk 6).</div>
+      <div class="phase-body"><p>You now know E and A strings fully, plus C, F, G across all strings.</p></div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Weeks 7–9</div>
+      <div class="phase-title">Speed up — 2 notes per week.</div>
+      <div class="phase-body"><p>The pattern is obvious by now. Add D and A (Wk 7), B and F♯ (Wk 8), C♯ and remaining (Wk 9).</p></div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Weeks 10–12</div>
+      <div class="phase-title">Full fretboard random recall.</div>
+      <div class="phase-body"><p>Goal: any note, any string, under 2 seconds. After Wk 12, drop to maintenance — a few minutes daily to keep it sharp.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="track-c">
+  <div class="section-head">
+    <div class="section-num">VI</div>
+    <div class="section-title-block">
+      <div class="kicker">Track C — The Bridge</div>
+      <h2>Fretboard Map &amp; <em>CAGED</em></h2>
+    </div>
+  </div>
+  <div class="track-detail">
+    <p class="lead">Knowing what note you want (Track A) is useless without a physical map of where it lives. This track builds that map: starting with one minor scale shape, then pentatonic boxes, then connecting them through CAGED — the system that ties chord shapes to chord tones across the entire neck.</p>
+    <div class="end-state"><strong>End State · Wk 16</strong>You can target chord tones (1, 3, 5) anywhere on the neck within at least three CAGED shapes (E-shape, A-shape, D-shape) and connect at least three pentatonic boxes fluently. The fretboard feels like one map, not five disconnected boxes.</div>
+
+    <div class="caged-explainer">
+      <h4>CAGED, properly explained.</h4>
+      <p>The cleanest way in is something you already do: <strong>barre chords</strong>.</p>
+      <p>When you play an F barre at the 1st fret, your hand makes an <em>E-shape</em> — same fingering as an open E chord, with a barre instead of the nut. When you play a B barre at the 2nd fret, your hand makes an <em>A-shape</em>. You're already using two of the five CAGED shapes whenever you barre.</p>
+      <p>The five shapes correspond to the five open chords: <strong>C, A, G, E, D</strong>. Any chord can be played in all five shapes somewhere on the neck. A G chord:</p>
+      <ul class="shape-list">
+        <li><strong>G in G-shape</strong> · open position (the standard cowboy G)</li>
+        <li><strong>G in E-shape</strong> · 3rd fret barre</li>
+        <li><strong>G in D-shape</strong> · 7th fret area</li>
+        <li><strong>G in C-shape</strong> · 10th fret area</li>
+        <li><strong>G in A-shape</strong> · 12th fret area</li>
+      </ul>
+      <p>Slide up the neck through those five shapes in order — <strong>G → E → D → C → A</strong> — and you've played a G chord five different ways across the entire fretboard. The shapes always appear in that order. C-A-G-E-D loops endlessly.</p>
+      <p><strong>The soloing payoff:</strong> each shape contains the chord's root, 3rd, and 5th in <em>predictable spots</em>. In the E-shape barre, the root is on strings 6, 4, and 1. The 3rd is on string 3. The 5th is on strings 5 and 2. Once you know that pattern for one shape, you can find chord tones for <em>any</em> chord you're playing in that shape — anywhere on the neck.</p>
+      <p>CAGED isn't a separate scale system. It's a way of organizing chord tones across the neck using shapes you mostly already know.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 1–2 · Foundation Shape</div>
+      <div class="phase-title">A natural minor, one octave, in first position.</div>
+      <div class="phase-body">
+        <p>Memorize this as a physical fingering. Track A's minor drone work in Wk 2 depends on it.</p>
+        <ul>
+          <li>5th string open (A) — 5th string 2nd fret (B) — 5th string 3rd fret (C)</li>
+          <li>4th string open (D) — 4th string 2nd fret (E) — 4th string 3rd fret (F)</li>
+          <li>3rd string open (G) — 3rd string 2nd fret (A)</li>
+        </ul>
+        <p>That's one octave of A natural minor. Same notes as C major, centered on A. <strong>5 min/day.</strong></p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 3–5 · Pentatonic Box 1</div>
+      <div class="phase-title">The standard minor pentatonic shape — solidified, with chord tones identified.</div>
+      <div class="phase-body">
+        <p>The most-played shape on guitar. Likely already in your hands; this is about <em>knowing</em> it, not just playing it.</p>
+        <ul>
+          <li><strong>Wk 3:</strong> play it cleanly, two notes per string, root on the 6th string (e.g., A minor pentatonic at the 5th fret).</li>
+          <li><strong>Wk 4:</strong> identify every <em>root</em> within the box. Then every <em>b3</em>. Then every <em>5</em>. Then every <em>b7</em>.</li>
+          <li><strong>Wk 5:</strong> solo using only the chord tones within the box (1, b3, 5, b7). Then add the 4 as a passing tone.</li>
+        </ul>
+        <p>This is where Tracks A and C fuse for the first time: you hear the b3 (Track A) → you know it's the b3 of the box your hand is in (Track C) → you play it.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 6–9 · CAGED Chord Tones (E-shape)</div>
+      <div class="phase-title">Map roots, 3rds, and 5ths within the E-shape barre.</div>
+      <div class="phase-body">
+        <p>The E-shape barre and Pentatonic Box 1 sit in the same fretboard region. They're sibling shapes.</p>
+        <ul>
+          <li><strong>Wk 6–7:</strong> for any major chord in E-shape, identify the root (strings 6, 4, 1), the 3rd (string 3), and the 5th (strings 5, 2).</li>
+          <li><strong>Wk 8–9:</strong> for any minor chord in E-shape, the 3rd flattens by a half-step. Same shape, b3 instead of 3.</li>
+        </ul>
+        <p>Drill: play the chord, then play <em>only</em> the roots. Then <em>only</em> the 3rds. Then <em>only</em> the 5ths.</p>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 10–12 · Pentatonic Box 2 + A-shape CAGED</div>
+      <div class="phase-title">Add the next position up the neck.</div>
+      <div class="phase-body">
+        <p>The next pentatonic box sits a few frets above Box 1. The A-shape barre chord lives in the same area.</p>
+        <ul>
+          <li><strong>Wk 10:</strong> learn Box 2 cleanly, two notes per string.</li>
+          <li><strong>Wk 11:</strong> identify chord tones within Box 2 — same exercise as Box 1.</li>
+          <li><strong>Wk 12:</strong> A-shape CAGED chord tones — the root sits on strings 5 and 2, the 3rd on strings 4 and 1, the 5th on string 3.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 13–16 · Connect &amp; Expand</div>
+      <div class="phase-title">Move fluidly between Box 1 and Box 2; introduce the D-shape.</div>
+      <div class="phase-body">
+        <ul>
+          <li><strong>Wk 13–14:</strong> connect Box 1 and Box 2 — practice phrases that move between them without breaking flow.</li>
+          <li><strong>Wk 15–16:</strong> add a third box (below Box 1) and the D-shape CAGED chord tones. The fretboard starts to feel like one continuous map.</li>
+        </ul>
+        <p>The remaining CAGED shapes (C and G) come later, naturally, once these three are fluent. Don't force them in 16 weeks.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="track-d">
+  <div class="section-head">
+    <div class="section-num">VII</div>
+    <div class="section-title-block">
+      <div class="kicker">Track D — Context</div>
+      <h2>Hearing <em>Chord Changes</em></h2>
+    </div>
+  </div>
+  <div class="track-detail">
+    <p class="lead">A chord changes underneath you. Can you identify <em>what</em> changed — not just "something moved"? This is what keeps you oriented when soloing over real songs.</p>
+    <div class="end-state"><strong>End State · Wk 16</strong>You can listen to a Mayer or Hazel song and call out the chord changes (I-IV-V-vi in major, i-iv-v-bVII in minor) in real time, by ear, without a chart.</div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 3–5 · Feel the Moves Yourself</div>
+      <div class="phase-title">Three foundational chord movements.</div>
+      <div class="phase-body">
+        <ul>
+          <li><strong>I → IV (C → F):</strong> tonic to "lifted" sound</li>
+          <li><strong>I → V (C → G):</strong> tonic to "tense, wants-to-resolve" sound</li>
+          <li><strong>I → vi (C → Am):</strong> tonic to "sadder version of home"</li>
+        </ul>
+        <p>Play these on guitar yourself first. Feel each move's character before training your ear to recognize them passively.</p>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Weeks 6–8 · I, IV, V Recognition (App-Based)</div>
+      <div class="phase-title">80% of pop, rock, and blues lives here.</div>
+      <div class="phase-body"><p>Use <strong>Functional Ear Trainer</strong>'s chord-recognition mode. <strong>5 min/day</strong> in the app, plus <strong>5 min</strong> on guitar testing yourself with backing tracks.</p></div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Weeks 9–11 · Add the vi (the "sad" chord)</div>
+      <div class="phase-title">Four chords behind half of all popular music.</div>
+      <div class="phase-body"><p>Drill: put on a song, call out the changes in real time as I / IV / V / vi.</p></div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Weeks 12–13 · Minor Key Changes</div>
+      <div class="phase-title">i, iv, v (or V), bVII, bVI.</div>
+      <div class="phase-body"><p>Hazel and Mayer both use a lot of minor-key movement. Train this specifically.</p></div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Weeks 14–16 · Real Songs</div>
+      <div class="phase-title">Where it all fuses.</div>
+      <div class="phase-body"><p>Pick Mayer/Hazel songs. Listen, identify the changes by ear, verify with chord charts. You hear the chord change → you know which chord tones just became active → you know where they live → your scale-degree ear tells you which one to target.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="track-e">
+  <div class="section-head">
+    <div class="section-num">VIII</div>
+    <div class="section-title-block">
+      <div class="kicker">Track E — Deep Application</div>
+      <h2>Hero <em>Solo</em></h2>
+    </div>
+  </div>
+  <div class="track-detail">
+    <p class="lead">The deep lab. One solo, learned by ear, then dissected through scale degrees and CAGED, then transposed to multiple keys.</p>
+    <div class="end-state"><strong>End State · Wk 16</strong>You can play your hero solo cleanly in the original key and at least two other keys, using scale-degree thinking (not hand patterns) to transpose. You can name the function of every note in the solo.</div>
+
+    <div class="solo-picks">
+      <div class="solo-pick">
+        <div class="num">i.</div>
+        <div class="song">Slow Dancing in a Burning Room</div>
+        <div class="artist">John Mayer</div>
+        <div class="why">Clean melodic logic, clear chord-tone targeting. Best entry point.</div>
+      </div>
+      <div class="solo-pick">
+        <div class="num">ii.</div>
+        <div class="song">Gravity</div>
+        <div class="artist">John Mayer</div>
+        <div class="why">Acoustic clarity, heavy use of major 3rds and 4ths. Strong second choice.</div>
+      </div>
+      <div class="solo-pick">
+        <div class="num">iii.</div>
+        <div class="song">Maggot Brain (intro 60–90s)</div>
+        <div class="artist">Eddie Hazel</div>
+        <div class="why">Just the opening minute. Iconic, soulful, blues-based phrasing study.</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-weeks">Weeks 6–8 · Learn It By Ear</div>
+      <div class="phase-title">Tabs only as backup.</div>
+      <div class="phase-body"><p>Don't memorize shapes — understand notes. Where does each phrase start? End? Where does the bend live?</p></div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Weeks 9–10 · Analyze Through Scale Degrees + CAGED</div>
+      <div class="phase-title">Real-world theory work.</div>
+      <div class="phase-body">
+        <ul>
+          <li>What scale degree does each phrase start on? End on?</li>
+          <li>Which CAGED shape is his hand in for each phrase?</li>
+          <li>When he bends, what degree → what degree?</li>
+          <li>Where are the chord tones vs. passing tones?</li>
+        </ul>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Weeks 11–12 · Transpose</div>
+      <div class="phase-title">Two new keys. Use scale-degree thinking, not hand patterns.</div>
+      <div class="phase-body"><p>This is the test of whether Track A is actually working: hear the function → know the location in the new key → play it.</p></div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">Weeks 13–16 · Add a Second Solo</div>
+      <div class="phase-title">Same process, faster — the framework is in place.</div>
+      <div class="phase-body"><p>You're not learning the solo; you're learning <em>how he thinks</em>.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="track-f">
+  <div class="section-head">
+    <div class="section-num">IX</div>
+    <div class="section-title-block">
+      <div class="kicker">Track F — The Volume Layer</div>
+      <h2>Song <em>Vocabulary</em></h2>
+    </div>
+  </div>
+  <div class="track-detail">
+    <p class="lead">The hero solo gets deep analytical attention. Track F gets <em>volume</em>. A new song every 2–3 weeks, learned by ear, played for fun, lightly analyzed. Builds the muscle memory of recognizing chord-tone phrases across many contexts.</p>
+    <div class="end-state"><strong>End State · Wk 16</strong>Five to six new songs in your playable repertoire. Each one analyzed lightly: what key, what chord changes, what scale degrees the main melodic phrases land on.</div>
+
+    <div class="song-vocab">
+      <div class="song-row head">
+        <div class="order">№</div>
+        <div class="title">Song</div>
+        <div class="artist-col">Artist</div>
+        <div class="why">Why this one</div>
+      </div>
+      <div class="song-row">
+        <div class="order">01</div>
+        <div class="title">Let It Be</div>
+        <div class="artist-col">The Beatles</div>
+        <div class="why">Major key, ~30s solo, clear chord-tone targeting. Mostly pentatonic with smart resolutions.</div>
+      </div>
+      <div class="song-row">
+        <div class="order">02</div>
+        <div class="title">Wonderful Tonight</div>
+        <div class="artist-col">Eric Clapton</div>
+        <div class="why">Classic chord-tone melody. Slow, expressive, beginner-friendly phrasing.</div>
+      </div>
+      <div class="song-row">
+        <div class="order">03</div>
+        <div class="title">Sweet Home Alabama (intro)</div>
+        <div class="artist-col">Lynyrd Skynyrd</div>
+        <div class="why">Fast win. Major pentatonic with chord-tone awareness over a I-V-IV vamp.</div>
+      </div>
+      <div class="song-row">
+        <div class="order">04</div>
+        <div class="title">The Thrill Is Gone (main solo)</div>
+        <div class="artist-col">B.B. King</div>
+        <div class="why">Minor key blues, beautiful chord-tone targeting. Hazel-adjacent phrasing.</div>
+      </div>
+      <div class="song-row">
+        <div class="order">05</div>
+        <div class="title">Something (solo)</div>
+        <div class="artist-col">The Beatles (Harrison)</div>
+        <div class="why">A masterclass in melodic logic. Great for scale-degree analysis.</div>
+      </div>
+      <div class="song-row">
+        <div class="order">06</div>
+        <div class="title">Lenny (intro phrases)</div>
+        <div class="artist-col">Stevie Ray Vaughan</div>
+        <div class="why">Slow, melodic, soulful. Hazel territory. Save for later in the run.</div>
+      </div>
+      <div class="song-row">
+        <div class="order">07</div>
+        <div class="title">Comfortably Numb (1st solo)</div>
+        <div class="artist-col">Pink Floyd / Gilmour</div>
+        <div class="why">Graduation level. Every note is a chord tone or deliberate tension. Aspirational.</div>
+      </div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-weeks">For each song · ~2–3 weeks</div>
+      <div class="phase-title">A repeatable process.</div>
+      <div class="phase-body">
+        <ul>
+          <li><strong>Days 1–3:</strong> learn the chord progression by ear. Verify with a chord chart. Identify the key.</li>
+          <li><strong>Days 4–7:</strong> learn the melody / main solo phrase by ear.</li>
+          <li><strong>Week 2:</strong> light analysis — what scale degrees does the main phrase land on? Which chord tones get targeted?</li>
+          <li><strong>Week 3 (optional):</strong> transpose the main phrase to one new key.</li>
+        </ul>
+        <p>Less depth than Track E — but more breadth, more often.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="transpose">
+  <div class="section-head">
+    <div class="section-num">X</div>
+    <div class="section-title-block">
+      <div class="kicker">Recurring Micro-Practice</div>
+      <h2>Transposition <em>Practice</em></h2>
+    </div>
+  </div>
+  <div class="track-detail">
+    <p class="lead">Not a track — a recurring 5-minute warmup or cooldown. The most direct test of whether scale-degree thinking is actually working in your hands. Once you can transpose freely, you've internalized the thinking.</p>
+    <div class="end-state"><strong>End State · Wk 16</strong>Take any short melody you know and play it in any key on demand, by hearing the intervals/degrees rather than calculating fret math.</div>
+
+    <div class="stages">
+      <div class="stage">
+        <div class="num">i.</div>
+        <div class="name">Simple Melodies</div>
+        <div class="detail">Nursery rhymes, well-known riffs (Happy Birthday, Twinkle Twinkle, Smoke on the Water). Transpose to one new key.</div>
+      </div>
+      <div class="stage">
+        <div class="num">ii.</div>
+        <div class="name">Any Key on Demand</div>
+        <div class="detail">Same melodies, but now transpose to <em>any</em> key without warning.</div>
+      </div>
+      <div class="stage">
+        <div class="num">iii.</div>
+        <div class="name">Song Phrases</div>
+        <div class="detail">Transpose phrases from songs you're learning in Track F.</div>
+      </div>
+      <div class="stage">
+        <div class="num">iv.</div>
+        <div class="name">Hero Solo</div>
+        <div class="detail">The full Track E transposition exercise — multiple keys, scale-degree thinking only.</div>
+      </div>
+    </div>
+
+    <p style="color: var(--ink-soft); font-size: 17px; line-height: 1.55;">Start at Stage I in Wk 5. Move up a stage roughly every 3–4 weeks. <strong>5 min/day</strong> as a warmup or cooldown — never the centerpiece of a session.</p>
+  </div>
+</section>
+
+<section class="section" id="daily">
+  <div class="section-head">
+    <div class="section-num">XI</div>
+    <div class="section-title-block">
+      <div class="kicker">Daily Practice</div>
+      <h2>The 45-<em>Minute</em> Session</h2>
+    </div>
+  </div>
+  <p class="lead">Six tracks won't fit every day. The core (A, B, C) runs daily; D, E, and F rotate. Aim for 5 sessions per week.</p>
+  <div class="daily-grid">
+    <div class="schedule-table">
+      <div class="schedule-row header">
+        <div class="schedule-time">Time</div>
+        <div class="schedule-track">Track</div>
+        <div class="schedule-activity">Activity</div>
+      </div>
+      <div class="schedule-row section-divider">Daily Core (~25 min)</div>
+      <div class="schedule-row"><div class="schedule-time">5–7 min</div><div class="schedule-track">B</div><div class="schedule-activity">Note-finding drill</div></div>
+      <div class="schedule-row"><div class="schedule-time">10–15 min</div><div class="schedule-track">A</div><div class="schedule-activity">Scale-degree work — drone + current degree</div></div>
+      <div class="schedule-row"><div class="schedule-time">10 min</div><div class="schedule-track">C</div><div class="schedule-activity">Fretboard shapes / CAGED chord tones</div></div>
+      <div class="schedule-row section-divider">Rotating (~15–20 min)</div>
+      <div class="schedule-row"><div class="schedule-time">5–10 min</div><div class="schedule-track">D</div><div class="schedule-activity">Chord-change ear training <em>(Wk 3+)</em></div></div>
+      <div class="schedule-row"><div class="schedule-time">15–20 min</div><div class="schedule-track">E</div><div class="schedule-activity">Hero solo deep work <em>(Wk 6+)</em></div></div>
+      <div class="schedule-row"><div class="schedule-time">15 min</div><div class="schedule-track">F</div><div class="schedule-activity">Song vocabulary <em>(Wk 5+)</em></div></div>
+      <div class="schedule-row section-divider">Optional Bookend (~5 min)</div>
+      <div class="schedule-row"><div class="schedule-time">5 min</div><div class="schedule-track">∞</div><div class="schedule-activity">Transposition practice <em>(Wk 5+)</em></div></div>
+    </div>
+    <div class="daily-side">
+      <h3>Weeks 1–2 will run shorter — about 25 min.</h3>
+      <p>Only A, B, and C are running. Use the extra time to over-invest in the foundation. Sit with the C drone longer than feels necessary. Tonic recognition pays back tenfold.</p>
+      <p><strong>Frequency:</strong> 5×/week is the target. 4×/week works. 3×/week is a slow build but still moves the needle.</p>
+      <div class="week-pattern">
+        <div class="label">A Sample Week (Wk 6+)</div>
+        <ol>
+          <li><strong>Core + D (chord changes) + E (hero solo)</strong></li>
+          <li><strong>Core + F (new song)</strong></li>
+          <li><strong>Core + D + E + transposition</strong></li>
+          <li><strong>Core + F + record yourself improvising</strong></li>
+          <li><strong>Core + E + freeplay over backing track</strong></li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="weeks">
+  <div class="section-head">
+    <div class="section-num">XII</div>
+    <div class="section-title-block">
+      <div class="kicker">The Map</div>
+      <h2>Week-by-Week <em>Milestones</em></h2>
+    </div>
+  </div>
+  <div class="week-grid-note">This grid shows <em>where you should be</em> by the end of each week — not what to do every single day. With six tracks rotating, no single day touches everything. Use this as a check-in, not a checklist.</div>
+  <div class="week-grid-wrap">
+    <table class="week-grid">
+      <thead><tr><th>Wk</th><th>A · Degrees</th><th>B · Notes</th><th>C · Fretboard</th><th>D · Changes</th><th>F · Songs</th><th>E · Hero Solo</th><th>∞ Transpose</th></tr></thead>
+      <tbody>
+        <tr><td class="week-num">1</td><td>Tonic — C drone</td><td>E string</td><td>A nat. minor (1 oct)</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+        <tr><td class="week-num">2</td><td>Tonic — Am drone</td><td>E + A random</td><td>A nat. minor solid</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+        <tr><td class="week-num">3</td><td>The Root (1)</td><td>E + A random</td><td>Pent. Box 1 clean</td><td>I-IV-V on guitar</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+        <tr><td class="week-num">4</td><td>The 5th</td><td>+ C all strings</td><td>Box 1 — find roots</td><td>I-IV-V on guitar</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+        <tr><td class="week-num">5</td><td>The 3rd</td><td>+ F all strings</td><td>Box 1 — b3, 5, b7</td><td>I-IV-V app</td><td>Song 1 start</td><td class="empty">—</td><td>Stage 1</td></tr>
+        <tr><td class="week-num">6</td><td>The 7th</td><td>+ G all strings</td><td>E-shape chord tones</td><td>I-IV-V app</td><td>Song 1 finish</td><td>Pick solo, start</td><td>Stage 1</td></tr>
+        <tr><td class="week-num">7</td><td>The 4th</td><td>+ 2 notes</td><td>E-shape chord tones</td><td>I-IV-V drill</td><td>Song 2 start</td><td>Learn solo</td><td>Stage 1</td></tr>
+        <tr><td class="week-num">8</td><td>The 2nd</td><td>+ 2 notes</td><td>E-shape minor</td><td>I-IV-V mastery</td><td>Song 2 finish</td><td>Learn solo</td><td>Stage 2</td></tr>
+        <tr><td class="week-num">9</td><td>The 6th</td><td>+ 2 notes</td><td>E-shape minor solid</td><td>+ vi chord</td><td>Song 3 start</td><td>Finish learning</td><td>Stage 2</td></tr>
+        <tr><td class="week-num">10</td><td>Chord tones only</td><td>Full fretboard</td><td>Pent. Box 2 clean</td><td>I-IV-V-vi real</td><td>Song 3 analyze</td><td>Analyze degrees</td><td>Stage 2</td></tr>
+        <tr><td class="week-num">11</td><td>+ b7</td><td>Full fretboard</td><td>Box 2 chord tones</td><td>Minor keys</td><td>Song 4 start</td><td>Analyze CAGED</td><td>Stage 3</td></tr>
+        <tr><td class="week-num">12</td><td>+ passing tones</td><td>Full fretboard</td><td>A-shape chord tones</td><td>Minor keys</td><td>Song 4 finish</td><td>Transpose key 1</td><td>Stage 3</td></tr>
+        <tr><td class="week-num">13</td><td>2-chord vamp</td><td>Maintenance</td><td>Connect Box 1+2</td><td>Real songs</td><td>Song 5 start</td><td>Transpose key 2</td><td>Stage 3</td></tr>
+        <tr><td class="week-num">14</td><td>Integration</td><td>Maintenance</td><td>Connect + 3rd box</td><td>Real songs</td><td>Song 5 finish</td><td>New solo</td><td>Stage 4</td></tr>
+        <tr><td class="week-num">15</td><td>Integration</td><td>Maintenance</td><td>D-shape chord tones</td><td>Real songs</td><td>Song 6 start</td><td>New solo</td><td>Stage 4</td></tr>
+        <tr><td class="week-num">16</td><td>Integration</td><td>Maintenance</td><td>Full integration</td><td>Real songs</td><td>Song 6 finish</td><td>New solo</td><td>Stage 4</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="priorities">
+  <div class="section-head">
+    <div class="section-num">XIII</div>
+    <div class="section-title-block">
+      <div class="kicker">Honest Notes</div>
+      <h2>Priorities &amp; <em>Permissions</em></h2>
+    </div>
+  </div>
+  <div class="callout">
+    <div class="callout-eyebrow">If a week feels overwhelming</div>
+    <h3>Drop in this order: <em>F → D → E → C</em>. Never drop A or B.</h3>
+    <p>Track F (songs) is the volume layer — skipping a song cycle costs you nothing structural. Track D (chord changes) can pause for a week or two. Track E (hero solo) is precious but can wait. Track C is the bridge — losing it for a week is recoverable.</p>
+    <p>Tracks A (scale degrees) and B (note finding) are the spine. If those fall, the rest doesn't have anything to attach to. Protect them.</p>
+  </div>
+
+  <div class="phase">
+    <div class="phase-weeks">A note on phrasing</div>
+    <div class="phase-title">You're handling technique in parallel — but the hero solo IS phrasing work.</div>
+    <div class="phase-body"><p>Three notes with great phrasing sound like Hazel. Fifty correct notes with no phrasing sound like an exercise. The theory tells you <em>which</em> notes; phrasing makes them <em>mean</em> something. Don't let one lap the other.</p></div>
+  </div>
+  <div class="phase">
+    <div class="phase-weeks">A note on the ear</div>
+    <div class="phase-title">You have ten years of instincts. Trust them when they push back.</div>
+    <div class="phase-body"><p>If a week's drill feels wrong in your hands, that's data. Adjust the plan, not your ear.</p></div>
+  </div>
+  <div class="phase">
+    <div class="phase-weeks">A note on the timeline</div>
+    <div class="phase-title">Week numbers are scaffolding, not gospel.</div>
+    <div class="phase-body"><p>If a stage isn't sticking, repeat the week. If it's clicking faster than expected, push ahead. The plan exists to serve the practice, not the other way around.</p></div>
+  </div>
+</section>
+
+<footer class="closing">
+  <div class="closing-mark">§</div>
+  <p>Every note is measured against the tonic.</p>
+  <p>Every phrase resolves toward a chord tone.</p>
+  <p>Every solo begins with a sound in your head.</p>
+  <div class="colophon">A practice manual · Second edition · 16 weeks · Hear it. Find it. Play it.</div>
+</footer>
+
+</div>
+</body>
+</html>
