@@ -1,5 +1,27 @@
 const A4_HZ = 440;
 
+/** Compact labels for diagrams (tooltips should still use plain English). */
+const NOTE_NAMES_DIAGRAM = [
+  "C",
+  "C♯",
+  "D",
+  "D♯",
+  "E",
+  "F",
+  "F♯",
+  "G",
+  "G♯",
+  "A",
+  "A♯",
+  "B",
+] as const;
+
+export function midiToDiagramLabel(midi: number): string {
+  const rounded = Math.round(midi);
+  const pc = ((rounded % 12) + 12) % 12;
+  return NOTE_NAMES_DIAGRAM[pc];
+}
+
 const NOTE_NAMES_PLAIN = [
   "C",
   "C sharp",

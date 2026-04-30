@@ -129,6 +129,21 @@ export default function LibraryPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>Fretboard</CardTitle>
+            <CardDescription>
+              Interactive neck preview — tap frets, optional labels, respects
+              left-handed in Settings.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="ghost" className="px-0 text-rust">
+              <Link href="/dev/fretboard">Open fretboard</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Pitch lab</CardTitle>
             <CardDescription>
               Try with the drone running — it ducks while listening.

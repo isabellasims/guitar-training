@@ -67,9 +67,12 @@ export default function HomePage() {
               Mic + Pitchy smoke test (requires HTTPS or localhost).
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-2">
             <Button asChild variant="ghost" className="px-0 text-rust">
               <Link href="/dev/pitch-test">Pitch lab</Link>
+            </Button>
+            <Button asChild variant="ghost" className="px-0 text-rust">
+              <Link href="/dev/fretboard">Fretboard (dev)</Link>
             </Button>
           </CardContent>
         </Card>

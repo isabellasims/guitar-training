@@ -32,7 +32,7 @@ Personal **guitar theory practice** app aligned with the written manual [`guitar
 | Library sine drone stub (Tone.js) | Done (pre-rendered drone MP3s later) |
 | Drone ducking while pitch mic listens (~80% reduction) | Done (`lib/audio/drone.ts` + `PitchMicPanel`) |
 | Single-note reference playback (Tone synth) | Done (`lib/audio/referenceNote.ts`, Library demo) |
-| Fretboard SVG component | Not yet (**Phase 2**) |
+| Fretboard SVG (`components/fretboard`, `/dev/fretboard`) | Done (Phase 2 baseline: tap, labels, highlights, left-handed mirror) |
 | Card types + session builder + SRS | Not yet |
 | Track A–D full node lists from manual | Stub only in `lib/tracks/tracks.ts` |
 | Track D chord audio bank | Not yet |
@@ -44,7 +44,7 @@ Personal **guitar theory practice** app aligned with the written manual [`guitar
 2. **Session** — Full-screen card flow; **drone toggle**; **mic indicator** when listening; drone ducking (~80% volume reduction during listen windows) when wired.
 3. **Tracks** — Four paths (A–D), node lists, progression state (unlocked/completed) backed by IndexedDB.
 4. **Library** — Drone player (any key/mode), future reference shapes, song/free-play areas; manual link.
-5. **Settings** — Session length targets, days/week, pitch on/off, drone volume, left-handed mirror (for fretboard when implemented).
+5. **Settings** — Session length targets, days/week, pitch on/off, drone volume, left-handed mirror (fretboard respects this).
 
 ### Card types (planned)
 
@@ -82,9 +82,10 @@ Optional later: **export/import JSON** for a second device (no backend required)
 
 ```text
 app/                  # Routes: home, session, tracks, library, settings, manifest
-components/           # UI, layout, audio (PitchMicPanel), providers
+components/           # UI, layout, audio, fretboard, providers
 lib/
-  audio/              # note utils, drone stub
+  fretboard/          # Tuning + MIDI helpers for neck positions
+  audio/              # note utils, drone, reference note
   db/                 # Dexie + bootstrap
   domain/             # Shared types
   store/              # Zustand
@@ -105,8 +106,8 @@ guitar-practice-plan.html    # Canonical manual in git; copied to public for sta
 
 1. **Phase 0 — Setup** — Next.js, PWA, Dexie, shells, design tokens. **Done.**
 2. **Phase 1 — Audio** — Pitch detection, drone (sine → MP3s later), **drone ducking**, **reference-note playback**. **Done** (MP3 asset generation still optional).
-3. **Phase 2 — Fretboard** — SVG neck, highlights, labels, tap, left-handed mirror. **Next.**
-4. **Phase 3 — Track A** — Nodes from manual, first card types, session builder stub, streak.
+3. **Phase 2 — Fretboard** — SVG neck, highlights, optional note labels, tap, inlays, left-handed mirror. **Done (baseline).**
+4. **Phase 3 — Track A** — Nodes from manual, first card types, session builder stub, streak. **Next.**
 5. **Phase 4 — Tracks B & C** — Note-finding, shape recall, chord-tone cards, SRS wiring.
 6. **Phase 5 — Track D** — Chord audio bank, `chord-change-mc`.
 
