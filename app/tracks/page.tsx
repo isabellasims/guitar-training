@@ -9,8 +9,9 @@ export default function TracksPage() {
         </p>
         <h1 className="font-display text-3xl text-ink">Skill paths</h1>
         <p className="mt-2 text-sm text-ink-soft">
-          Four tracks (A–D). Progress markers use your local save; hero solo and
-          song tracks stay deferred.
+          Five tracks (A–E). Each level shows session count and rolling
+          accuracy. Levels marked 🔒 are blocked by a prerequisite — see the
+          explanation underneath.
         </p>
       </header>
 

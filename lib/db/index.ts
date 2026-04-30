@@ -20,13 +20,28 @@ class TonicDatabase extends Dexie {
 
   constructor() {
     super(DB_NAME);
-    this.version(DB_VERSION).stores({
+    // v1: legacy schema with `a-hear-tonic`-style node IDs.
+    this.version(1).stores({
       settings: "id",
       trackProgress: "id",
       reviewItems: "id, dueDate, cardTemplateId",
       sessions: "id, startedAt",
       streak: "id",
     });
+    // v2: level-based curriculum (`A-1`...). Wipe progress so reseed lands cleanly.
+    this.version(DB_VERSION)
+      .stores({
+        settings: "id",
+        trackProgress: "id",
+        reviewItems: "id, dueDate, cardTemplateId",
+        sessions: "id, startedAt",
+        streak: "id",
+      })
+      .upgrade(async (tx) => {
+        await tx.table("trackProgress").clear();
+        await tx.table("reviewItems").clear();
+        await tx.table("sessions").clear();
+      });
   }
 }
 

@@ -1,10 +1,7 @@
 import type { TrackId } from "@/lib/domain/types";
+import { getLevelsForTrack, type Level } from "@/lib/curriculum/levels";
 
-import { TRACK_A_NODES } from "@/lib/tracks/trackA";
-import { TRACK_B_NODES } from "@/lib/tracks/trackB";
-import { TRACK_C_NODES } from "@/lib/tracks/trackC";
-import { TRACK_D_NODES } from "@/lib/tracks/trackD";
-
+/** Legacy node shape preserved for any older imports. */
 export type TrackNode = {
   id: string;
   title: string;
@@ -15,37 +12,41 @@ export type TrackDefinition = {
   id: TrackId;
   name: string;
   description: string;
-  nodes: TrackNode[];
+  /** Curriculum levels in order; replaces legacy `nodes`. */
+  levels: Level[];
 };
 
-export const TRACKS: TrackDefinition[] = [
-  {
-    id: "A",
+const DESCRIPTIONS: Record<TrackId, { name: string; description: string }> = {
+  A: {
     name: "Scale degrees",
     description:
-      "The spine: tonic, stable tones, tense tones, and chord-tone thinking — from the practice manual.",
-    nodes: [...TRACK_A_NODES],
+      "The spine: tonic → stable tones → tense tones → chord-tone soloing.",
   },
-  {
-    id: "B",
-    name: "Find it on the neck",
-    description: "Locate notes and intervals on the fretboard under time pressure.",
-    nodes: [...TRACK_B_NODES],
+  B: {
+    name: "Note finding",
+    description: "Pure recall — name and find any note on the neck under time.",
   },
-  {
-    id: "C",
-    name: "Shapes and chord tones",
-    description: "CAGED-style shapes and chord-tone targeting.",
-    nodes: [...TRACK_C_NODES],
+  C: {
+    name: "Fretboard & CAGED",
+    description: "Shapes, pentatonic boxes, CAGED chord-tone maps.",
   },
-  {
-    id: "D",
+  D: {
     name: "Chord changes",
-    description:
-      "Hear function and common progressions — quizzes now; recorded chord bank later.",
-    nodes: [...TRACK_D_NODES],
+    description: "Hear function and movement: I-IV-V, vi, real songs.",
   },
-];
+  E: {
+    name: "Intervals",
+    description: "Distance from a known reference — the secondary lens to scale degrees.",
+  },
+};
+
+export const TRACKS: TrackDefinition[] = (
+  ["A", "B", "C", "D", "E"] as const
+).map((id) => ({
+  id,
+  ...DESCRIPTIONS[id],
+  levels: getLevelsForTrack(id),
+}));
 
 export function getTrack(trackId: TrackId): TrackDefinition | undefined {
   return TRACKS.find((t) => t.id === trackId);

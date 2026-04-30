@@ -43,11 +43,16 @@ export function ChordToneTargetingPlayCard({
       />
     ) : null;
 
+  const title = params.uiTitle ?? "Chord tones";
+  const description =
+    params.uiDescription ??
+    "Any octave counts if the pitch class matches.";
+
   if (!pitchOn) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Chord tones</CardTitle>
+          <CardTitle>{title}</CardTitle>
           <CardDescription>
             Pitch detection is off — self-check for this card.
           </CardDescription>
@@ -80,8 +85,8 @@ export function ChordToneTargetingPlayCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Chord tones</CardTitle>
-        <CardDescription>Any octave counts if the pitch class matches.</CardDescription>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-ink-soft">{params.prompt}</p>

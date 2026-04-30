@@ -13,7 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { targetMidiForDroneDegreeCard } from "@/lib/session-builder/trackADeck";
+import { midiForScaleDegree } from "@/lib/scale/degreeToMidi";
 import { useSettingsStore } from "@/lib/store/settingsStore";
 
 export function DroneDegreePlayCard({
@@ -25,7 +25,11 @@ export function DroneDegreePlayCard({
 }) {
   const pitchOn = useSettingsStore((s) => s.settings.pitchDetectionEnabled);
   const hydrated = useSettingsStore((s) => s.hydrated);
-  const targetMidi = targetMidiForDroneDegreeCard(params);
+  const targetMidi = midiForScaleDegree(
+    params.tonicMidi,
+    params.mode,
+    params.degree,
+  );
   const [heard, setHeard] = useState<boolean | null>(null);
   const [selfOk, setSelfOk] = useState<boolean | null>(null);
 

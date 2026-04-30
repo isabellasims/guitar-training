@@ -31,9 +31,9 @@ export default function HomePage() {
           <CardHeader>
             <CardTitle className="text-paper">Today</CardTitle>
             <CardDescription className="text-paper-deep">
-              Mix of Tracks A–D: concept, ear and chord-function quizzes, drone
-              degree, note finding, shape recall, and chord-tone pitch check. Due
-              reviews may open the session. Finishing updates your streak.
+              Until you finish the first Track&nbsp;A block, a full session stays
+              on that lesson in order (then reviews). After that, B–D samples
+              mix in. Finishing updates progress and your streak.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 sm:flex-row">

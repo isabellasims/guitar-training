@@ -1,4 +1,4 @@
-import { defaultSettings, type Streak } from "@/lib/domain/types";
+import { defaultSettings, type Streak, type TrackId } from "@/lib/domain/types";
 import {
   getSettings,
   getStreak,
@@ -7,11 +7,7 @@ import {
   putStreak,
   putTrackProgress,
 } from "@/lib/db/index";
-import { TRACK_A_NODES } from "@/lib/tracks/trackA";
-import { TRACK_B_NODES } from "@/lib/tracks/trackB";
-import { TRACK_C_NODES } from "@/lib/tracks/trackC";
-import { TRACK_D_NODES } from "@/lib/tracks/trackD";
-import type { TrackId } from "@/lib/domain/types";
+import { getLevelsForTrack } from "@/lib/curriculum/levels";
 
 const emptyStreak: Streak = {
   currentStreak: 0,
@@ -29,29 +25,31 @@ export async function ensureDbSeeded(): Promise<void> {
   }
 }
 
-function seedTrackIfMissing(
-  trackId: TrackId,
-  nodes: { id: string }[],
-  fallbackFirst: string,
-): Promise<void> {
-  return getTrackProgress(trackId).then((existing) => {
-    if (existing) return;
-    const ids = nodes.map((n) => n.id);
-    return putTrackProgress({
-      trackId,
-      currentNodeId: ids[0] ?? fallbackFirst,
-      unlockedNodeIds: [...ids],
-      completedNodeIds: [],
-    });
+async function seedTrackIfMissing(trackId: TrackId): Promise<void> {
+  const existing = await getTrackProgress(trackId);
+  if (existing) return;
+  const levels = getLevelsForTrack(trackId);
+  const first = levels[0];
+  if (!first) return;
+  await putTrackProgress({
+    trackId,
+    currentNodeId: first.id,
+    currentLevel: first.level,
+    unlockedNodeIds: levels.map((l) => l.id),
+    completedNodeIds: [],
+    seenExplainerLevelIds: [],
+    levelSessionCounts: {},
+    recentResults: [],
   });
 }
 
-/** Tracks A–D: all manual nodes unlocked; nothing completed until you earn it. */
+/** Tracks A–E: seeded with the first level current; nothing completed. */
 export async function ensureTrackProgressSeeded(): Promise<void> {
   await Promise.all([
-    seedTrackIfMissing("A", TRACK_A_NODES, "a-hear-tonic"),
-    seedTrackIfMissing("B", TRACK_B_NODES, "b-e-string"),
-    seedTrackIfMissing("C", TRACK_C_NODES, "c-am-shape-first"),
-    seedTrackIfMissing("D", TRACK_D_NODES, "d-feel-moves"),
+    seedTrackIfMissing("A"),
+    seedTrackIfMissing("B"),
+    seedTrackIfMissing("C"),
+    seedTrackIfMissing("D"),
+    seedTrackIfMissing("E"),
   ]);
 }

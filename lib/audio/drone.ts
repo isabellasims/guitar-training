@@ -10,10 +10,15 @@ let baseLinear = 0.2;
  * 0.2 → about 80% quieter than base (matches “duck drone by 80%” spec).
  */
 let duckMultiplier = 1;
+/** Applied while an in-app scale demo plays so the melody reads over the held drone. */
+let scaleDemoDroneMultiplier = 1;
 
 function refreshDroneOutputVolume(): void {
   if (!oscillator) return;
-  const effective = Math.max(0.0001, Math.min(1, baseLinear * duckMultiplier));
+  const effective = Math.max(
+    0.0001,
+    Math.min(1, baseLinear * duckMultiplier * scaleDemoDroneMultiplier),
+  );
   oscillator.volume.value = Tone.gainToDb(effective);
 }
 
@@ -26,6 +31,7 @@ export async function startDrone(frequency: number, volume = 0.2): Promise<void>
   stopDrone();
   baseLinear = Math.max(0.0001, Math.min(1, volume));
   duckMultiplier = 1;
+  scaleDemoDroneMultiplier = 1;
   oscillator = new Tone.Oscillator(frequency, "sine").toDestination();
   refreshDroneOutputVolume();
   oscillator.start();
@@ -43,6 +49,29 @@ export function stopDrone(): void {
     oscillator = null;
   }
   duckMultiplier = 1;
+  scaleDemoDroneMultiplier = 1;
+}
+
+/**
+ * Temporarily lowers drone output (linear multiplier) so scale / melody demos sound clearer.
+ * Restores previous multiplier when `fn` completes or throws.
+ */
+export async function withQuieterDroneForScaleDemo(
+  droneOutputMultiplier: number,
+  fn: () => Promise<void>,
+): Promise<void> {
+  const prev = scaleDemoDroneMultiplier;
+  scaleDemoDroneMultiplier = Math.max(
+    0.04,
+    Math.min(1, droneOutputMultiplier),
+  );
+  refreshDroneOutputVolume();
+  try {
+    await fn();
+  } finally {
+    scaleDemoDroneMultiplier = prev;
+    refreshDroneOutputVolume();
+  }
 }
 
 export function setDroneVolumeLinear(linear: number): void {

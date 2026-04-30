@@ -6,8 +6,11 @@ const MAJOR_INTERVALS = [0, 2, 4, 5, 7, 9, 11] as const;
 export type KeyMode = "major" | "minor";
 
 /**
- * MIDI note for a scale degree (1–7) in a key, chosen octave so pitch is near `tonicMidi`.
- * `tonicMidi` can be any octave (e.g. 60 for middle C).
+ * MIDI note for a scale degree (1–7) in a key, in the same octave span as the rounded tonic
+ * (e.g. C4 tonic → degrees stay C4–B4; fifth is G4 not G3).
+ *
+ * Previous logic clamped to `base ± 6` semitones, which pulled the 5th and above down an octave
+ * and broke ascending scales and pitch targets.
  */
 export function midiForScaleDegree(
   tonicMidi: number,
@@ -16,13 +19,11 @@ export function midiForScaleDegree(
 ): number {
   const d = ((degree - 1) % 7) + 1;
   const intervals = mode === "major" ? MAJOR_INTERVALS : MINOR_INTERVALS;
-  const tonicPc = ((Math.round(tonicMidi) % 12) + 12) % 12;
+  const root = Math.round(tonicMidi);
+  const tonicPc = ((root % 12) + 12) % 12;
   const interval = intervals[d - 1];
   if (interval === undefined) throw new Error(`Invalid degree ${degree}`);
   const pc = (tonicPc + interval) % 12;
-  const base = Math.round(tonicMidi);
-  let midi = base + (pc - ((base % 12) + 12) % 12);
-  while (midi < base - 6) midi += 12;
-  while (midi > base + 6) midi -= 12;
-  return midi;
+  const semitoneOffset = (pc - tonicPc + 12) % 12;
+  return root + semitoneOffset;
 }

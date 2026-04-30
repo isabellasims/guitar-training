@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "jsx": "react"
+  },
+  "include": ["scripts/verify-curriculum.ts", "lib/**/*.ts"]
+}
