@@ -23,5 +23,31 @@ export function midiAtPosition(
   return open + fret;
 }
 
-/** Inlay frets (typical single / double markers). */
-export const INLAY_FRETS = [3, 5, 7, 9, 12, 15] as const;
+/**
+ * Labels at the nut (high e lowercase, low E uppercase; others as usual).
+ * Index matches stringIndex 0 = high e … 5 = low E.
+ */
+export const OPEN_STRING_LABELS = ["e", "B", "G", "D", "A", "E"] as const;
+
+/** Position markers: 3, 5, 7, 8, 12 (double), 15. */
+export const INLAY_FRETS = [3, 5, 7, 8, 12, 15] as const;
+
+/** e.g. "open", "3rd fret", "12th fret". */
+export function ordinalFretPhrase(fret: number): string {
+  if (fret === 0) return "open";
+  if (fret === 1) return "1st fret";
+  if (fret === 2) return "2nd fret";
+  if (fret === 3) return "3rd fret";
+  const mod100 = fret % 100;
+  if (mod100 >= 11 && mod100 <= 13) return `${fret}th fret`;
+  switch (fret % 10) {
+    case 1:
+      return `${fret}st fret`;
+    case 2:
+      return `${fret}nd fret`;
+    case 3:
+      return `${fret}rd fret`;
+    default:
+      return `${fret}th fret`;
+  }
+}

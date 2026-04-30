@@ -33,9 +33,11 @@ Personal **guitar theory practice** app aligned with the written manual [`guitar
 | Drone ducking while pitch mic listens (~80% reduction) | Done (`lib/audio/drone.ts` + `PitchMicPanel`) |
 | Single-note reference playback (Tone synth) | Done (`lib/audio/referenceNote.ts`, Library demo) |
 | Fretboard SVG (`components/fretboard`, `/dev/fretboard`) | Done (Phase 2 baseline: tap, labels, highlights, left-handed mirror) |
-| Card types + session builder + SRS | Not yet |
-| Track A–D full node lists from manual | Stub only in `lib/tracks/tracks.ts` |
-| Track D chord audio bank | Not yet |
+| Track A nodes (manual-aligned) + session runner + streak | Done (Phase 3 baseline) |
+| Track B & C nodes (manual-aligned) + note / shape / chord-tone cards | Done (Phase 4 baseline in `lib/tracks/trackB.ts`, `trackC.ts`, session sampler) |
+| Card types + SRS scheduling | Baseline (due queue + SM-2–style intervals in `lib/db/reviewOps.ts`; stable id per card def) |
+| Track D nodes + `chord-change-mc` in sessions | Done (`lib/tracks/trackD.ts`, sampler deck — theory MC; no audio bank yet) |
+| Track D / Library chord audio bank | Not yet (quizzes + key drone only) |
 | Tracks E & F (loops, annotations, your MP3s) | **Deferred** |
 
 ### Screens (target UX)
@@ -66,7 +68,7 @@ Stored in **IndexedDB** (Dexie). No user IDs.
 
 - **Settings** — `targetSessionMinutes`, `daysPerWeek`, `reminderTime`, `droneVolume`, `droneInstrument`, `pitchDetectionEnabled`, `leftHanded`.
 - **TrackProgress** (per track) — `currentNodeId`, `unlockedNodeIds`, `completedNodeIds`.
-- **ReviewItem** — SRS fields: `easeFactor`, `intervalDays`, `dueDate`, counts, plus `cardTemplateId` + `parameters`.
+- **ReviewItem** — SRS fields: `easeFactor`, `intervalDays`, `dueDate`, counts, plus `cardTemplateId`, `trackId`, `nodeId`, `parameters`. Rows are keyed by a stable hash of template + track + node + parameters so repeat practice updates the same item.
 - **Session** — `startedAt`, `completedAt`, list of **SessionCard** attempts.
 - **Streak** — `currentStreak`, `longestStreak`, `lastSessionDate`.
 
@@ -107,9 +109,9 @@ guitar-practice-plan.html    # Canonical manual in git; copied to public for sta
 1. **Phase 0 — Setup** — Next.js, PWA, Dexie, shells, design tokens. **Done.**
 2. **Phase 1 — Audio** — Pitch detection, drone (sine → MP3s later), **drone ducking**, **reference-note playback**. **Done** (MP3 asset generation still optional).
 3. **Phase 2 — Fretboard** — SVG neck, highlights, optional note labels, tap, inlays, left-handed mirror. **Done (baseline).**
-4. **Phase 3 — Track A** — Nodes from manual, first card types, session builder stub, streak. **Next.**
-5. **Phase 4 — Tracks B & C** — Note-finding, shape recall, chord-tone cards, SRS wiring.
-6. **Phase 5 — Track D** — Chord audio bank, `chord-change-mc`.
+4. **Phase 3 — Track A** — Nodes from manual, first card types, session builder, streak. **Done (baseline).**
+5. **Phase 4 — Tracks B & C** — Note-finding, shape recall, chord-tone cards, SRS queue. **Baseline done.**
+6. **Phase 5 — Track D** — `chord-change-mc`, manual nodes, Library key drone. **Baseline done** (recorded chord bank still TBD).
 
 ### Deployment
 

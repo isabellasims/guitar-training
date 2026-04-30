@@ -3,9 +3,12 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { startDrone, stopDrone } from "@/lib/audio/drone";
+import { startDrone, startDroneMidi, stopDrone } from "@/lib/audio/drone";
 import { playReferenceMidiNote } from "@/lib/audio/referenceNote";
-import { midiToPlainEnglishNote } from "@/lib/audio/noteUtils";
+import {
+  midiToHashPitchLabel,
+  midiToPlainEnglishNote,
+} from "@/lib/audio/noteUtils";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -17,6 +20,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSettingsStore } from "@/lib/store/settingsStore";
+import { cn } from "@/lib/utils";
+
+/** Pitch classes 0–11 starting at C (same MIDI mapping as middle-C octave). */
+const TONIC_PCS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
 
 /** A4 reference for a quick drone test. */
 const DEFAULT_HZ = 440;
@@ -27,21 +34,43 @@ export default function LibraryPage() {
   const hydrated = useSettingsStore((s) => s.hydrated);
 
   const [hz, setHz] = useState(String(DEFAULT_HZ));
-  const [on, setOn] = useState(false);
+  const [hzOn, setHzOn] = useState(false);
+  const [tonicPc, setTonicPc] = useState<number>(0);
+  const [keyMode, setKeyMode] = useState<"major" | "minor">("major");
+  const [keyDroneOn, setKeyDroneOn] = useState(false);
   const [playingRef, setPlayingRef] = useState(false);
 
   const vol = hydrated ? settings.droneVolume : 0.15;
 
-  const toggle = async () => {
-    if (on) {
+  const tonicMidi = 60 + ((tonicPc % 12) + 12) % 12;
+  const tonicLabel = midiToHashPitchLabel(tonicMidi);
+  const keyDroneLabel =
+    keyMode === "major" ? `${tonicLabel} major` : `${tonicLabel} minor`;
+
+  const toggleKeyDrone = async () => {
+    if (keyDroneOn) {
       stopDrone();
-      setOn(false);
+      setKeyDroneOn(false);
+      setHzOn(false);
+      return;
+    }
+    await startDroneMidi(tonicMidi, vol);
+    setKeyDroneOn(true);
+    setHzOn(false);
+  };
+
+  const toggleHzDrone = async () => {
+    if (hzOn) {
+      stopDrone();
+      setHzOn(false);
+      setKeyDroneOn(false);
       return;
     }
     const f = parseFloat(hz);
     if (!Number.isFinite(f) || f <= 0) return;
     await startDrone(f, vol);
-    setOn(true);
+    setHzOn(true);
+    setKeyDroneOn(false);
   };
 
   const hearReference = async () => {
@@ -70,10 +99,73 @@ export default function LibraryPage() {
       <div className="space-y-4">
         <Card>
           <CardHeader>
-            <CardTitle>Test drone</CardTitle>
+            <CardTitle>Key drone</CardTitle>
             <CardDescription>
-              Sine wave via Tone.js — tap Start on your phone to unlock audio.
-              Volume follows Settings → drone volume when hydrated.
+              Tonic sine pedal — pick a key, no Hz math. Same engine as lesson
+              cards; volume follows Settings.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              {TONIC_PCS.map((pc) => {
+                const midi = 60 + pc;
+                const label = midiToHashPitchLabel(midi);
+                const sel = tonicPc === pc;
+                return (
+                  <Button
+                    key={pc}
+                    type="button"
+                    size="sm"
+                    variant={sel ? "rust" : "outline"}
+                    disabled={keyDroneOn}
+                    className={cn("min-w-[2.75rem] font-mono", sel && "ring-2 ring-gold-soft")}
+                    onClick={() => setTonicPc(pc)}
+                  >
+                    {label}
+                  </Button>
+                );
+              })}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant={keyMode === "major" ? "default" : "outline"}
+                disabled={keyDroneOn}
+                onClick={() => setKeyMode("major")}
+              >
+                Major
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={keyMode === "minor" ? "default" : "outline"}
+                disabled={keyDroneOn}
+                onClick={() => setKeyMode("minor")}
+              >
+                Minor
+              </Button>
+            </div>
+            <p className="text-xs text-ink-mute">
+              Mode labels the practice context; the drone is still the tonic pitch
+              ({midiToPlainEnglishNote(tonicMidi)}).
+            </p>
+            <Button
+              type="button"
+              variant={keyDroneOn ? "outline" : "rust"}
+              onClick={() => void toggleKeyDrone()}
+            >
+              {keyDroneOn ? "Stop drone" : `Play ${keyDroneLabel} drone`}
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Advanced — frequency (Hz)</CardTitle>
+            <CardDescription>
+              For experiments or matching an external tuner. Stops the key drone
+              when started.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -84,11 +176,15 @@ export default function LibraryPage() {
                 inputMode="decimal"
                 value={hz}
                 onChange={(e) => setHz(e.target.value)}
-                disabled={on}
+                disabled={hzOn}
               />
             </div>
-            <Button type="button" variant={on ? "outline" : "rust"} onClick={() => void toggle()}>
-              {on ? "Stop" : "Start"}
+            <Button
+              type="button"
+              variant={hzOn ? "outline" : "rust"}
+              onClick={() => void toggleHzDrone()}
+            >
+              {hzOn ? "Stop" : "Start Hz drone"}
             </Button>
           </CardContent>
         </Card>

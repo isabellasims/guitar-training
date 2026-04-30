@@ -31,6 +31,8 @@ export type TrackProgress = {
 export type ReviewItem = {
   id: string;
   cardTemplateId: string;
+  trackId: TrackId;
+  nodeId: string;
   parameters: Record<string, unknown>;
   easeFactor: number;
   intervalDays: number;
@@ -43,7 +45,10 @@ export type SessionCard = {
   id: string;
   cardTemplateId: string;
   trackId: TrackId;
+  nodeId: string;
   parameters: Record<string, unknown>;
+  /** When this card was pulled from the SRS queue. */
+  reviewItemId?: string;
   startedAt: string | null;
   completedAt: string | null;
   grading: "pending" | "correct" | "incorrect" | "skipped";

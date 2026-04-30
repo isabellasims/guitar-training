@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-import { ensureDbSeeded } from "@/lib/db/bootstrap";
+import { ensureDbSeeded, ensureTrackProgressSeeded } from "@/lib/db/bootstrap";
 import { useSettingsStore } from "@/lib/store/settingsStore";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
@@ -11,6 +11,7 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void (async () => {
       await ensureDbSeeded();
+      await ensureTrackProgressSeeded();
       await hydrate();
     })();
   }, [hydrate]);

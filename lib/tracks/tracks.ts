@@ -1,5 +1,10 @@
 import type { TrackId } from "@/lib/domain/types";
 
+import { TRACK_A_NODES } from "@/lib/tracks/trackA";
+import { TRACK_B_NODES } from "@/lib/tracks/trackB";
+import { TRACK_C_NODES } from "@/lib/tracks/trackC";
+import { TRACK_D_NODES } from "@/lib/tracks/trackD";
+
 export type TrackNode = {
   id: string;
   title: string;
@@ -13,60 +18,32 @@ export type TrackDefinition = {
   nodes: TrackNode[];
 };
 
-/** Placeholder nodes — replace with full lists from `guitar-practice-plan.html`. */
 export const TRACKS: TrackDefinition[] = [
   {
     id: "A",
-    name: "Hear the key",
-    description: "Tonic recognition, drone work, and scale degrees in context.",
-    nodes: [
-      {
-        id: "a-1",
-        title: "Drone and tonic",
-        summary: "Stabilize the key center with the long drone.",
-      },
-      {
-        id: "a-2",
-        title: "Scale degrees in plain English",
-        summary: "Name degrees by ear before naming them on the neck.",
-      },
-    ],
+    name: "Scale degrees",
+    description:
+      "The spine: tonic, stable tones, tense tones, and chord-tone thinking — from the practice manual.",
+    nodes: [...TRACK_A_NODES],
   },
   {
     id: "B",
     name: "Find it on the neck",
     description: "Locate notes and intervals on the fretboard under time pressure.",
-    nodes: [
-      {
-        id: "b-1",
-        title: "Single-note finding",
-        summary: "Play the requested pitch; pitch detection verifies.",
-      },
-    ],
+    nodes: [...TRACK_B_NODES],
   },
   {
     id: "C",
     name: "Shapes and chord tones",
     description: "CAGED-style shapes and chord-tone targeting.",
-    nodes: [
-      {
-        id: "c-1",
-        title: "Shape recall",
-        summary: "Ascend and descend a shape; sequence checked by pitch.",
-      },
-    ],
+    nodes: [...TRACK_C_NODES],
   },
   {
     id: "D",
     name: "Chord changes",
-    description: "Hear function and common progressions (audio-backed).",
-    nodes: [
-      {
-        id: "d-1",
-        title: "Function quiz",
-        summary: "Multiple choice on chord role in the key.",
-      },
-    ],
+    description:
+      "Hear function and common progressions — quizzes now; recorded chord bank later.",
+    nodes: [...TRACK_D_NODES],
   },
 ];
 

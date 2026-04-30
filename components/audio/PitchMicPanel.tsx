@@ -11,6 +11,7 @@ import { setDroneDucked } from "@/lib/audio/drone";
 import {
   frequencyToMidi,
   matchesPitch,
+  midiToDiagramLabel,
   midiToFrequency,
   midiToPlainEnglishNote,
 } from "@/lib/audio/noteUtils";
@@ -31,12 +32,29 @@ function rmsLevel(timeData: Float32Array): number {
   return Math.sqrt(sum / timeData.length);
 }
 
+function pitchClass(midi: number): number {
+  const rounded = Math.round(midi);
+  return ((rounded % 12) + 12) % 12;
+}
+
+function allowedPitchClassesLabel(pcs: number[]): string {
+  const uniq = Array.from(new Set(pcs)).sort((a, b) => a - b);
+  return uniq.map((pc) => midiToDiagramLabel(pc + 48)).join(", ");
+}
+
 export function PitchMicPanel({
   targetMidi,
+  allowedPitchClasses,
   label,
+  onListenResult,
 }: {
-  targetMidi: number;
+  /** Exact MIDI target (single pitch). Omit when using `allowedPitchClasses`. */
+  targetMidi?: number;
+  /** If set, any octave of these pitch classes counts as correct. */
+  allowedPitchClasses?: number[];
   label: string;
+  /** Fires once when the listen window ends (pitch correct or not). */
+  onListenResult?: (correct: boolean) => void;
 }) {
   const [phase, setPhase] = useState<
     "idle" | "requesting" | "arming" | "listening" | "result"
@@ -53,7 +71,14 @@ export function PitchMicPanel({
   const rafRef = useRef<number | null>(null);
   const detectorRef = useRef<PitchDetectorClass<Float32Array> | null>(null);
 
-  const targetHz = midiToFrequency(targetMidi);
+  const referenceMidi =
+    targetMidi ??
+    (allowedPitchClasses?.length
+      ? allowedPitchClasses[0]! + 57
+      : 69);
+  const targetHz = midiToFrequency(referenceMidi);
+  const classMatch =
+    allowedPitchClasses != null && allowedPitchClasses.length > 0;
 
   const cleanupAudio = useCallback(() => {
     setDroneDucked(false);
@@ -122,18 +147,29 @@ export function PitchMicPanel({
         if (elapsed >= LISTEN_MS) {
           setPhase("result");
           setResult(lastMatch ? "correct" : "incorrect");
+          onListenResult?.(lastMatch);
           if (!lastMatch) {
             const parts: string[] = [];
-            const expectedLabel = midiToPlainEnglishNote(targetMidi);
+            const expectedLabel = classMatch
+              ? allowedPitchClassesLabel(allowedPitchClasses!)
+              : midiToPlainEnglishNote(targetMidi!);
             if (bestHz != null && bestClarity >= CLARITY_MIN) {
-              const heardLabel = midiToPlainEnglishNote(frequencyToMidi(bestHz));
-              if (heardLabel === expectedLabel) {
+              const heardMidi = frequencyToMidi(bestHz);
+              const heardLabel = midiToPlainEnglishNote(heardMidi);
+              if (
+                classMatch &&
+                allowedPitchClasses!.includes(pitchClass(heardMidi))
+              ) {
+                parts.push(
+                  `We heard ${heardLabel}, but not steady enough to count. Hold a clear note.`,
+                );
+              } else if (!classMatch && heardLabel === expectedLabel) {
                 parts.push(
                   `We heard something centered on ${heardLabel}, but not steady enough within ±${TOLERANCE_CENTS} cents. Try holding the note a little longer.`,
                 );
               } else {
                 parts.push(
-                  `We heard ${heardLabel}. This exercise asked for ${expectedLabel}.`,
+                  `We heard ${heardLabel}. This exercise asked for ${classMatch ? `one of: ${expectedLabel}` : expectedLabel}.`,
                 );
               }
             } else if (totalFrames > 0 && quietFrames / totalFrames > 0.7) {
@@ -143,10 +179,12 @@ export function PitchMicPanel({
             } else if (bestHz != null) {
               const heardLabel = midiToPlainEnglishNote(frequencyToMidi(bestHz));
               parts.push(
-                `Something like ${heardLabel} seemed closest, but the pitch was not clear enough to count. Try a cleaner, sustained note. You need ${expectedLabel}.`,
+                `Something like ${heardLabel} seemed closest, but the pitch was not clear enough to count. Try a cleaner, sustained note. You need ${classMatch ? `one of: ${expectedLabel}` : expectedLabel}.`,
               );
             } else {
-              parts.push(`You need ${expectedLabel}.`);
+              parts.push(
+                `You need ${classMatch ? `one of: ${expectedLabel}` : expectedLabel}.`,
+              );
             }
             setLastHeardSummary(parts.join(" ") || null);
           }
@@ -172,7 +210,12 @@ export function PitchMicPanel({
             bestClarity = clarity;
             bestHz = pitch;
           }
-          if (matchesPitch(pitch, targetHz, TOLERANCE_CENTS)) {
+          if (classMatch) {
+            const pc = pitchClass(frequencyToMidi(pitch));
+            if (allowedPitchClasses!.includes(pc)) {
+              lastMatch = true;
+            }
+          } else if (matchesPitch(pitch, targetHz, TOLERANCE_CENTS)) {
             lastMatch = true;
           }
         } else {
@@ -273,9 +316,19 @@ export function PitchMicPanel({
         )}
 
         <p className="font-mono text-xs text-ink-mute">
-          Target: {targetHz.toFixed(1)} Hz (±{TOLERANCE_CENTS} cents). Waits{" "}
-          {DELAY_MS} ms after mic opens, then listens up to {LISTEN_MS / 1000}{" "}
-          s.
+          {classMatch ? (
+            <>
+              Target pitch classes: {allowedPitchClassesLabel(allowedPitchClasses!)}{" "}
+              (any octave). Waits {DELAY_MS} ms after mic opens, then listens up
+              to {LISTEN_MS / 1000} s.
+            </>
+          ) : (
+            <>
+              Target: {targetHz.toFixed(1)} Hz (±{TOLERANCE_CENTS} cents). Waits{" "}
+              {DELAY_MS} ms after mic opens, then listens up to {LISTEN_MS / 1000}{" "}
+              s.
+            </>
+          )}
         </p>
 
         {phase === "listening" ? (

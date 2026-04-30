@@ -22,6 +22,11 @@ export function midiToDiagramLabel(midi: number): string {
   return NOTE_NAMES_DIAGRAM[pc];
 }
 
+/** Pitch class with ASCII sharp for UI emphasis (e.g. bold in copy). */
+export function midiToHashPitchLabel(midi: number): string {
+  return midiToDiagramLabel(midi).replace("♯", "#");
+}
+
 const NOTE_NAMES_PLAIN = [
   "C",
   "C sharp",

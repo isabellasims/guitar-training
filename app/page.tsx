@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { TodayStrip } from "@/components/home/TodayStrip";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -30,8 +31,9 @@ export default function HomePage() {
           <CardHeader>
             <CardTitle className="text-paper">Today</CardTitle>
             <CardDescription className="text-paper-deep">
-              Session builder and streak UI ship in the next milestones. For
-              now, use the pitch lab and manual to stay oriented.
+              Mix of Tracks A–D: concept, ear and chord-function quizzes, drone
+              degree, note finding, shape recall, and chord-tone pitch check. Due
+              reviews may open the session. Finishing updates your streak.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 sm:flex-row">
@@ -41,6 +43,7 @@ export default function HomePage() {
             <Button asChild variant="outline" className="border-paper-deep text-paper hover:bg-ink-soft">
               <Link href="/session?quick=1">5 minutes today</Link>
             </Button>
+            <TodayStrip />
           </CardContent>
         </Card>
 

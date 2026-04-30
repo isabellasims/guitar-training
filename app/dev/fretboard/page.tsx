@@ -12,8 +12,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { midiToPlainEnglishNote } from "@/lib/audio/noteUtils";
-import { midiAtPosition, type FretPosition } from "@/lib/fretboard/model";
+import { midiToHashPitchLabel, midiToOctave } from "@/lib/audio/noteUtils";
+import {
+  midiAtPosition,
+  OPEN_STRING_LABELS,
+  ordinalFretPhrase,
+  type FretPosition,
+} from "@/lib/fretboard/model";
 import { useSettingsStore } from "@/lib/store/settingsStore";
 
 export default function FretboardDevPage() {
@@ -34,8 +39,8 @@ export default function FretboardDevPage() {
         </p>
         <h1 className="font-display text-3xl text-ink">Fretboard</h1>
         <p className="mt-2 text-sm text-ink-soft">
-          Phase 2 — tap a fret to highlight. Labels use compact pitch names;
-          details below use plain English.
+          Open strings are labeled at the nut. Toggle extra labels on fretted
+          notes. Tap to select.
         </p>
       </header>
 
@@ -43,7 +48,7 @@ export default function FretboardDevPage() {
         <CardHeader>
           <CardTitle>Preview</CardTitle>
           <CardDescription>
-            High E at the top. Highlights follow Settings → left-handed.
+            High e at the top. Highlights follow Settings → left-handed.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -55,7 +60,7 @@ export default function FretboardDevPage() {
                 onCheckedChange={setLabels}
               />
               <label htmlFor="labels" className="text-sm text-ink-soft">
-                Note labels
+                Fretted note labels
               </label>
             </div>
             {hydrated ? (
@@ -98,20 +103,32 @@ export default function FretboardDevPage() {
           />
 
           {picked ? (
-            <p className="text-sm text-ink-soft">
-              <span className="font-mono text-ink-mute">Selected: </span>
-              string {picked.s + 1} (high E = 1), fret{" "}
-              {picked.f === 0 ? "open" : picked.f}. Sounds like{" "}
-              <span className="text-ink">
-                {midiToPlainEnglishNote(midiAtPosition(picked.s, picked.f))}
-              </span>
-              .
-            </p>
+            <SelectionLine s={picked.s} f={picked.f} />
           ) : (
             <p className="text-sm text-ink-mute">Tap the neck to select a fret.</p>
           )}
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+function SelectionLine({ s, f }: { s: number; f: number }) {
+  const openName = OPEN_STRING_LABELS[s];
+  if (openName === undefined) return null;
+  const midi = midiAtPosition(s, f);
+  const pitch = midiToHashPitchLabel(midi);
+  const oct = midiToOctave(midi);
+  const fretPart = ordinalFretPhrase(f);
+
+  return (
+    <p className="text-sm text-ink-soft">
+      <span className="text-ink">
+        {openName} string, {fretPart}
+      </span>
+      {" — "}
+      <strong className="font-semibold text-ink">{pitch}</strong>
+      {` (octave ${oct})`}
+    </p>
   );
 }
