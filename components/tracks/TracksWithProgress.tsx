@@ -62,14 +62,20 @@ export function TracksWithProgress() {
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const ids = ["A", "B", "C", "D", "E"] as const;
-      const next: ProgressByTrack = {};
-      for (const id of ids) {
-        next[id] = (await getTrackProgress(id)) as ProgressRow | undefined;
-      }
-      if (!cancelled) {
-        setByTrack(next);
-        setReady(true);
+      try {
+        const ids = ["A", "B", "C", "D", "E"] as const;
+        const next: ProgressByTrack = {};
+        for (const id of ids) {
+          next[id] = (await getTrackProgress(id)) as ProgressRow | undefined;
+        }
+        if (!cancelled) {
+          setByTrack(next);
+          setReady(true);
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("[TracksWithProgress] load failed", err);
+        if (!cancelled) setReady(true);
       }
     };
     void load();

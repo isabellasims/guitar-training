@@ -47,6 +47,51 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Card>
+            <Link href="/tracks" className="block">
+              <CardHeader>
+                <CardTitle>Tracks</CardTitle>
+                <CardDescription>
+                  Per-track progression — concept explainers and practice levels.
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+          <Card>
+            <Link href="/scales" className="block">
+              <CardHeader>
+                <CardTitle>Scale Library</CardTitle>
+                <CardDescription>
+                  Drill any Track C shape you&apos;ve unlocked — tonic picker
+                  for movable shapes, no progression.
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+          <Card>
+            <Link href="/notes" className="block">
+              <CardHeader>
+                <CardTitle>Note-Finding Library</CardTitle>
+                <CardDescription>
+                  Drill any Track B note-finding card you&apos;ve unlocked —
+                  continuous practice, no progression.
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+          <Card>
+            <Link href="/library" className="block">
+              <CardHeader>
+                <CardTitle>Audio lab</CardTitle>
+                <CardDescription>
+                  Drones, reference notes, fretboard preview, pitch lab.
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>Practice manual</CardTitle>

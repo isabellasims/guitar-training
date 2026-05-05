@@ -22,7 +22,13 @@ export function TodayStrip() {
   const [current, setCurrent] = useState<CurrentByTrack>({});
 
   useEffect(() => {
-    const loadStreak = () => void getStreak().then(setStreak);
+    const loadStreak = () =>
+      void getStreak()
+        .then(setStreak)
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.error("[TodayStrip] getStreak failed", err);
+        });
     const loadCurrent = () => {
       void Promise.all([
         getTrackProgress("A"),
@@ -30,28 +36,38 @@ export function TodayStrip() {
         getTrackProgress("C"),
         getTrackProgress("D"),
         getTrackProgress("E"),
-      ]).then(([a, b, c, d, e]) => {
-        const byTrack: ProgressByTrack = { A: a, B: b, C: c, D: d, E: e };
-        const ids: TrackId[] = ["A", "B", "C", "D", "E"];
-        const next: CurrentByTrack = {};
-        for (const t of ids) {
-          if (!isTrackEntered(t, byTrack)) {
-            next[t] = null;
-            continue;
+      ])
+        .then(([a, b, c, d, e]) => {
+          const byTrack: ProgressByTrack = { A: a, B: b, C: c, D: d, E: e };
+          const ids: TrackId[] = ["A", "B", "C", "D", "E"];
+          const next: CurrentByTrack = {};
+          for (const t of ids) {
+            if (!isTrackEntered(t, byTrack)) {
+              next[t] = null;
+              continue;
+            }
+            next[t] = currentLevelIdForTrack(t, byTrack);
           }
-          next[t] = currentLevelIdForTrack(t, byTrack);
-        }
-        setCurrent(next);
-      });
+          setCurrent(next);
+        })
+        .catch((err) => {
+          // eslint-disable-next-line no-console
+          console.error("[TodayStrip] loadCurrent failed", err);
+        });
     };
     loadStreak();
     loadCurrent();
     void Promise.all([
       buildNewSession({ quick: false }),
       buildNewSession({ quick: true }),
-    ]).then(([full, q]) => {
-      setCounts({ full: full.cards.length, quick: q.cards.length });
-    });
+    ])
+      .then(([full, q]) => {
+        setCounts({ full: full.cards.length, quick: q.cards.length });
+      })
+      .catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error("[TodayStrip] buildNewSession failed", err);
+      });
     window.addEventListener("tonic-streak-updated", loadStreak);
     window.addEventListener("tonic-track-progress-updated", loadCurrent);
     return () => {

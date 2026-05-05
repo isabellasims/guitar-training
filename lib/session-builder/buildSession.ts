@@ -24,6 +24,10 @@ import {
   practiceCardsForLevel,
 } from "@/lib/curriculum/cardsForLevel";
 import { needsExplainer } from "@/lib/curriculum/explainerGate";
+import {
+  buildTrackIntroCard,
+  shouldShowTrackIntro,
+} from "@/lib/curriculum/trackIntros";
 
 const TRACK_A_KEY_DEFAULT = { tonicMidi: 60, keyLabel: "C major" } as const;
 const TRACK_A_KEY_MINOR = { tonicMidi: 57, keyLabel: "A minor" } as const;
@@ -115,7 +119,6 @@ function trackACurrentKey(byTrack: ProgressByTrack): {
   const cur = a?.currentNodeId ?? "A-1";
   const lvl = getLevel(cur);
   if (!lvl) return TRACK_A_KEY_DEFAULT;
-  // A-2 and A-6 anchor minor tonic; A-11+ uses A minor too (chord tones / pent).
   if (
     lvl.id === "A-2" ||
     lvl.id === "A-6" ||
@@ -183,110 +186,113 @@ export function filterAllowedReviews(
   return allowed.slice(0, limit).map((c) => ({ ...c, slot: "review" }));
 }
 
+/** Per-track block: optional intro → optional foundation gate → practice cards. */
+type TrackBlock = {
+  trackId: TrackId;
+  intro: SessionCard | null;
+  foundation: SessionCard | null;
+  practice: SessionCard[];
+};
+
+function buildTrackBlock(
+  trackId: TrackId,
+  byTrack: ProgressByTrack,
+  maxPractice: number,
+  mixProductionAndRecognition: boolean,
+): TrackBlock | null {
+  if (!isTrackEntered(trackId, byTrack)) return null;
+  const cur = currentLevelIdForTrack(trackId, byTrack);
+  if (!cur) return null;
+
+  const slot: SessionSlot =
+    trackId === "A"
+      ? "track-A"
+      : trackId === "B"
+        ? "track-B"
+        : trackId === "C"
+          ? "track-C"
+          : trackId === "D"
+            ? "track-D"
+            : "track-E";
+
+  const intro = shouldShowTrackIntro(byTrack[trackId])
+    ? builtToSession(buildTrackIntroCard(trackId, cur), "track-intro")
+    : null;
+
+  let foundation: SessionCard | null = null;
+  if (needsExplainer(byTrack[trackId], cur)) {
+    const explainer = explainerForLevel(cur);
+    if (explainer) {
+      foundation = builtToSession(explainer, "foundation-gate");
+    }
+  }
+
+  const built = mixProductionAndRecognition
+    ? pickPracticeMixed(cur, maxPractice)
+    : pickPractice(cur, maxPractice);
+  const practice = built.map((b) => builtToSession(b, slot));
+
+  return { trackId, intro, foundation, practice };
+}
+
 type CoreSlots = {
   warmup: SessionCard;
-  foundation: SessionCard[];
-  trackA: SessionCard[];
-  trackB: SessionCard[];
-  trackC: SessionCard[];
-  trackD: SessionCard[];
-  trackE: SessionCard[];
+  trackBlocks: TrackBlock[];
   reviews: SessionCard[];
   afterglow: SessionCard;
 };
 
-function fmtCurrentLevel(t: TrackId, byTrack: ProgressByTrack): string | null {
-  return currentLevelIdForTrack(t, byTrack);
-}
-
-function buildFoundationGate(
-  byTrack: ProgressByTrack,
-): SessionCard[] {
-  // §5 Slot 2: order A, C, B, D, E.
-  const order: TrackId[] = ["A", "C", "B", "D", "E"];
-  const out: SessionCard[] = [];
-  for (const t of order) {
-    if (!isTrackEntered(t, byTrack)) continue;
-    const cur = fmtCurrentLevel(t, byTrack);
-    if (!cur) continue;
-    if (!needsExplainer(byTrack[t], cur)) continue;
-    const explainer = explainerForLevel(cur);
-    if (!explainer) continue;
-    out.push(builtToSession(explainer, "foundation-gate"));
+function totalSeconds(slots: CoreSlots): number {
+  let total = durationSec(slots.warmup) + durationSec(slots.afterglow);
+  for (const b of slots.trackBlocks) {
+    if (b.intro) total += durationSec(b.intro);
+    if (b.foundation) total += durationSec(b.foundation);
+    total += b.practice.reduce((s, c) => s + durationSec(c), 0);
   }
-  return out;
-}
-
-function buildTrackBlock(
-  trackId: TrackId,
-  slot: SessionSlot,
-  byTrack: ProgressByTrack,
-  maxCards: number,
-  mixProductionAndRecognition: boolean,
-): SessionCard[] {
-  if (!isTrackEntered(trackId, byTrack)) return [];
-  const cur = fmtCurrentLevel(trackId, byTrack);
-  if (!cur) return [];
-  // If a Foundation level still needs its explainer, the practice cards are
-  // GATED until the gate runs. The gate card is in this same session at Slot 2,
-  // so we still emit practice — gating is enforced by ordering, not by skipping.
-  const built = mixProductionAndRecognition
-    ? pickPracticeMixed(cur, maxCards)
-    : pickPractice(cur, maxCards);
-  return built.map((b) => builtToSession(b, slot));
-}
-
-function totalDuration(cards: SessionCard[]): number {
-  return cards.reduce((sum, c) => sum + durationSec(c), 0);
+  total += slots.reviews.reduce((s, c) => s + durationSec(c), 0);
+  return total;
 }
 
 /**
  * Trim per `rules.md` §5 Step 3, preserving never-drop guarantees.
+ * Order: reviews → second card of D/E → C → B → third card of A.
+ * Never drops: warmup, track intros, foundation gates, first card of any track block, afterglow.
  */
 function trim(slots: CoreSlots, targetSec: number): CoreSlots {
-  const cap = targetSec * 1.2; // ±20% tolerance.
-  const compute = () =>
-    [
-      slots.warmup,
-      ...slots.foundation,
-      ...slots.trackA,
-      ...slots.trackB,
-      ...slots.trackC,
-      ...slots.trackD,
-      ...slots.trackE,
-      ...slots.reviews,
-      slots.afterglow,
-    ].reduce((s, c) => s + durationSec(c), 0);
+  const cap = targetSec * 1.2;
+  const blockFor = (t: TrackId) =>
+    slots.trackBlocks.find((b) => b.trackId === t);
 
-  // 1. Drop reviews lowest-priority first (queue is sorted by dueDate asc; lowest priority = last).
-  while (compute() > cap && slots.reviews.length > 0) {
+  while (totalSeconds(slots) > cap && slots.reviews.length > 0) {
     slots.reviews.pop();
   }
-  // 2. Drop second card of D / E.
-  if (compute() > cap && slots.trackD.length > 1) slots.trackD.pop();
-  if (compute() > cap && slots.trackE.length > 1) slots.trackE.pop();
-  // 3. Drop second card of C.
-  if (compute() > cap && slots.trackC.length > 1) slots.trackC.pop();
-  // 4. Drop second card of B.
-  if (compute() > cap && slots.trackB.length > 1) slots.trackB.pop();
-  // 5. Drop third card of A.
-  if (compute() > cap && slots.trackA.length > 2) slots.trackA.pop();
-
+  for (const t of ["D", "E", "C", "B"] as TrackId[]) {
+    const block = blockFor(t);
+    if (
+      totalSeconds(slots) > cap &&
+      block &&
+      block.practice.length > 1
+    ) {
+      block.practice.pop();
+    }
+  }
+  const a = blockFor("A");
+  if (totalSeconds(slots) > cap && a && a.practice.length > 2) {
+    a.practice.pop();
+  }
   return slots;
 }
 
 function flatten(slots: CoreSlots): SessionCard[] {
-  return [
-    slots.warmup,
-    ...slots.foundation,
-    ...slots.trackA,
-    ...slots.trackB,
-    ...slots.trackC,
-    ...slots.trackD,
-    ...slots.trackE,
-    ...slots.reviews,
-    slots.afterglow,
-  ];
+  const out: SessionCard[] = [slots.warmup];
+  for (const b of slots.trackBlocks) {
+    if (b.intro) out.push(b.intro);
+    if (b.foundation) out.push(b.foundation);
+    out.push(...b.practice);
+  }
+  out.push(...slots.reviews);
+  out.push(slots.afterglow);
+  return out;
 }
 
 async function loadProgress(): Promise<ProgressByTrack> {
@@ -302,7 +308,8 @@ async function loadProgress(): Promise<ProgressByTrack> {
 
 /**
  * Pure variant of `buildNewSession` — takes pre-fetched inputs.
- * `rules.md` §5 algorithm runs here so it can be unit-tested without Dexie.
+ * Cards are grouped per-track: each track finishes (intro → foundation → practice)
+ * before moving to the next, with reviews pooled before the afterglow.
  */
 export function assembleSession(input: {
   quick: boolean;
@@ -312,42 +319,49 @@ export function assembleSession(input: {
 }): Session {
   const targetSec = input.targetMinutes * 60;
 
-  // Slot 1.
   const warmupReview = filterAllowedReviews(input.dueReviews, input.byTrack, 1);
   const warmup: SessionCard =
     warmupReview[0]
       ? { ...warmupReview[0], slot: "warmup" }
       : builtToSession(buildWarmupCard(input.byTrack), "warmup");
 
-  // Slot 2.
-  const foundation = buildFoundationGate(input.byTrack);
-
-  // Slots 3–7.
   const aMax = input.quick ? 1 : 3;
   const bMax = input.quick ? 1 : 2;
   const cMax = input.quick ? 1 : 2;
   const deMax = input.quick ? 1 : 2;
 
-  const trackA = buildTrackBlock("A", "track-A", input.byTrack, aMax, true);
-  const trackB = buildTrackBlock("B", "track-B", input.byTrack, bMax, false);
-  const trackC = buildTrackBlock("C", "track-C", input.byTrack, cMax, false);
-  const trackD = buildTrackBlock("D", "track-D", input.byTrack, deMax, false);
-  const trackE = buildTrackBlock("E", "track-E", input.byTrack, deMax, false);
+  const trackOrder: TrackId[] = ["A", "B", "C", "D", "E"];
+  const blockMaxes: Record<TrackId, number> = {
+    A: aMax,
+    B: bMax,
+    C: cMax,
+    D: deMax,
+    E: deMax,
+  };
 
-  // Slot 8.
+  const trackBlocks: TrackBlock[] = [];
+  for (const t of trackOrder) {
+    const block = buildTrackBlock(
+      t,
+      input.byTrack,
+      blockMaxes[t],
+      t === "A",
+    );
+    if (block) trackBlocks.push(block);
+  }
+
   const warmupIsReview =
     warmup.slot === "warmup" && warmup.reviewItemId != null;
   const reviewSoftCap = input.quick ? 0 : 5 - (warmupIsReview ? 1 : 0);
   const remainingDue = input.dueReviews.filter(
     (r) => r.id !== warmup.reviewItemId,
   );
-  const moreReviews = filterAllowedReviews(
+  const reviews = filterAllowedReviews(
     remainingDue,
     input.byTrack,
     Math.max(0, reviewSoftCap),
   );
 
-  // Slot 9.
   const afterglow = builtToSession(
     buildAfterglowCard(input.byTrack),
     "afterglow",
@@ -355,13 +369,8 @@ export function assembleSession(input: {
 
   let slots: CoreSlots = {
     warmup,
-    foundation,
-    trackA,
-    trackB,
-    trackC,
-    trackD,
-    trackE,
-    reviews: moreReviews,
+    trackBlocks,
+    reviews,
     afterglow,
   };
 
@@ -377,7 +386,7 @@ export function assembleSession(input: {
 }
 
 /**
- * Build a fresh session per `public/rules.md` §5.
+ * Build a fresh session per `public/rules.md` §5 (with per-track grouping override).
  * Pulls live progress + due reviews from Dexie and delegates to `assembleSession`.
  */
 export async function buildNewSession(options: {
@@ -389,7 +398,6 @@ export async function buildNewSession(options: {
     : settings?.targetSessionMinutes ?? 30;
 
   const byTrack = await loadProgress();
-  // 13 = warmup-1 + reviewSoftCap-5 + buffer for filtering.
   const dueReviews = await getDueReviewCards(13);
 
   return assembleSession({
@@ -401,4 +409,3 @@ export async function buildNewSession(options: {
 }
 
 export type { Settings };
-export { totalDuration };

@@ -81,6 +81,7 @@ export type SessionCard = {
 
 export type SessionSlot =
   | "warmup"
+  | "track-intro"
   | "foundation-gate"
   | "track-A"
   | "track-B"

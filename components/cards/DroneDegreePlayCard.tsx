@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { DroneDegreePlayParams } from "@/lib/cards/types";
 import { LessonDroneToggle } from "@/components/audio/LessonDroneToggle";
@@ -13,8 +13,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { midiForScaleDegree } from "@/lib/scale/degreeToMidi";
 import { useSettingsStore } from "@/lib/store/settingsStore";
+
+type Outcome = "pending" | "correct" | "incorrect";
 
 export function DroneDegreePlayCard({
   params,
@@ -25,91 +26,123 @@ export function DroneDegreePlayCard({
 }) {
   const pitchOn = useSettingsStore((s) => s.settings.pitchDetectionEnabled);
   const hydrated = useSettingsStore((s) => s.hydrated);
-  const targetMidi = midiForScaleDegree(
-    params.tonicMidi,
-    params.mode,
-    params.degree,
+  const [step, setStep] = useState(0);
+  const [outcomes, setOutcomes] = useState<Outcome[]>(
+    () => params.prompts.map(() => "pending"),
   );
-  const [heard, setHeard] = useState<boolean | null>(null);
   const [selfOk, setSelfOk] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setSelfOk(null);
+  }, [step]);
 
   if (!hydrated) {
     return (
       <Card>
-        <CardContent className="py-8 text-sm text-ink-mute">Loading…</CardContent>
-      </Card>
-    );
-  }
-
-  if (!pitchOn) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Play the degree</CardTitle>
-          <CardDescription>
-            Pitch detection is off in Settings — self-check for this card.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-ink-soft">{params.prompt}</p>
-          <LessonDroneToggle
-            tonicMidi={params.tonicMidi}
-            keyLabel={params.keyLabel}
-          />
-          <p className="text-sm text-ink-mute">
-            Optional: Library has more keys later — for this card, use the button
-            above.
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="rust" onClick={() => setSelfOk(true)}>
-              I played it cleanly
-            </Button>
-            <Button type="button" variant="outline" onClick={() => setSelfOk(false)}>
-              Not yet
-            </Button>
-          </div>
-          {selfOk !== null ? (
-            <Button
-              type="button"
-              variant={selfOk ? "rust" : "outline"}
-              onClick={() => onContinue(selfOk)}
-            >
-              Continue
-            </Button>
-          ) : null}
+        <CardContent className="py-8 text-sm text-ink-mute">
+          Loading…
         </CardContent>
       </Card>
     );
   }
 
+  const cur = params.prompts[step];
+  const total = params.prompts.length;
+  const finished = step >= total;
+
+  if (!cur || finished) {
+    const correct = outcomes.filter((o) => o === "correct").length;
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>{params.uiTitle ?? "Sequence complete"}</CardTitle>
+          <CardDescription>
+            {correct} of {total} correct.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            type="button"
+            variant="rust"
+            onClick={() => onContinue(correct >= Math.ceil(total / 2))}
+          >
+            Continue
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const recordOutcome = (ok: boolean) => {
+    setOutcomes((prev) => {
+      const next = [...prev];
+      next[step] = ok ? "correct" : "incorrect";
+      return next;
+    });
+    window.setTimeout(() => setStep((s) => s + 1), 700);
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Play the degree</CardTitle>
+        <CardTitle>
+          {params.uiTitle ?? `Play in ${params.keyLabel}`}
+        </CardTitle>
         <CardDescription>
-          {params.keyLabel} — use the drone button below, then play when ready.
+          {params.uiDescription ??
+            `Step ${step + 1} of ${total}. Use the drone, then play.`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-ink-soft">{params.prompt}</p>
+        <p className="text-base text-ink">{cur.text}</p>
         <LessonDroneToggle
           tonicMidi={params.tonicMidi}
           keyLabel={params.keyLabel}
         />
-        <PitchMicPanel
-          key={`${targetMidi}-${params.prompt}`}
-          targetMidi={targetMidi}
-          label={params.prompt}
-          onListenResult={(ok) => setHeard(ok)}
-        />
-        {heard !== null ? (
-          <Button
-            type="button"
-            variant="rust"
-            onClick={() => onContinue(heard)}
-          >
-            Continue
-          </Button>
+        {pitchOn ? (
+          <PitchMicPanel
+            key={`${step}-${cur.expectedPitchClasses.join(",")}`}
+            allowedPitchClasses={cur.expectedPitchClasses}
+            label={cur.text}
+            onListenResult={recordOutcome}
+          />
+        ) : (
+          <div className="rounded-md border border-rule bg-paper-soft px-3 py-3">
+            <p className="mb-2 text-sm text-ink-soft">
+              Pitch detection is off — self-check.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant={selfOk === true ? "rust" : "outline"}
+                onClick={() => setSelfOk(true)}
+              >
+                I played it cleanly
+              </Button>
+              <Button
+                type="button"
+                variant={selfOk === false ? "rust" : "outline"}
+                onClick={() => setSelfOk(false)}
+              >
+                Not yet
+              </Button>
+              <Button
+                type="button"
+                variant="rust"
+                disabled={selfOk === null}
+                onClick={() => recordOutcome(selfOk ?? false)}
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {outcomes[step] === "correct" ? (
+          <p className="font-display text-2xl text-rust">Nice!</p>
+        ) : null}
+        {outcomes[step] === "incorrect" ? (
+          <p className="text-sm text-rust">Moving on — we will revisit this.</p>
         ) : null}
       </CardContent>
     </Card>

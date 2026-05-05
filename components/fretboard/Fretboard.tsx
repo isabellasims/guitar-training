@@ -21,11 +21,23 @@ const PAD_R = 14;
 const PAD_T = 12;
 const PAD_B = 14;
 
+/**
+ * Visual variant for a highlighted fret cell.
+ *
+ *   - `primary` (default) — strong rust outline + light fill (current target).
+ *   - `dim`               — hollow ink outline (upcoming / "play me later").
+ *   - `success`           — gold/green filled (already played correctly).
+ *   - `warning`           — rust-deep solid (hint flash).
+ */
+export type HighlightVariant = "primary" | "dim" | "success" | "warning";
+
+export type FretboardHighlight = FretPosition & { variant?: HighlightVariant };
+
 type FretboardProps = {
   /** Highest fret wire drawn (inclusive). */
   maxFret?: number;
-  /** Cells to emphasize (outline + fill). */
-  highlights?: FretPosition[];
+  /** Cells to emphasize. Accepts plain {string,fret} or with `variant`. */
+  highlights?: FretboardHighlight[] | FretPosition[];
   /** Show pitch-class labels on fretted notes (not on open strings; open uses string names). */
   showNoteLabels?: boolean;
   /** Mirror horizontally for left-handed setting. */
@@ -47,13 +59,61 @@ function toScreenX(logicalX: number, leftHanded: boolean, innerW: number): numbe
   return base;
 }
 
-function isHighlighted(
-  highlights: FretPosition[] | undefined,
+function highlightAt(
+  highlights: (FretboardHighlight | FretPosition)[] | undefined,
   s: number,
   f: number,
-): boolean {
-  return highlights?.some((h) => h.stringIndex === s && h.fret === f) ?? false;
+): FretboardHighlight | null {
+  if (!highlights) return null;
+  // Walk last → first so later entries override earlier ones for the same cell.
+  for (let i = highlights.length - 1; i >= 0; i--) {
+    const h = highlights[i]!;
+    if (h.stringIndex === s && h.fret === f) {
+      return h as FretboardHighlight;
+    }
+  }
+  return null;
 }
+
+const VARIANT_STYLE: Record<
+  HighlightVariant,
+  {
+    fill: string;
+    fillOpacity: number;
+    stroke: string;
+    strokeWidth: number;
+    radius: number;
+  }
+> = {
+  primary: {
+    fill: "var(--rust)",
+    fillOpacity: 0.35,
+    stroke: "var(--rust-deep)",
+    strokeWidth: 1.5,
+    radius: 7,
+  },
+  dim: {
+    fill: "var(--ink)",
+    fillOpacity: 0.08,
+    stroke: "var(--ink-mute)",
+    strokeWidth: 1,
+    radius: 6.5,
+  },
+  success: {
+    fill: "var(--gold)",
+    fillOpacity: 0.85,
+    stroke: "var(--burgundy)",
+    strokeWidth: 1.5,
+    radius: 7.5,
+  },
+  warning: {
+    fill: "var(--rust-deep)",
+    fillOpacity: 0.7,
+    stroke: "var(--rust)",
+    strokeWidth: 1.75,
+    radius: 8,
+  },
+};
 
 export function Fretboard({
   maxFret = DEFAULT_MAX_FRET,
@@ -207,7 +267,9 @@ export function Fretboard({
           const lx = logicalXForFret(f);
           const cx = toScreenX(lx, leftHanded, innerW);
           const cy = stringY(s);
-          const hl = isHighlighted(highlights, s, f);
+          const hl = highlightAt(highlights, s, f);
+          const variantKey: HighlightVariant = hl?.variant ?? "primary";
+          const variant = hl ? VARIANT_STYLE[variantKey] : null;
           const midi = midiAtPosition(s, f, STANDARD_OPEN_MIDI);
           const label = midiToDiagramLabel(midi);
           const cellW = f === 0 ? NUT_W * 0.75 : FRET_W;
@@ -227,15 +289,15 @@ export function Fretboard({
                   aria-hidden
                 />
               ) : null}
-              {hl ? (
+              {variant ? (
                 <circle
                   cx={cx}
                   cy={cy}
-                  r={7}
-                  fill="var(--rust)"
-                  fillOpacity={0.35}
-                  stroke="var(--rust-deep)"
-                  strokeWidth={1.5}
+                  r={variant.radius}
+                  fill={variant.fill}
+                  fillOpacity={variant.fillOpacity}
+                  stroke={variant.stroke}
+                  strokeWidth={variant.strokeWidth}
                 />
               ) : null}
               {showNoteLabels && f > 0 ? (

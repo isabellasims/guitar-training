@@ -1,15 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { ArrowLeft, SkipForward } from "lucide-react";
 
+import { ChordChangeIdentifyCard } from "@/components/cards/ChordChangeIdentifyCard";
 import { ChordChangeMcCard } from "@/components/cards/ChordChangeMcCard";
 import { ChordToneTargetingPlayCard } from "@/components/cards/ChordToneTargetingPlayCard";
 import { ConceptExplainerCard } from "@/components/cards/ConceptExplainerCard";
+import { DroneDegreeIdentifyCard } from "@/components/cards/DroneDegreeIdentifyCard";
 import { DroneDegreePlayCard } from "@/components/cards/DroneDegreePlayCard";
 import { DroneListenWarmupCard } from "@/components/cards/DroneListenWarmupCard";
 import { FreeplayAfterglowCard } from "@/components/cards/FreeplayAfterglowCard";
 import { FunctionalEarMcCard } from "@/components/cards/FunctionalEarMcCard";
+import { IntervalIdentifyCard } from "@/components/cards/IntervalIdentifyCard";
 import { IntervalPlayCard } from "@/components/cards/IntervalPlayCard";
 import { NoteFindingPlayCard } from "@/components/cards/NoteFindingPlayCard";
 import { ShapeRecallPlayCard } from "@/components/cards/ShapeRecallPlayCard";
@@ -22,7 +26,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import type { CardTemplateId, CardTemplateParams } from "@/lib/cards/types";
-import type { Session, SessionCard } from "@/lib/domain/types";
+import type { Session, SessionCard, TrackId } from "@/lib/domain/types";
 import { syncReviewAfterCompletedSession } from "@/lib/db/reviewOps";
 import {
   applySessionToTrackProgress,
@@ -34,6 +38,14 @@ import {
 } from "@/lib/db/sessionOps";
 import { buildNewSession } from "@/lib/session-builder/buildSession";
 import { getLevel } from "@/lib/curriculum/levels";
+
+const TRACK_NAMES: Record<TrackId, string> = {
+  A: "Track A · Scale Degrees",
+  B: "Track B · Note Finding",
+  C: "Track C · Fretboard & CAGED",
+  D: "Track D · Hearing Chord Changes",
+  E: "Track E · Intervals",
+};
 
 function renderActiveCard(
   card: SessionCard,
@@ -73,6 +85,36 @@ function renderActiveCard(
       const params = card.parameters as CardTemplateParams["drone-degree-play"];
       return (
         <DroneDegreePlayCard
+          params={params}
+          onContinue={(ok) => onDone(ok ? "correct" : "incorrect")}
+        />
+      );
+    }
+    case "drone-degree-identify": {
+      const params =
+        card.parameters as CardTemplateParams["drone-degree-identify"];
+      return (
+        <DroneDegreeIdentifyCard
+          params={params}
+          onContinue={(ok) => onDone(ok ? "correct" : "incorrect")}
+        />
+      );
+    }
+    case "chord-change-identify": {
+      const params =
+        card.parameters as CardTemplateParams["chord-change-identify"];
+      return (
+        <ChordChangeIdentifyCard
+          params={params}
+          onContinue={(ok) => onDone(ok ? "correct" : "incorrect")}
+        />
+      );
+    }
+    case "interval-identify": {
+      const params =
+        card.parameters as CardTemplateParams["interval-identify"];
+      return (
+        <IntervalIdentifyCard
           params={params}
           onContinue={(ok) => onDone(ok ? "correct" : "incorrect")}
         />
@@ -171,8 +213,16 @@ function LevelUpScreen({
   outcome: SessionApplyOutcome;
   onClose: () => void;
 }) {
+  // If nothing new completed, close on the next tick rather than during render
+  // (calling a router push during render trips React's "update during render"
+  // guard and can flash an error overlay before navigating).
+  useEffect(() => {
+    if (outcome.newlyCompleted.length === 0) {
+      onClose();
+    }
+  }, [outcome, onClose]);
+
   if (outcome.newlyCompleted.length === 0) {
-    onClose();
     return null;
   }
   return (
@@ -223,6 +273,19 @@ function LevelUpScreen({
   );
 }
 
+const SLOT_LABEL: Record<string, string> = {
+  warmup: "Warmup",
+  "track-intro": "Track introduction",
+  "foundation-gate": "New concept",
+  "track-A": "Practice",
+  "track-B": "Practice",
+  "track-C": "Practice",
+  "track-D": "Practice",
+  "track-E": "Practice",
+  review: "Review",
+  afterglow: "Afterglow",
+};
+
 export function SessionRunner({ quick }: { quick: boolean }) {
   const router = useRouter();
   const [session, setSession] = useState<Session | null>(null);
@@ -243,16 +306,25 @@ export function SessionRunner({ quick }: { quick: boolean }) {
     };
   }, [quick]);
 
-  const trackLabel = useMemo(() => {
-    if (!session?.cards.length) return "…";
-    const ids = Array.from(new Set(session.cards.map((c) => c.trackId))).sort();
-    if (ids.length === 1) return `Track ${ids[0]}`;
-    return "Mixed tracks";
-  }, [session]);
-
   const card = session?.cards[index];
   const n = session?.cards.length ?? 0;
   const pos = index + 1;
+
+  const goBack = useCallback(() => {
+    if (busy || index === 0) return;
+    // Reset the prior card's grading so the user can redo their answer.
+    setSession((prev) => {
+      if (!prev) return prev;
+      const targetIdx = index - 1;
+      const nextCards = prev.cards.map((c, i) =>
+        i === targetIdx
+          ? { ...c, grading: "pending" as const, completedAt: null }
+          : c,
+      );
+      return { ...prev, cards: nextCards };
+    });
+    setIndex((i) => Math.max(0, i - 1));
+  }, [busy, index]);
 
   const onDone = useCallback(
     async (grading: SessionCard["grading"]) => {
@@ -276,19 +348,42 @@ export function SessionRunner({ quick }: { quick: boolean }) {
         let result: SessionApplyOutcome = { newlyCompleted: [] };
         try {
           await saveCompletedSession(finished);
+        } catch (err) {
+          // Persist failure shouldn't crash the app; keep going.
+          // eslint-disable-next-line no-console
+          console.error("[session] saveCompletedSession failed", err);
+        }
+        try {
           await syncReviewAfterCompletedSession(finished);
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error("[session] syncReviewAfterCompletedSession failed", err);
+        }
+        try {
           result = await applySessionToTrackProgress(finished);
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error("[session] applySessionToTrackProgress failed", err);
+        }
+        try {
           await applyStreakForCompletedSession();
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error("[session] applyStreakForCompletedSession failed", err);
+        }
+        try {
           window.dispatchEvent(new Event("tonic-streak-updated"));
           window.dispatchEvent(new Event("tonic-track-progress-updated"));
-        } finally {
-          setSession(finished);
-          setBusy(false);
-          if (result.newlyCompleted.length > 0) {
-            setOutcome(result);
-          } else {
-            router.push("/");
-          }
+        } catch {
+          /* benign in non-browser env */
+        }
+
+        setSession(finished);
+        setBusy(false);
+        if (result.newlyCompleted.length > 0) {
+          setOutcome(result);
+        } else {
+          router.push("/");
         }
         return;
       }
@@ -321,32 +416,52 @@ export function SessionRunner({ quick }: { quick: boolean }) {
   }
 
   const lvl = getLevel(card.nodeId);
-  const slotLabel: Record<string, string> = {
-    warmup: "Warmup",
-    "foundation-gate": "New concept",
-    "track-A": "Track A",
-    "track-B": "Track B",
-    "track-C": "Track C",
-    "track-D": "Track D",
-    "track-E": "Track E",
-    review: "Review",
-    afterglow: "Afterglow",
-  };
-  const subtitle =
-    lvl != null
-      ? `${lvl.trackId}·${lvl.level} · ${lvl.name}`
-      : trackLabel;
+  const trackHeader = TRACK_NAMES[card.trackId] ?? `Track ${card.trackId}`;
+  const slotLabel = card.slot ? SLOT_LABEL[card.slot] ?? "Session" : "Session";
+  const levelTag =
+    lvl != null ? `${lvl.trackId}·${lvl.level} · ${lvl.name}` : null;
 
   return (
     <main className="px-4 py-8">
-      <header className="mb-6">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-ink-mute">
-          {card.slot ? slotLabel[card.slot] ?? "Session" : "Session"}
-        </p>
-        <p className="text-sm text-ink-soft">
-          Card {pos} of {n}
-        </p>
-        <h1 className="font-display text-2xl text-ink">{subtitle}</h1>
+      <header className="mb-6 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={goBack}
+            disabled={index === 0 || busy}
+            aria-label="Previous card"
+          >
+            <ArrowLeft className="mr-1 h-4 w-4" strokeWidth={1.75} />
+            Back
+          </Button>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-ink-mute">
+            Card {pos} of {n} · {slotLabel}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void onDone("correct")}
+            disabled={busy}
+            aria-label="Skip card and mark complete"
+          >
+            Skip
+            <SkipForward
+              className="ml-1 h-4 w-4"
+              strokeWidth={1.75}
+            />
+          </Button>
+        </div>
+        <div>
+          <p className="font-mono text-[11px] uppercase tracking-widest text-rust">
+            {trackHeader}
+          </p>
+          {levelTag ? (
+            <h1 className="font-display text-2xl text-ink">{levelTag}</h1>
+          ) : null}
+        </div>
       </header>
 
       <div key={card.id} className="space-y-6">

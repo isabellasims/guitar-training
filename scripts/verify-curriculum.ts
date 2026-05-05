@@ -104,7 +104,7 @@ function markComplete(p: ProgressByTrack, levelId: string) {
   const ids = session.cards.map((c) => c.cardTemplateId);
   const slots = session.cards.map((c) => c.slot);
 
-  // Order: warmup, foundation gates, track-A, track-B, track-C, [no D/E], (reviews=0), afterglow.
+  // Per-track grouping: warmup, [A intro, A explainer, A practice…], [B intro…], [C intro…], afterglow.
   log(slots[0] === "warmup", "first session: starts with warmup");
   log(
     slots[slots.length - 1] === "afterglow",
@@ -114,27 +114,29 @@ function markComplete(p: ProgressByTrack, levelId: string) {
   const foundationCount = slots.filter((s) => s === "foundation-gate").length;
   log(
     foundationCount === 3,
-    "first session: 3 foundation gates (A·1, C·1, B·1)",
+    "first session: 3 foundation gates (A·1, B·1, C·1)",
     `actual=${foundationCount}`,
   );
+  const introCount = slots.filter((s) => s === "track-intro").length;
+  log(
+    introCount === 3,
+    "first session: 3 track-intro cards (A, B, C)",
+    `actual=${introCount}`,
+  );
 
-  const slotOrderOK = slots.every((s, i) => {
-    const prev = slots[i - 1];
-    if (!prev) return true;
-    const order = [
-      "warmup",
-      "foundation-gate",
-      "track-A",
-      "track-B",
-      "track-C",
-      "track-D",
-      "track-E",
-      "review",
-      "afterglow",
-    ];
-    return order.indexOf(s ?? "") >= order.indexOf(prev ?? "");
-  });
-  log(slotOrderOK, "first session: slots are in spec order");
+  // Within a track block, ordering is: track-intro → foundation-gate → practice.
+  // Across tracks, order is A → B → C.
+  const tracksInOrder = session.cards
+    .filter((c) => c.slot !== "warmup" && c.slot !== "afterglow" && c.slot !== "review")
+    .map((c) => c.trackId as string);
+  const firstIdxOf = (t: string) => tracksInOrder.indexOf(t);
+  const lastIdxOf = (t: string) =>
+    tracksInOrder.length - 1 - [...tracksInOrder].reverse().indexOf(t);
+  const trackOrderOK =
+    firstIdxOf("A") === 0 &&
+    lastIdxOf("A") < firstIdxOf("B") &&
+    lastIdxOf("B") < firstIdxOf("C");
+  log(trackOrderOK, "first session: tracks complete in A → B → C order");
 
   const hasD = session.cards.some((c) => c.trackId === "D");
   const hasE = session.cards.some((c) => c.trackId === "E");
@@ -165,13 +167,20 @@ function markComplete(p: ProgressByTrack, levelId: string) {
     );
   }
 
-  // Verification §9: NO references to chord tones, intervals, or scale degrees beyond the tonic in
-  // the day-1 A·1 practice / explainer. Spot-check the strings of relevant cards.
-  const a1Cards = session.cards.filter((c) => c.nodeId === "A-1");
-  const lower = JSON.stringify(a1Cards).toLowerCase();
+  // Verification §9: NO references to chord tones, intervals, or scale degrees beyond the tonic
+  // in the day-1 A·1 *practice/explainer*. Track intros (meta cards) are excluded — the track
+  // itself is named "Scale Degrees", which is fine.
+  const a1PedagogyCards = session.cards.filter(
+    (c) => c.nodeId === "A-1" && c.slot !== "track-intro",
+  );
+  const lower = JSON.stringify(a1PedagogyCards).toLowerCase();
   const forbidden = ["chord tone", "interval", "scale degree"];
   for (const f of forbidden) {
-    log(!lower.includes(f), `first session A-1 cards mention "${f}"`, lower.includes(f) ? "MENTIONED" : "");
+    log(
+      !lower.includes(f),
+      `first session A-1 pedagogy cards mention "${f}"`,
+      lower.includes(f) ? "MENTIONED" : "",
+    );
   }
 
   void ids;
@@ -345,6 +354,10 @@ function markComplete(p: ProgressByTrack, levelId: string) {
   log(
     slots.includes("foundation-gate"),
     "tight session: at least one foundation gate retained",
+  );
+  log(
+    slots.includes("track-intro"),
+    "tight session: track-intro cards retained",
   );
 }
 

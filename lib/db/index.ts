@@ -20,28 +20,13 @@ class TonicDatabase extends Dexie {
 
   constructor() {
     super(DB_NAME);
-    // v1: legacy schema with `a-hear-tonic`-style node IDs.
-    this.version(1).stores({
+    this.version(DB_VERSION).stores({
       settings: "id",
       trackProgress: "id",
       reviewItems: "id, dueDate, cardTemplateId",
       sessions: "id, startedAt",
       streak: "id",
     });
-    // v2: level-based curriculum (`A-1`...). Wipe progress so reseed lands cleanly.
-    this.version(DB_VERSION)
-      .stores({
-        settings: "id",
-        trackProgress: "id",
-        reviewItems: "id, dueDate, cardTemplateId",
-        sessions: "id, startedAt",
-        streak: "id",
-      })
-      .upgrade(async (tx) => {
-        await tx.table("trackProgress").clear();
-        await tx.table("reviewItems").clear();
-        await tx.table("sessions").clear();
-      });
   }
 }
 
@@ -71,10 +56,31 @@ export async function putStreak(streak: Streak): Promise<void> {
   await db.streak.put({ id: "default", ...streak });
 }
 
+/**
+ * Normalize a row read from Dexie. Older records (from previous schema
+ * iterations of this personal project) may be missing fields like
+ * `levelSessionCounts`, `seenExplainerLevelIds`, or `recentResults`. Filling
+ * them in on read is cheaper than running a Dexie migration.
+ */
+function normalizeTrackProgress(
+  row: (TrackProgress & { id: string }) | undefined,
+): (TrackProgress & { id: string }) | undefined {
+  if (!row) return row;
+  return {
+    ...row,
+    unlockedNodeIds: row.unlockedNodeIds ?? [],
+    completedNodeIds: row.completedNodeIds ?? [],
+    seenExplainerLevelIds: row.seenExplainerLevelIds ?? [],
+    levelSessionCounts: row.levelSessionCounts ?? {},
+    recentResults: row.recentResults ?? [],
+  };
+}
+
 export async function getTrackProgress(
   trackId: string,
 ): Promise<(TrackProgress & { id: string }) | undefined> {
-  return db.trackProgress.get(trackId);
+  const row = await db.trackProgress.get(trackId);
+  return normalizeTrackProgress(row);
 }
 
 export async function putTrackProgress(
