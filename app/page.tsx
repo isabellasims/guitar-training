@@ -81,11 +81,44 @@ export default function HomePage() {
             </Link>
           </Card>
           <Card>
+            <Link href="/degrees" className="block">
+              <CardHeader>
+                <CardTitle>Scale degree library</CardTitle>
+                <CardDescription>
+                  Grouped degree drills (triad tones, diatonic color, minor
+                  colors) with a tonic picker — no progression.
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+          <Card>
             <Link href="/library" className="block">
               <CardHeader>
                 <CardTitle>Audio lab</CardTitle>
                 <CardDescription>
                   Drones, reference notes, fretboard preview, pitch lab.
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+          <Card>
+            <Link href="/flashcards" className="block">
+              <CardHeader>
+                <CardTitle>Flashcards</CardTitle>
+                <CardDescription>
+                  Your starred cards plus any custom flashcards you author —
+                  drill them whenever you want.
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+          <Card>
+            <Link href="/chord-explorer" className="block">
+              <CardHeader>
+                <CardTitle>Chord Explorer</CardTitle>
+                <CardDescription>
+                  Pick any key, hear its seven diatonic chords, and stack them
+                  into a looping backing track to solo over.
                 </CardDescription>
               </CardHeader>
             </Link>

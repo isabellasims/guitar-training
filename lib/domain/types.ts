@@ -1,5 +1,5 @@
-/** Single-user local app: tracks A–E. F (song vocab) deferred. */
-export type TrackId = "A" | "B" | "C" | "D" | "E";
+/** Single-user local app: tracks A–F. */
+export type TrackId = "A" | "B" | "C" | "D" | "E" | "F";
 
 export type Settings = {
   targetSessionMinutes: number;
@@ -26,6 +26,13 @@ export type LevelResult = {
   levelId: string;
   correct: boolean;
   ts: string;
+  /**
+   * True when the user enabled an in-card hint (e.g. "Show positions" on
+   * note-finding / drone-degree, or "Hint" on shape-recall) at any point
+   * during the prompt. Capped at 50% accuracy when computing rolling
+   * level accuracy — the answer was correct, but only with assistance.
+   */
+  usedHint?: boolean;
 };
 
 /**
@@ -76,7 +83,19 @@ export type SessionCard = {
   slot?: SessionSlot;
   startedAt: string | null;
   completedAt: string | null;
-  grading: "pending" | "correct" | "incorrect" | "skipped";
+  /**
+   * - `pending`            — not yet attempted.
+   * - `correct`            — full credit; counts toward accuracy at 100%.
+   * - `correct-with-help`  — user got it right but used a hint; counts at 50%.
+   * - `incorrect`          — counts toward accuracy at 0%.
+   * - `skipped`            — explicit non-attempt; doesn't count at all.
+   */
+  grading:
+    | "pending"
+    | "correct"
+    | "correct-with-help"
+    | "incorrect"
+    | "skipped";
 };
 
 export type SessionSlot =
@@ -88,6 +107,7 @@ export type SessionSlot =
   | "track-C"
   | "track-D"
   | "track-E"
+  | "track-F"
   | "review"
   | "afterglow";
 

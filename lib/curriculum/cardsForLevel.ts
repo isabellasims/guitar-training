@@ -6,6 +6,8 @@ import type {
 } from "@/lib/cards/types";
 import type { TrackId } from "@/lib/domain/types";
 import { SHAPES_BY_ID } from "@/lib/curriculum/shapeLibrary";
+import { getLevel } from "@/lib/curriculum/levels";
+import { chord as buildChord } from "@/lib/music/chords";
 
 /**
  * Curriculum content. Authored verbatim from the project content spec.
@@ -20,7 +22,11 @@ import { SHAPES_BY_ID } from "@/lib/curriculum/shapeLibrary";
  */
 
 const C_MAJOR: KeyContext = { tonicMidi: 60, keyLabel: "C major", mode: "major" };
+const G_MAJOR: KeyContext = { tonicMidi: 55, keyLabel: "G major", mode: "major" };
+const D_MAJOR: KeyContext = { tonicMidi: 62, keyLabel: "D major", mode: "major" };
 const A_MINOR: KeyContext = { tonicMidi: 57, keyLabel: "A minor", mode: "minor" };
+const E_MINOR: KeyContext = { tonicMidi: 64, keyLabel: "E minor", mode: "minor" };
+const D_MINOR: KeyContext = { tonicMidi: 62, keyLabel: "D minor", mode: "minor" };
 const C_MINOR_LABEL: KeyContext = {
   tonicMidi: 60,
   keyLabel: "C minor",
@@ -29,6 +35,88 @@ const C_MINOR_LABEL: KeyContext = {
 
 function uid(): string {
   return crypto.randomUUID();
+}
+
+/**
+ * Prepended before `chord-change-identify` drills so sessions replay the
+ * lesson progression. Skipped in quick (1-card) sessions — see `pickPractice`
+ * in `buildSession.ts`.
+ */
+export const CHORD_DRILL_PREFLIGHT_CONTINUE = "Continue to chord drills";
+
+export function isChordDrillPreflightCard(b: BuiltCard): boolean {
+  if (b.templateId !== "concept-explainer" || b.trackId !== "D") {
+    return false;
+  }
+  const p = b.parameters as { continueLabel?: string };
+  return p.continueLabel === CHORD_DRILL_PREFLIGHT_CONTINUE;
+}
+
+function chordDrillPreflight(levelId: string) {
+  switch (levelId) {
+    case "D-1":
+      return card("concept-explainer", "D", "D-1", {
+        title: "Hear the changes first",
+        body: [
+          "Replay how I, IV, and V move in C — same progression as the lesson — then continue into the drills.",
+        ],
+        chordProgressionListen: {
+          label: "Hear C → F → C → G → C",
+          chords: [CHORDS.C!, CHORDS.F!, CHORDS.C!, CHORDS.G!, CHORDS.C!],
+        },
+        continueLabel: CHORD_DRILL_PREFLIGHT_CONTINUE,
+      });
+    case "D-2":
+      return card("concept-explainer", "D", "D-2", {
+        title: "Hear the changes first",
+        body: [
+          "Replay the I–V–vi–IV loop in C before you pick chord functions.",
+        ],
+        chordProgressionListen: {
+          label: "Hear I-V-vi-IV in C",
+          chords: [CHORDS.C!, CHORDS.G!, CHORDS.Am!, CHORDS.F!],
+        },
+        continueLabel: CHORD_DRILL_PREFLIGHT_CONTINUE,
+      });
+    case "D-3":
+      return card("concept-explainer", "D", "D-3", {
+        title: "Hear the changes first",
+        body: [
+          "Replay ii-V-I in C — the move you just learned — before drilling recognition with the new ii option in the mix.",
+        ],
+        chordProgressionListen: {
+          label: "Hear ii-V-I in C",
+          chords: [CHORDS.Dm!, CHORDS.G!, CHORDS.C!],
+        },
+        continueLabel: CHORD_DRILL_PREFLIGHT_CONTINUE,
+      });
+    case "D-4":
+      return card("concept-explainer", "D", "D-4", {
+        title: "Hear the changes first",
+        body: [
+          "Replay the minor-key vamp from the lesson (A minor with the flat VII move), then continue into the drills.",
+        ],
+        chordProgressionListen: {
+          label: "Hear i → flat VII → i in A minor",
+          chords: [CHORDS.Am!, CHORDS.G!, CHORDS.Am!],
+        },
+        continueLabel: CHORD_DRILL_PREFLIGHT_CONTINUE,
+      });
+    case "D-5":
+      return card("concept-explainer", "D", "D-5", {
+        title: "Hear the changes first",
+        body: [
+          "Replay a short progression in C (I–IV–V–I) to warm your ear, then tackle the mixed-style drills.",
+        ],
+        chordProgressionListen: {
+          label: "Hear C → F → G → C",
+          chords: [CHORDS.C!, CHORDS.F!, CHORDS.G!, CHORDS.C!],
+        },
+        continueLabel: CHORD_DRILL_PREFLIGHT_CONTINUE,
+      });
+    default:
+      return null;
+  }
 }
 
 function card<T extends CardTemplateId>(
@@ -41,78 +129,24 @@ function card<T extends CardTemplateId>(
 }
 
 // ───── triad voicings (root-position, in middle register) ──────────────────
-const MAJOR = [0, 4, 7];
-const MINOR = [0, 3, 7];
-
-function triad(rootMidi: number, quality: "M" | "m"): number[] {
-  const intervals = quality === "M" ? MAJOR : MINOR;
-  return intervals.map((d) => rootMidi + d);
-}
-
-const ROOT: Record<string, number> = {
-  C: 60,
-  "C#": 61,
-  Db: 61,
-  D: 62,
-  "D#": 63,
-  Eb: 63,
-  E: 64,
-  F: 53,
-  "F#": 54,
-  Gb: 54,
-  G: 55,
-  "G#": 56,
-  Ab: 56,
-  A: 57,
-  "A#": 58,
-  Bb: 58,
-  B: 59,
-};
-
-function chord(name: string, quality: "M" | "m"): number[] {
-  const r = ROOT[name];
-  if (r == null) throw new Error(`Unknown chord root: ${name}`);
-  return triad(r, quality);
-}
-
+// Triad math lives in `lib/music/chords.ts` so the curriculum and the new
+// Chord Explorer share one source of truth.
 const CHORDS: Record<string, number[]> = {
-  C: chord("C", "M"),
-  F: chord("F", "M"),
-  G: chord("G", "M"),
-  Am: chord("A", "m"),
-  Dm: chord("D", "m"),
-  Em: chord("E", "m"),
-  E: chord("E", "M"),
-  D: chord("D", "M"),
+  C: buildChord("C", "M"),
+  F: buildChord("F", "M"),
+  G: buildChord("G", "M"),
+  Am: buildChord("A", "m"),
+  Dm: buildChord("D", "m"),
+  Em: buildChord("E", "m"),
+  E: buildChord("E", "M"),
+  D: buildChord("D", "M"),
+  A: buildChord("A", "M"),
+  Bm: buildChord("B", "m"),
 };
 
 // ───── helpers for randomized recognition prompts ──────────────────────────
 function pickRandom<T>(pool: T[]): T {
   return pool[Math.floor(Math.random() * pool.length)]!;
-}
-
-function tonicVsNotPrompts(
-  key: KeyContext,
-  notTonicPool: number[],
-  count: number,
-  options: Array<{ label: string }>,
-  /** index of options that's "tonic". */
-  tonicOptionIndex: number,
-  notTonicOptionIndex: number,
-): CardTemplateParams["drone-degree-identify"]["prompts"] {
-  const out: CardTemplateParams["drone-degree-identify"]["prompts"] = [];
-  // approximately 50/50 tonic vs non-tonic
-  for (let i = 0; i < count; i++) {
-    const isTonic = Math.random() < 0.5;
-    out.push({
-      key,
-      playedPitchClass: isTonic ? ((key.tonicMidi % 12) + 12) % 12 : pickRandom(notTonicPool),
-      correctOptionIndex: isTonic ? tonicOptionIndex : notTonicOptionIndex,
-    });
-  }
-  // Quietly suppress `_` lint by referencing options length.
-  void options.length;
-  return out;
 }
 
 function pcDegree(key: KeyContext, degreeIntervalSemitones: number): number {
@@ -125,7 +159,7 @@ const DEGREES_MINOR = [0, 2, 3, 5, 7, 8, 10];
 // ───── concept-explainer cards ─────────────────────────────────────────────
 export function explainerForLevel(levelId: string): BuiltCard | null {
   switch (levelId) {
-    // Track A
+    // ─── Track A — Phase 1 (Major) ────────────────────────────────────
     case "A-1":
       return card("concept-explainer", "A", "A-1", {
         title: "Meet the tonic — your home pitch",
@@ -147,30 +181,6 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
       });
     case "A-2":
       return card("concept-explainer", "A", "A-2", {
-        title: "Tonic again — this time in A minor",
-        terms: [
-          {
-            term: "Minor key",
-            definition:
-              "A key whose home note has a darker, more inward color than major.",
-          },
-          {
-            term: "Relative minor",
-            definition:
-              "Every major key has a minor twin that shares its notes. A minor is the relative minor of C major.",
-          },
-        ],
-        body: [
-          "A minor uses the same seven pitches as C major, but home is now A. The mood shifts even though the notes are the same.",
-          "Use the A natural minor shape from Track C while you listen. Hum or play A wherever feels like home.",
-        ],
-        droneTonicMidi: A_MINOR.tonicMidi,
-        droneKeyLabel: A_MINOR.keyLabel,
-        scaleListen: { tonicMidi: A_MINOR.tonicMidi, mode: "minor" },
-        continueLabel: "Got it",
-      });
-    case "A-3":
-      return card("concept-explainer", "A", "A-3", {
         title: "The Root — degree 1",
         terms: [
           {
@@ -192,8 +202,8 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         droneKeyLabel: C_MAJOR.keyLabel,
         continueLabel: "Got it",
       });
-    case "A-4":
-      return card("concept-explainer", "A", "A-4", {
+    case "A-3":
+      return card("concept-explainer", "A", "A-3", {
         title: "The 5th — stable, hovering",
         body: [
           "Over a C drone, G is the 5th. It feels stable but not 'home' — like floating slightly above the ground.",
@@ -208,52 +218,47 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         },
         continueLabel: "Got it",
       });
-    case "A-5":
-      return card("concept-explainer", "A", "A-5", {
-        title: "The 3rd — color in the key",
+    case "A-4":
+      return card("concept-explainer", "A", "A-4", {
+        title: "The 3rd — color of major",
         terms: [
           {
             term: "Major third",
             definition:
               "Two whole steps above the tonic. The bright color of major.",
           },
-          {
-            term: "Minor third",
-            definition:
-              "Three half-steps above the tonic. The darker color of minor. Sometimes called the flat 3rd.",
-          },
         ],
         body: [
-          "E over a C drone is the 3rd. It's the note that makes C sound major — the bright, sweet color.",
-          "Try Eb too — the flat 3rd. That's how minor sounds. Same root, different color. The 3rd is what determines major vs. minor.",
+          "E over a C drone is the 3rd. It's the note that makes C sound major — the bright, sweet color of the key.",
+          "Move root → 3rd → 5th. Hear the major triad emerge. The 3rd is what makes the difference: keep it bright (E) for major, drop it a fret (Eb) for minor.",
         ],
         droneTonicMidi: C_MAJOR.tonicMidi,
         droneKeyLabel: C_MAJOR.keyLabel,
         customListen: {
-          label: "Hear major vs. minor",
-          sequence: [60, 64, 60, 63],
-          noteDurationSec: 0.6,
+          label: "Hear root, 3rd, 5th",
+          sequence: [60, 64, 67, 60],
+          noteDurationSec: 0.55,
+        },
+        continueLabel: "Got it",
+      });
+    case "A-6":
+      return card("concept-explainer", "A", "A-6", {
+        title: "The 7th — pulls toward home",
+        body: [
+          "Over a C drone, B is the 7th. It's restless — wants to slip up to C. The leading tone of major.",
+          "Listen for the half-step pull: 7 → 1. That tiny upward step is why melodies feel resolved when they land on the root.",
+        ],
+        droneTonicMidi: C_MAJOR.tonicMidi,
+        droneKeyLabel: C_MAJOR.keyLabel,
+        customListen: {
+          label: "Hear 7 → 1 (B → C)",
+          sequence: [71, 72],
+          noteDurationSec: 0.85,
         },
         continueLabel: "Got it",
       });
     case "A-7":
       return card("concept-explainer", "A", "A-7", {
-        title: "The 7th — pulls toward home",
-        body: [
-          "Over a C drone, B is the 7th. It's restless — wants to slip up to C. The leading tone of major.",
-          "The flat 7 (Bb in C) is the bluesy color. Same scale degree, different mode. Most rock and blues lives on the flat 7.",
-        ],
-        droneTonicMidi: C_MAJOR.tonicMidi,
-        droneKeyLabel: C_MAJOR.keyLabel,
-        customListen: {
-          label: "Hear the pull",
-          sequence: [71, 72, 70],
-          noteDurationSec: 0.7,
-        },
-        continueLabel: "Got it",
-      });
-    case "A-8":
-      return card("concept-explainer", "A", "A-8", {
         title: "The 4th — suspended",
         body: [
           "F over C is the 4th — leaning, unsettled. It wants to fall back to E (the 3rd).",
@@ -284,47 +289,125 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         title: "The 6th — wistful",
         body: [
           "A over C is the 6th — bright but wistful. The 'longing' sound.",
-          "In minor (the flat 6), it's darker and heavier. We'll meet that flavor in real songs later.",
+          "In minor (the flat 6), it's darker and heavier. You'll meet that flavor in Phase 2.",
         ],
         droneTonicMidi: C_MAJOR.tonicMidi,
         droneKeyLabel: C_MAJOR.keyLabel,
         continueLabel: "Got it",
       });
-    case "A-11":
-      return card("concept-explainer", "A", "A-11", {
-        title: "Chord Tones — solo on 1, flat 3, 5",
+    // ─── Track A — Phase 2 (Minor) ────────────────────────────────────
+    case "A-12":
+      return card("concept-explainer", "A", "A-12", {
+        title: "Tonic again — this time in A minor",
         terms: [
           {
-            term: "Chord tones",
+            term: "Minor key",
             definition:
-              "The notes that make up a chord. For a minor chord, those are the root, flat 3rd, and 5th.",
+              "A key whose home note has a darker, more inward color than major.",
+          },
+          {
+            term: "Relative minor",
+            definition:
+              "Every major key has a minor twin that shares its notes. A minor is the relative minor of C major.",
           },
         ],
         body: [
-          "Over an A minor vamp, restrict yourself to the chord tones of the i chord: A (root), C (flat 3rd), E (5th). Three notes only.",
-          "Notice how every phrase sounds resolved when you stay on these three pitches. This is the home base for blues and minor-key soloing.",
+          "A minor uses the same seven pitches as C major, but home is now A. The mood shifts even though the notes are the same.",
+          "Use the A natural minor shape from Track C while you listen. Hum or play A wherever feels like home.",
         ],
         droneTonicMidi: A_MINOR.tonicMidi,
         droneKeyLabel: A_MINOR.keyLabel,
+        scaleListen: { tonicMidi: A_MINOR.tonicMidi, mode: "minor" },
         continueLabel: "Got it",
       });
-    case "A-12":
-      return card("concept-explainer", "A", "A-12", {
-        title: "The Flat 7 — blues vocabulary",
+    case "A-14":
+      return card("concept-explainer", "A", "A-14", {
+        title: "The Flat 3rd — color of minor",
+        terms: [
+          {
+            term: "Flat 3rd",
+            definition:
+              "Three half-steps above the tonic. The defining color of a minor key.",
+          },
+        ],
         body: [
-          "Add G (flat 7) to A, C, E. The blues spelling: 1, flat 3, 5, flat 7.",
-          "These four pitches are the core voice of minor-key blues phrasing. Every Hazel and Mayer minor solo lives in this sound.",
+          "Over an A minor drone, C is the flat 3rd. Compare it to E (the major 3rd of A): C is darker, more inward.",
+          "The flat 3rd is what makes minor sound minor. Move 1 → b3 → 5 and feel the minor triad land.",
         ],
         droneTonicMidi: A_MINOR.tonicMidi,
         droneKeyLabel: A_MINOR.keyLabel,
         customListen: {
-          label: "Hear the four notes",
+          label: "Hear 1 → b3 → 5 in A minor",
+          sequence: [57, 60, 64, 57],
+          noteDurationSec: 0.55,
+        },
+        continueLabel: "Got it",
+      });
+    case "A-15":
+      return card("concept-explainer", "A", "A-15", {
+        title: "The Flat 7 — bluesy, modal",
+        body: [
+          "Over A minor, G is the flat 7. Doesn't lead into the root like a major 7 does — it just sits, dominant and unresolved.",
+          "Add it to root / flat 3 / 5 and you've got the four notes of minor-pentatonic chord-tone territory. The blues lives here.",
+        ],
+        droneTonicMidi: A_MINOR.tonicMidi,
+        droneKeyLabel: A_MINOR.keyLabel,
+        customListen: {
+          label: "Hear the four blues notes (1, b3, 5, b7)",
           sequence: [57, 60, 64, 67],
           noteDurationSec: 0.55,
         },
         continueLabel: "Got it",
       });
-    // Track B
+    case "A-16":
+      return card("concept-explainer", "A", "A-16", {
+        title: "The Flat 6 and the 2 — minor color tones",
+        body: [
+          "Two more pitches finish A natural minor: F (flat 6) and B (the 2).",
+          "Flat 6 is heavy, melancholy — pulls strongly down to the 5. The 2 is light and step-wise, a passing tone between root and flat 3.",
+        ],
+        droneTonicMidi: A_MINOR.tonicMidi,
+        droneKeyLabel: A_MINOR.keyLabel,
+        customListen: {
+          label: "Hear b6 → 5 and 2 → b3 in A minor",
+          sequence: [65, 64, 59, 60],
+          noteDurationSec: 0.6,
+        },
+        continueLabel: "Got it",
+      });
+    // ─── Track A — Phase 3 (Cross-key) ────────────────────────────────
+    case "A-19":
+      return card("concept-explainer", "A", "A-19", {
+        title: "Same degrees, different keys — G and D major",
+        terms: [
+          {
+            term: "Transposition",
+            definition:
+              "Playing the same musical idea in a different key. The degrees stay the same — the pitches change.",
+          },
+        ],
+        body: [
+          "Up to now everything has been in C major (or A minor). Now we move home: G major, then D major.",
+          "The point: degree-by-ear must survive a key change. The 'home' pitch is different, but the 3rd is still the 3rd, the 5th is still the 5th.",
+        ],
+        droneTonicMidi: G_MAJOR.tonicMidi,
+        droneKeyLabel: G_MAJOR.keyLabel,
+        scaleListen: { tonicMidi: G_MAJOR.tonicMidi, mode: "major" },
+        continueLabel: "Got it",
+      });
+    case "A-21":
+      return card("concept-explainer", "A", "A-21", {
+        title: "Minor keys move too — E and D minor",
+        body: [
+          "Same idea, dark side: hear the flat 3rd, flat 6, flat 7 against E (then D) as home.",
+          "Resist transposing the lesson back to A minor in your head. Let G♯ stop sounding like 'home' in E and let D be home in D minor.",
+        ],
+        droneTonicMidi: E_MINOR.tonicMidi,
+        droneKeyLabel: E_MINOR.keyLabel,
+        scaleListen: { tonicMidi: E_MINOR.tonicMidi, mode: "minor" },
+        continueLabel: "Got it",
+      });
+    // ─── Track B ──────────────────────────────────────────────────────
     case "B-1":
       return card("concept-explainer", "B", "B-1", {
         title: "Solidify the low E string",
@@ -339,12 +422,12 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         title: "C across all six strings",
         body: [
           "Same letter, six places. Owning one note across the neck is the gateway to owning all of them.",
-          "Find every C from low E to high E, lowest fret only.",
+          "We work in circle-of-fifths order from here: C → G → D → A → E → F → B. Each adds one note across the whole neck.",
         ],
         continueLabel: "Got it",
       });
-    case "B-7":
-      return card("concept-explainer", "B", "B-7", {
+    case "B-10":
+      return card("concept-explainer", "B", "B-10", {
         title: "Sharps and flats — the in-between notes",
         terms: [
           {
@@ -364,20 +447,11 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         ],
         body: [
           "Between most natural notes there's a sharp/flat — one fret up or down. F# is one fret above F.",
-          "We've been working in natural notes only. Now we add the sharps and flats. The fretboard fills in.",
+          "You know every natural note across the neck. Now we add the sharps and flats. The fretboard fills in.",
         ],
         continueLabel: "Got it",
       });
-    case "B-10":
-      return card("concept-explainer", "B", "B-10", {
-        title: "Speed — under 2 seconds",
-        body: [
-          "You know where every note lives. Now make it instant.",
-          "From now on, prompts include a 2-second timer. Beat it consistently and you've reached the speed milestone.",
-        ],
-        continueLabel: "Got it",
-      });
-    // ─── Track C (revised: open → movable → pentatonic → CAGED) ─────────
+    // ─── Track C (unchanged 14 levels) ────────────────────────────────
     case "C-1":
       return card("concept-explainer", "C", "C-1", {
         title: "Open C major scale — your first shape",
@@ -451,7 +525,8 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         },
         continueLabel: "Got it",
       });
-    case "C-3":
+    case "C-3": {
+      const c3 = SHAPES_BY_ID["movable-major-e-shape"]!;
       return card("concept-explainer", "C", "C-3", {
         title: "Movable major scale — anchored to the root",
         terms: [
@@ -467,27 +542,20 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
           },
         ],
         body: [
-          "Open scales are easy but they only work in one key. Movable scales work in every key — same fingering, slid to wherever you want home to be.",
-          "This shape's root sits on the 6th string. Wherever the root lands, that's the major key you're playing in. We'll start in G major, with the root at the 3rd fret of the 6th string.",
-          "This is the foundational fretboard concept of guitar: a shape is fixed; the root moves. Every CAGED shape later will follow the same logic.",
+          "Open scales only work in one key. Movable scales work in every key — same fingering, slid to wherever you want home to be.",
+          "This is the standard Position 1 major scale: 15 notes across two octaves, four fingers, six strings. The root sits under your middle finger (finger 2) on the 6th string. Wherever it lands, that's the major key you're playing in.",
+          "We'll start in G major, with the root on the 3rd fret of the 6th string. The shape stays identical for any other key — only the hand position moves. Flip the toggle below the diagram to Fingers to see the pattern; flip to Degrees to see the structure.",
         ],
         scaleListen: { tonicMidi: 55, mode: "major" },
         fretboardShape: {
-          title: "Movable major (E-shape) — G major, root at 6/3.",
-          maxFret: 8,
-          steps: [
-            { stringIndex: 5, fret: 3 },
-            { stringIndex: 5, fret: 5 },
-            { stringIndex: 5, fret: 7 },
-            { stringIndex: 4, fret: 3 },
-            { stringIndex: 4, fret: 5 },
-            { stringIndex: 4, fret: 7 },
-            { stringIndex: 3, fret: 4 },
-            { stringIndex: 3, fret: 5 },
-          ],
+          title: "Position 1 major (E-shape) — G major, root at 6/3.",
+          maxFret: 7,
+          steps: c3.steps,
+          defaultLabelMode: "fingers",
         },
         continueLabel: "Got it",
       });
+    }
     case "C-4":
       return card("concept-explainer", "C", "C-4", {
         title: "Movable minor scale — flatten three notes",
@@ -548,19 +616,20 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         fretboardShape: {
           title: "A minor pentatonic — Box 1 at the 5th fret.",
           maxFret: 9,
+          defaultLabelMode: "fingers",
           steps: [
-            { stringIndex: 5, fret: 5 },
-            { stringIndex: 5, fret: 8 },
-            { stringIndex: 4, fret: 5 },
-            { stringIndex: 4, fret: 7 },
-            { stringIndex: 3, fret: 5 },
-            { stringIndex: 3, fret: 7 },
-            { stringIndex: 2, fret: 5 },
-            { stringIndex: 2, fret: 8 },
-            { stringIndex: 1, fret: 5 },
-            { stringIndex: 1, fret: 8 },
-            { stringIndex: 0, fret: 5 },
-            { stringIndex: 0, fret: 8 },
+            { stringIndex: 5, fret: 5, finger: 1, degree: "1" },
+            { stringIndex: 5, fret: 8, finger: 4, degree: "b3" },
+            { stringIndex: 4, fret: 5, finger: 1, degree: "4" },
+            { stringIndex: 4, fret: 7, finger: 3, degree: "5" },
+            { stringIndex: 3, fret: 5, finger: 1, degree: "b7" },
+            { stringIndex: 3, fret: 7, finger: 3, degree: "1" },
+            { stringIndex: 2, fret: 5, finger: 1, degree: "b3" },
+            { stringIndex: 2, fret: 7, finger: 3, degree: "4" },
+            { stringIndex: 1, fret: 5, finger: 1, degree: "5" },
+            { stringIndex: 1, fret: 8, finger: 4, degree: "b7" },
+            { stringIndex: 0, fret: 5, finger: 1, degree: "1" },
+            { stringIndex: 0, fret: 8, finger: 4, degree: "b3" },
           ],
         },
         continueLabel: "Got it",
@@ -575,10 +644,11 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         fretboardShape: {
           title: "Box 1 — the three A's highlighted.",
           maxFret: 9,
+          defaultLabelMode: "notes",
           steps: [
-            { stringIndex: 5, fret: 5 },
-            { stringIndex: 3, fret: 7 },
-            { stringIndex: 0, fret: 5 },
+            { stringIndex: 5, fret: 5, finger: 1, degree: "1" },
+            { stringIndex: 3, fret: 7, finger: 3, degree: "1" },
+            { stringIndex: 0, fret: 5, finger: 1, degree: "1" },
           ],
         },
         continueLabel: "Got it",
@@ -589,8 +659,23 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         body: [
           "The chord tones of A minor are the root (A), the flat 3rd (C), and the 5th (E). These are the notes that make up an A minor chord.",
           "Inside Box 1, these three notes appear at predictable spots. Phrases that land on chord tones sound resolved. Phrases that land on the other pentatonic notes (D, G) sound like motion — passing through.",
-          "Roots: 6/5, 4/7, 1/5. Flat 3rds: 6/8, 3/5, 1/8. Fifths: 5/7, 2/7.",
+          "Roots: 6/5, 4/7, 1/5. Flat 3rds: 6/8, 3/5, 1/8. Fifths: 5/7, 2/5.",
         ],
+        fretboardShape: {
+          title: "Box 1 — chord tones (roots, flat 3rds, 5ths) highlighted.",
+          maxFret: 9,
+          defaultLabelMode: "degrees",
+          steps: [
+            { stringIndex: 5, fret: 5, finger: 1, degree: "1" },
+            { stringIndex: 3, fret: 7, finger: 3, degree: "1" },
+            { stringIndex: 0, fret: 5, finger: 1, degree: "1" },
+            { stringIndex: 5, fret: 8, finger: 4, degree: "b3" },
+            { stringIndex: 2, fret: 5, finger: 1, degree: "b3" },
+            { stringIndex: 0, fret: 8, finger: 4, degree: "b3" },
+            { stringIndex: 4, fret: 7, finger: 3, degree: "5" },
+            { stringIndex: 1, fret: 5, finger: 1, degree: "5" },
+          ],
+        },
         continueLabel: "Got it",
       });
     case "C-8":
@@ -661,19 +746,20 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         fretboardShape: {
           title: "A minor pentatonic — Box 2.",
           maxFret: 11,
+          defaultLabelMode: "fingers",
           steps: [
-            { stringIndex: 5, fret: 8 },
-            { stringIndex: 5, fret: 10 },
-            { stringIndex: 4, fret: 7 },
-            { stringIndex: 4, fret: 10 },
-            { stringIndex: 3, fret: 7 },
-            { stringIndex: 3, fret: 9 },
-            { stringIndex: 2, fret: 8 },
-            { stringIndex: 2, fret: 10 },
-            { stringIndex: 1, fret: 8 },
-            { stringIndex: 1, fret: 10 },
-            { stringIndex: 0, fret: 8 },
-            { stringIndex: 0, fret: 10 },
+            { stringIndex: 5, fret: 8, finger: 2, degree: "b3" },
+            { stringIndex: 5, fret: 10, finger: 4, degree: "4" },
+            { stringIndex: 4, fret: 7, finger: 1, degree: "5" },
+            { stringIndex: 4, fret: 10, finger: 4, degree: "b7" },
+            { stringIndex: 3, fret: 7, finger: 1, degree: "1" },
+            { stringIndex: 3, fret: 10, finger: 4, degree: "b3" },
+            { stringIndex: 2, fret: 7, finger: 1, degree: "4" },
+            { stringIndex: 2, fret: 9, finger: 3, degree: "5" },
+            { stringIndex: 1, fret: 8, finger: 2, degree: "b7" },
+            { stringIndex: 1, fret: 10, finger: 4, degree: "1" },
+            { stringIndex: 0, fret: 8, finger: 2, degree: "b3" },
+            { stringIndex: 0, fret: 10, finger: 4, degree: "4" },
           ],
         },
         continueLabel: "Got it",
@@ -685,6 +771,20 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
           "Same labels as Box 1. New geometry. Find roots, flat 3rds, and 5ths.",
           "Roots in Box 2: 4th string 7th fret, 2nd string 10th fret. Flat 3rds: 6th string 8th fret, 4th string 10th fret, 1st string 8th fret. Fifths: 5th string 7th fret, 3rd string 9th fret.",
         ],
+        fretboardShape: {
+          title: "Box 2 — chord tones (roots, flat 3rds, 5ths) highlighted.",
+          maxFret: 11,
+          defaultLabelMode: "degrees",
+          steps: [
+            { stringIndex: 3, fret: 7, finger: 1, degree: "1" },
+            { stringIndex: 1, fret: 10, finger: 4, degree: "1" },
+            { stringIndex: 5, fret: 8, finger: 2, degree: "b3" },
+            { stringIndex: 3, fret: 10, finger: 4, degree: "b3" },
+            { stringIndex: 0, fret: 8, finger: 2, degree: "b3" },
+            { stringIndex: 4, fret: 7, finger: 1, degree: "5" },
+            { stringIndex: 2, fret: 9, finger: 3, degree: "5" },
+          ],
+        },
         continueLabel: "Got it",
       });
     case "C-12":
@@ -742,30 +842,31 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         fretboardShape: {
           title: "Box 1 + Box 2 together — the full pentatonic map.",
           maxFret: 11,
+          defaultLabelMode: "notes",
           steps: [
-            { stringIndex: 5, fret: 5 },
-            { stringIndex: 5, fret: 8 },
-            { stringIndex: 5, fret: 10 },
-            { stringIndex: 4, fret: 5 },
-            { stringIndex: 4, fret: 7 },
-            { stringIndex: 4, fret: 10 },
-            { stringIndex: 3, fret: 5 },
-            { stringIndex: 3, fret: 7 },
-            { stringIndex: 3, fret: 9 },
-            { stringIndex: 2, fret: 5 },
-            { stringIndex: 2, fret: 8 },
-            { stringIndex: 2, fret: 10 },
-            { stringIndex: 1, fret: 5 },
-            { stringIndex: 1, fret: 8 },
-            { stringIndex: 1, fret: 10 },
-            { stringIndex: 0, fret: 5 },
-            { stringIndex: 0, fret: 8 },
-            { stringIndex: 0, fret: 10 },
+            { stringIndex: 5, fret: 5, degree: "1" },
+            { stringIndex: 5, fret: 8, degree: "b3" },
+            { stringIndex: 5, fret: 10, degree: "4" },
+            { stringIndex: 4, fret: 5, degree: "4" },
+            { stringIndex: 4, fret: 7, degree: "5" },
+            { stringIndex: 4, fret: 10, degree: "b7" },
+            { stringIndex: 3, fret: 5, degree: "b7" },
+            { stringIndex: 3, fret: 7, degree: "1" },
+            { stringIndex: 3, fret: 10, degree: "b3" },
+            { stringIndex: 2, fret: 5, degree: "b3" },
+            { stringIndex: 2, fret: 7, degree: "4" },
+            { stringIndex: 2, fret: 9, degree: "5" },
+            { stringIndex: 1, fret: 5, degree: "5" },
+            { stringIndex: 1, fret: 8, degree: "b7" },
+            { stringIndex: 1, fret: 10, degree: "1" },
+            { stringIndex: 0, fret: 5, degree: "1" },
+            { stringIndex: 0, fret: 8, degree: "b3" },
+            { stringIndex: 0, fret: 10, degree: "4" },
           ],
         },
         continueLabel: "Got it",
       });
-    // Track D
+    // ─── Track D ──────────────────────────────────────────────────────
     case "D-1":
       return card("concept-explainer", "D", "D-1", {
         title: "I, IV, V — the three pillars",
@@ -809,6 +910,19 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         },
         continueLabel: "Got it",
       });
+    case "D-3":
+      return card("concept-explainer", "D", "D-3", {
+        title: "ii — the pre-dominant",
+        body: [
+          "The ii chord is minor. In C major, ii is Dm. It sits between IV and V in function — sets up the V which sets up the I.",
+          "ii → V → I is the most common move in jazz and shows up constantly in pop. Once you hear it, you'll hear it everywhere.",
+        ],
+        chordProgressionListen: {
+          label: "Hear ii-V-I in C",
+          chords: [CHORDS.Dm!, CHORDS.G!, CHORDS.C!],
+        },
+        continueLabel: "Got it",
+      });
     case "D-4":
       return card("concept-explainer", "D", "D-4", {
         title: "Minor key changes — i, iv, v, flat VII",
@@ -822,26 +936,40 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         },
         continueLabel: "Got it",
       });
-    // Track E
+    // ─── Track E ──────────────────────────────────────────────────────
     case "E-1":
       return card("concept-explainer", "E", "E-1", {
-        title: "Major 2nd — two frets",
+        title: "Perfect 5th — open and hovering",
         body: [
-          "An interval is the distance between two notes. A major 2nd is two semitones — two frets on one string.",
-          "Listen. The first two notes of 'Happy Birthday' are a major 2nd up. Tense but small — wants to keep moving.",
+          "Seven semitones. The power-chord sound. Open, stable, but not 'home' — it floats above the root.",
+          "'Twinkle Twinkle' opens with a perfect 5th up. So does the Star Wars theme.",
         ],
         customListen: {
           label: "Hear the interval",
-          sequence: [60, 62, 60],
-          noteDurationSec: 0.55,
+          sequence: [60, 67],
+          noteDurationSec: 0.7,
         },
         continueLabel: "Got it",
       });
     case "E-2":
       return card("concept-explainer", "E", "E-2", {
-        title: "Major 3rd — four frets",
+        title: "Perfect 4th — anchored, leaning",
         body: [
-          "Four semitones. Bright. The defining color of a major chord.",
+          "Five semitones. Strong, anchored — leans on the 5th above it. 'Here Comes the Bride' opens with a perfect 4th up.",
+          "On guitar, a perfect 4th is the move from one fret on one string to the same fret on the next string — except between G and B, which is a major 3rd.",
+        ],
+        customListen: {
+          label: "Hear the interval",
+          sequence: [60, 65],
+          noteDurationSec: 0.7,
+        },
+        continueLabel: "Got it",
+      });
+    case "E-3":
+      return card("concept-explainer", "E", "E-3", {
+        title: "Major 3rd — bright color",
+        body: [
+          "Four semitones. The bright color of a major chord — the 'sweet' interval.",
           "The opening of 'Oh When the Saints' is a major 3rd up. Warm and resolved.",
         ],
         customListen: {
@@ -851,23 +979,51 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         },
         continueLabel: "Got it",
       });
-    case "E-3":
-      return card("concept-explainer", "E", "E-3", {
-        title: "Perfect 4th — five frets",
+    case "E-5":
+      return card("concept-explainer", "E", "E-5", {
+        title: "Major 2nd — small step, light tension",
         body: [
-          "Five semitones. Strong, anchored. 'Here Comes the Bride' opens with a perfect 4th up.",
-          "On guitar, a perfect 4th is the move from one string to the same fret on the next string — except between G and B, which is a major 3rd.",
+          "Two semitones. The first two notes of 'Happy Birthday' are a major 2nd up.",
+          "Tense but small — wants to keep moving. The basic step of a major scale.",
         ],
         customListen: {
           label: "Hear the interval",
-          sequence: [60, 65],
+          sequence: [60, 62],
           noteDurationSec: 0.7,
         },
         continueLabel: "Got it",
       });
-    case "E-4":
-      return card("concept-explainer", "E", "E-4", {
-        title: "Minor 3rd — three frets",
+    case "E-6":
+      return card("concept-explainer", "E", "E-6", {
+        title: "Major 6th — wistful, bright",
+        body: [
+          "Nine semitones. Bright but with a hint of longing — the 'NBC chimes' interval (G→E).",
+          "Larger than the major 3rd, but still consonant. Sounds resolved-ish.",
+        ],
+        customListen: {
+          label: "Hear the interval",
+          sequence: [60, 69],
+          noteDurationSec: 0.7,
+        },
+        continueLabel: "Got it",
+      });
+    case "E-7":
+      return card("concept-explainer", "E", "E-7", {
+        title: "Major 7th — restless, sharp tension",
+        body: [
+          "Eleven semitones. Sharply tense — wants to slip up to the octave (just one fret away).",
+          "If you sing 'There's a Place For Us' (West Side Story), the leap on 'place' is a major 7th up.",
+        ],
+        customListen: {
+          label: "Hear the interval",
+          sequence: [60, 71],
+          noteDurationSec: 0.7,
+        },
+        continueLabel: "Got it",
+      });
+    case "E-9":
+      return card("concept-explainer", "E", "E-9", {
+        title: "Minor 3rd — dark color",
         body: [
           "Three semitones. The color of minor. Darker than the major 3rd.",
           "The first two notes of 'Greensleeves' are a minor 3rd up. Brooding, inward.",
@@ -879,26 +1035,12 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         },
         continueLabel: "Got it",
       });
-    case "E-5":
-      return card("concept-explainer", "E", "E-5", {
-        title: "Perfect 5th — seven frets",
-        body: [
-          "Seven semitones. Open, hovering — the power-chord sound.",
-          "'Twinkle Twinkle' opens with a perfect 5th up (between 'Twinkle' and 'Twinkle').",
-        ],
-        customListen: {
-          label: "Hear the interval",
-          sequence: [60, 67],
-          noteDurationSec: 0.7,
-        },
-        continueLabel: "Got it",
-      });
-    case "E-6":
-      return card("concept-explainer", "E", "E-6", {
-        title: "Minor 7th — ten frets",
+    case "E-10":
+      return card("concept-explainer", "E", "E-10", {
+        title: "Minor 7th — bluesy, dominant",
         body: [
           "Ten semitones. The bluesy flat 7 against the root. Dominant, unresolved.",
-          "Used everywhere in blues and Mayer-style minor playing.",
+          "Used everywhere in blues and Mayer-style minor playing. The 'Star Trek theme' opens with a minor 7th up.",
         ],
         customListen: {
           label: "Hear the interval",
@@ -907,13 +1049,104 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         },
         continueLabel: "Got it",
       });
-    case "E-7":
-      return card("concept-explainer", "E", "E-7", {
-        title: "Intervals descending",
+    case "E-11":
+      return card("concept-explainer", "E", "E-11", {
+        title: "Minor 6th — melancholy, heavy",
         body: [
-          "Same intervals, played downward. Your ear has to learn to recognize them in either direction.",
-          "Most users find descending intervals slightly harder. Don't panic if your accuracy drops at first.",
+          "Eight semitones. The 'longing' interval. Dark, more inward than its major sibling.",
+          "Sing the opening of 'The Entertainer' bridge or 'Black Orpheus' theme — minor 6ths show up everywhere in melancholy melodies.",
         ],
+        customListen: {
+          label: "Hear the interval",
+          sequence: [60, 68],
+          noteDurationSec: 0.7,
+        },
+        continueLabel: "Got it",
+      });
+    case "E-12":
+      return card("concept-explainer", "E", "E-12", {
+        title: "Minor 2nd — half-step, biting",
+        body: [
+          "One semitone. The smallest interval, the most-tense. The 'Jaws theme' lives entirely on a repeated minor 2nd.",
+          "When the leading tone (7) resolves up to the root (1), that's a minor 2nd.",
+        ],
+        customListen: {
+          label: "Hear the interval",
+          sequence: [60, 61],
+          noteDurationSec: 0.7,
+        },
+        continueLabel: "Got it",
+      });
+    case "E-13":
+      return card("concept-explainer", "E", "E-13", {
+        title: "Tritone — the devil's interval",
+        body: [
+          "Six semitones. Exactly half an octave — neither a 4th nor a 5th. Sounds unstable in any context.",
+          "The opening of 'Maria' from West Side Story is a tritone up. Listen for the 'ambiguous, suspended' character.",
+        ],
+        customListen: {
+          label: "Hear the interval",
+          sequence: [60, 66],
+          noteDurationSec: 0.7,
+        },
+        continueLabel: "Got it",
+      });
+    case "E-15":
+      return card("concept-explainer", "E", "E-15", {
+        title: "Same intervals, played downward",
+        body: [
+          "We've drilled intervals ascending. Now we flip: same distances, but the second note is below the first.",
+          "Most ears find descending intervals slightly harder at first. Don't panic if your accuracy dips — we start with the most consonant anchors (P5, P4, M3, m3) before moving to the rest.",
+        ],
+        continueLabel: "Got it",
+      });
+    case "E-16":
+      return card("concept-explainer", "E", "E-16", {
+        title: "Descending — the remaining intervals",
+        body: [
+          "Add the descending versions of the smaller and more dissonant intervals: M2, m2, M6, m6, M7, m7, tritone.",
+          "Once these click, you can hear any interval regardless of direction.",
+        ],
+        continueLabel: "Got it",
+      });
+    // ─── Track F ──────────────────────────────────────────────────────
+    case "F-1":
+      return card("concept-explainer", "F", "F-1", {
+        title: "Chord tones of a major chord",
+        terms: [
+          {
+            term: "Chord tone",
+            definition:
+              "A note that belongs to the chord currently playing. For a major chord, that's the root, the major 3rd, and the 5th.",
+          },
+        ],
+        body: [
+          "Phrases that land on chord tones sound resolved. Phrases that land elsewhere sound like they're passing through.",
+          "Over a C drone, the chord tones of a C major chord are C (root), E (3rd), G (5th). Three notes — your home base for soloing in major.",
+        ],
+        droneTonicMidi: C_MAJOR.tonicMidi,
+        droneKeyLabel: C_MAJOR.keyLabel,
+        customListen: {
+          label: "Hear C, E, G",
+          sequence: [60, 64, 67, 72],
+          noteDurationSec: 0.55,
+        },
+        continueLabel: "Got it",
+      });
+    case "F-2":
+      return card("concept-explainer", "F", "F-2", {
+        title: "Chord tones of a minor chord",
+        body: [
+          "Same idea, dark color: root, flat 3rd, 5th. In A minor: A, C, E.",
+          "Land on these three notes and every minor groove sounds resolved. Land elsewhere and you're in motion.",
+        ],
+        droneTonicMidi: A_MINOR.tonicMidi,
+        droneKeyLabel: A_MINOR.keyLabel,
+        customListen: {
+          label: "Hear A, C, E",
+          sequence: [57, 60, 64, 69],
+          noteDurationSec: 0.55,
+        },
         continueLabel: "Got it",
       });
     default:
@@ -922,31 +1155,24 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
 }
 
 // ───── practice cards ──────────────────────────────────────────────────────
-// Reusable button sets
-const HOME_OR_NOT: Array<{ label: string }> = [
-  { label: "Home (the tonic)" },
-  { label: "Not home" },
+// ─── Identify-card button sets ────────────────────────────────────────────
+// CORE RULE — never violated by any drone-degree-identify card:
+//   The tonic is *playing under the prompt* (that's literally what the
+//   drone is). Asking "is this the root or the 5th?" is pitch-matching to
+//   the drone, not functional ear training. Every option pool below
+//   excludes the root, and every helper that samples a played pitch
+//   class skips degree 1 of the active key. Production cards asking the
+//   user to *play* the root are fine — finding the root on the guitar is
+//   a separate skill.
+const THREE_VS_FIVE_MAJOR: Array<{ label: string }> = [
+  { label: "The 3rd (bright)" },
+  { label: "The 5th (hovering)" },
 ];
-const ROOT_OR_NOT: Array<{ label: string }> = [
-  { label: "The root" },
-  { label: "Not the root" },
-];
-const ROOT_OR_5: Array<{ label: string }> = [
-  { label: "The root" },
-  { label: "The 5th" },
-];
-const STABLE_3: Array<{ label: string }> = [
-  { label: "The root" },
+const FLAT_THREE_VS_FIVE: Array<{ label: string }> = [
   { label: "The flat 3rd" },
   { label: "The 5th" },
 ];
-const STABLE_3_GENERIC: Array<{ label: string }> = [
-  { label: "Root" },
-  { label: "3rd" },
-  { label: "5th" },
-];
-const SEVEN_DEGREE_BUTTONS: Array<{ label: string }> = [
-  { label: "1 (root)" },
+const SIX_DEGREE_BUTTONS_MAJOR: Array<{ label: string }> = [
   { label: "2" },
   { label: "3" },
   { label: "4" },
@@ -954,6 +1180,33 @@ const SEVEN_DEGREE_BUTTONS: Array<{ label: string }> = [
   { label: "6" },
   { label: "7" },
 ];
+const SIX_DEGREE_BUTTONS_MINOR: Array<{ label: string }> = [
+  { label: "2" },
+  { label: "b3" },
+  { label: "4" },
+  { label: "5" },
+  { label: "b6" },
+  { label: "b7" },
+];
+
+/**
+ * Pick the hint-toggle emphasis for a level based on its track + numeric
+ * level. Early Track B levels emphasize the toggle so the safety net is
+ * obvious; late levels de-emphasize it because the user is expected to
+ * know the answer.
+ */
+function hintEmphasisForLevel(
+  trackId: TrackId,
+  levelId: string,
+): "default" | "subtle" | "emphasized" {
+  const lvl = getLevel(levelId);
+  const n = lvl?.level;
+  if (trackId === "B") {
+    if (n != null && n <= 5) return "emphasized";
+    if (n != null && n >= 10) return "subtle";
+  }
+  return "default";
+}
 
 function dronePlay(
   trackId: TrackId,
@@ -970,6 +1223,7 @@ function dronePlay(
     prompts,
     uiTitle,
     uiDescription,
+    hintEmphasis: hintEmphasisForLevel(trackId, levelId),
   });
 }
 
@@ -993,7 +1247,11 @@ function noteFinding(
   levelId: string,
   params: CardTemplateParams["note-finding-play"],
 ): BuiltCard<"note-finding-play"> {
-  return card("note-finding-play", "B", levelId, params);
+  return card("note-finding-play", "B", levelId, {
+    ...params,
+    hintEmphasis:
+      params.hintEmphasis ?? hintEmphasisForLevel("B", levelId),
+  });
 }
 
 function shapeRecall(
@@ -1044,160 +1302,108 @@ function intervalPlay(
   });
 }
 
-// Build N tonic-vs-not prompts at session-build time (random sampling).
-function tonicIdentifyPrompts(
-  key: KeyContext,
-  count: number,
-): CardTemplateParams["drone-degree-identify"]["prompts"] {
-  const tonicPc = ((key.tonicMidi % 12) + 12) % 12;
-  const scale = key.mode === "major" ? DEGREES_MAJOR : DEGREES_MINOR;
-  const notTonicPool = scale
-    .filter((d) => d !== 0)
-    .map((d) => ((key.tonicMidi + d) % 12 + 12) % 12);
-  return tonicVsNotPrompts(key, notTonicPool, count, HOME_OR_NOT, 0, 1).map(
-    (p) => ({
-      ...p,
-      // override label-aware data: ensure tonic correctly maps to index 0
-      correctOptionIndex: p.playedPitchClass === tonicPc ? 0 : 1,
-    }),
-  );
-}
-
-// Build N "root vs not" prompts (different label set; logic identical).
-function rootVsNotPrompts(
-  key: KeyContext,
-  count: number,
-): CardTemplateParams["drone-degree-identify"]["prompts"] {
-  return tonicIdentifyPrompts(key, count);
-}
-
-function rootOrFifthPrompts(
+/**
+ * Stable-tone identify in MAJOR: 3rd vs. 5th. Never the root — see CORE
+ * RULE above.
+ */
+function stableTonesPromptsMajor(
   key: KeyContext,
   count: number,
 ): CardTemplateParams["drone-degree-identify"]["prompts"] {
   const out: CardTemplateParams["drone-degree-identify"]["prompts"] = [];
   for (let i = 0; i < count; i++) {
-    const isRoot = Math.random() < 0.5;
+    const isThird = Math.random() < 0.5;
     out.push({
       key,
-      playedPitchClass: isRoot ? 0 : pcDegree(key, 7),
-      correctOptionIndex: isRoot ? 0 : 1,
-    });
-  }
-  // Re-baseline pitch classes against actual key tonic
-  return out.map((p) => ({
-    ...p,
-    playedPitchClass:
-      p.correctOptionIndex === 0
-        ? ((key.tonicMidi % 12) + 12) % 12
-        : pcDegree(key, 7),
-  }));
-}
-
-function stableTonesPrompts(
-  key: KeyContext,
-  count: number,
-): CardTemplateParams["drone-degree-identify"]["prompts"] {
-  // index 0 = root, 1 = (flat) 3rd, 2 = 5th
-  const semitone3 = key.mode === "major" ? 4 : 3;
-  const out: CardTemplateParams["drone-degree-identify"]["prompts"] = [];
-  for (let i = 0; i < count; i++) {
-    const which = i % 3 === 0 ? 0 : Math.floor(Math.random() * 3);
-    out.push({
-      key,
-      playedPitchClass:
-        which === 0
-          ? ((key.tonicMidi % 12) + 12) % 12
-          : which === 1
-            ? pcDegree(key, semitone3)
-            : pcDegree(key, 7),
-      correctOptionIndex: which,
+      playedPitchClass: isThird ? pcDegree(key, 4) : pcDegree(key, 7),
+      correctOptionIndex: isThird ? 0 : 1,
     });
   }
   return out;
 }
 
+/** Stable-tone identify in MINOR: flat 3rd vs. 5th. */
+function stableTonesPromptsMinor(
+  key: KeyContext,
+  count: number,
+): CardTemplateParams["drone-degree-identify"]["prompts"] {
+  const out: CardTemplateParams["drone-degree-identify"]["prompts"] = [];
+  for (let i = 0; i < count; i++) {
+    const isThird = Math.random() < 0.5;
+    out.push({
+      key,
+      playedPitchClass: isThird ? pcDegree(key, 3) : pcDegree(key, 7),
+      correctOptionIndex: isThird ? 0 : 1,
+    });
+  }
+  return out;
+}
+
+/**
+ * Six-degree (non-root) identify: scale degrees 2-7 (major) or 2, b3, 4, 5,
+ * b6, b7 (minor). Buttons must be `SIX_DEGREE_BUTTONS_*` so option indices
+ * align with the (degree - 2) zero-based offset returned here.
+ */
 function fullDiatonicPrompts(
   key: KeyContext,
   count: number,
 ): CardTemplateParams["drone-degree-identify"]["prompts"] {
   const scale = key.mode === "major" ? DEGREES_MAJOR : DEGREES_MINOR;
+  const nonRoot = scale.slice(1);
   const out: CardTemplateParams["drone-degree-identify"]["prompts"] = [];
   for (let i = 0; i < count; i++) {
-    const degIdx = Math.floor(Math.random() * 7);
+    const idx = Math.floor(Math.random() * nonRoot.length);
     out.push({
       key,
-      playedPitchClass: pcDegree(key, scale[degIdx]!),
-      correctOptionIndex: degIdx,
+      playedPitchClass: pcDegree(key, nonRoot[idx]!),
+      correctOptionIndex: idx,
     });
   }
   return out;
 }
 
+/**
+ * Levels that intentionally have NO graded practice cards — they're
+ * concept-explainer + drone listening only. Completion logic special-cases
+ * these so they advance once the explainer has been seen.
+ *
+ * A-1 (C major tonic) and A-12 (A minor tonic) are pure listening levels
+ * in their respective phases.
+ */
+export const EXPLAINER_ONLY_LEVELS: ReadonlySet<string> = new Set([
+  "A-1",
+  "A-12",
+]);
+
 export function practiceCardsForLevel(levelId: string): BuiltCard[] {
   switch (levelId) {
-    // ─── Track A ────────────────────────────────────────────
+    // ─── Track A — Phase 1 (Major) ────────────────────────────────────
     case "A-1":
-      return [
-        droneIdentify(
-          "A",
-          "A-1",
-          HOME_OR_NOT,
-          tonicIdentifyPrompts(C_MAJOR, 4),
-          "Tonic recognition — C major",
-          "Drone in C. After each note plays, choose Home or Not home.",
-        ),
-      ];
+      return [];
     case "A-2":
       return [
-        droneIdentify(
+        dronePlay("A", "A-2", C_MAJOR, [
+          { text: "Play the root.", expectedPitchClasses: [0] },
+        ]),
+        dronePlay(
           "A",
           "A-2",
-          HOME_OR_NOT,
-          tonicIdentifyPrompts(A_MINOR, 4),
-          "Tonic recognition — A minor",
-        ),
-        droneIdentify(
-          "A",
-          "A-2",
-          HOME_OR_NOT,
+          C_MAJOR,
           [
-            { key: C_MAJOR, playedPitchClass: 0, correctOptionIndex: 0 },
-            { key: C_MAJOR, playedPitchClass: 9, correctOptionIndex: 1 },
-            {
-              key: A_MINOR,
-              playedPitchClass: 9,
-              correctOptionIndex: 0,
-              transitionText:
-                "Now home has changed. Same note can mean different things.",
-            },
-            { key: A_MINOR, playedPitchClass: 0, correctOptionIndex: 1 },
+            { text: "Play the root.", expectedPitchClasses: [0] },
+            { text: "Play the root again, anywhere on the neck.", expectedPitchClasses: [0] },
           ],
-          "Compare home in two keys",
-          "Notice how C felt like home in the first half, but not the second? Same pitch — different key.",
+          "Root in two places",
         ),
       ];
     case "A-3":
       return [
         dronePlay("A", "A-3", C_MAJOR, [
-          { text: "Play the root.", expectedPitchClasses: [0] },
-        ]),
-        droneIdentify(
-          "A",
-          "A-3",
-          ROOT_OR_NOT,
-          rootVsNotPrompts(C_MAJOR, 4),
-          "Identify the root",
-        ),
-      ];
-    case "A-4":
-      return [
-        dronePlay("A", "A-4", C_MAJOR, [
           { text: "Play the 5th.", expectedPitchClasses: [7] },
         ]),
         dronePlay(
           "A",
-          "A-4",
+          "A-3",
           C_MAJOR,
           [
             { text: "Play the root.", expectedPitchClasses: [0] },
@@ -1206,28 +1412,26 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           ],
           "Move between root and 5th",
         ),
+      ];
+    case "A-4":
+      return [
+        dronePlay("A", "A-4", C_MAJOR, [
+          { text: "Play the 3rd.", expectedPitchClasses: [4] },
+        ]),
+        dronePlay(
+          "A",
+          "A-4",
+          C_MAJOR,
+          [
+            { text: "Play the root.", expectedPitchClasses: [0] },
+            { text: "Now play the 3rd.", expectedPitchClasses: [4] },
+            { text: "Now play the 5th.", expectedPitchClasses: [7] },
+          ],
+          "Root → 3rd → 5th (the major triad)",
+        ),
         droneIdentify(
           "A",
           "A-4",
-          ROOT_OR_5,
-          rootOrFifthPrompts(C_MAJOR, 5),
-          "Root vs. 5th",
-        ),
-      ];
-    case "A-5":
-      return [
-        dronePlay("A", "A-5", C_MAJOR, [
-          { text: "Play the 3rd.", expectedPitchClasses: [4] },
-        ]),
-        dronePlay("A", "A-5", A_MINOR, [
-          {
-            text: "Play the 3rd. In A minor, this is the flat 3rd.",
-            expectedPitchClasses: [0],
-          },
-        ]),
-        droneIdentify(
-          "A",
-          "A-5",
           [{ label: "Major 3rd (bright)" }, { label: "Minor 3rd (dark)" }],
           (() => {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
@@ -1244,117 +1448,109 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           })(),
           "Hear major vs. minor 3rd",
         ),
+      ];
+    case "A-5":
+      // Stable Tones Consolidation — pure-drill 3rd vs. 5th in major,
+      // plus the first melodic-dictation card (3-note phrases using 1/3/5).
+      return [
+        droneIdentify(
+          "A",
+          "A-5",
+          THREE_VS_FIVE_MAJOR,
+          stableTonesPromptsMajor(C_MAJOR, 6),
+          "3rd vs. 5th — C major",
+        ),
         dronePlay(
           "A",
           "A-5",
           C_MAJOR,
           [
             { text: "Play the root.", expectedPitchClasses: [0] },
-            { text: "Now play the 3rd.", expectedPitchClasses: [4] },
-            { text: "Now play the 5th.", expectedPitchClasses: [7] },
+            { text: "Now the 3rd.", expectedPitchClasses: [4] },
+            { text: "Now the 5th.", expectedPitchClasses: [7] },
+            { text: "Now back to the 3rd.", expectedPitchClasses: [4] },
+            { text: "Now back to the root.", expectedPitchClasses: [0] },
           ],
-          "Move root → 3rd → 5th",
+          "Phrase: 1 → 3 → 5 → 3 → 1",
         ),
+        // A randomly-sampled 3-note phrase using only the 3 degrees the
+        // user knows by ear (1, 3, 5). The same phrase is what the user
+        // hears and what they play back; octave-equivalent matching means
+        // they can find the notes anywhere on the neck.
+        (() => {
+          const degreeMidiMap: Record<string, number> = {
+            "1": 60,
+            "3": 64,
+            "5": 67,
+          };
+          const labels = ["1", "3", "5"] as const;
+          // Pick three labels with no immediate repeats — gives "1-3-5",
+          // "5-3-1", "3-5-1", "1-5-3", etc.
+          const seq: string[] = [];
+          for (let i = 0; i < 3; i++) {
+            let pick = labels[Math.floor(Math.random() * labels.length)]!;
+            while (i > 0 && pick === seq[i - 1]) {
+              pick = labels[Math.floor(Math.random() * labels.length)]!;
+            }
+            seq.push(pick);
+          }
+          return card("melodic-dictation", "A", "A-5", {
+            keyLabel: C_MAJOR.keyLabel,
+            tonicMidi: C_MAJOR.tonicMidi,
+            mode: "major",
+            sequence: seq.map((d) => degreeMidiMap[d]!),
+            degreeLabels: seq,
+            droneEnabled: true,
+            uiTitle: "Sing it back — 1, 3, 5",
+            uiDescription:
+              "Three notes drawn from root, 3rd, and 5th. Hear the phrase, then play it back in order.",
+            hintEmphasis: "default",
+          });
+        })(),
       ];
     case "A-6":
       return [
-        dronePlay(
-          "A",
-          "A-6",
-          A_MINOR,
-          [
-            { text: "Play the root.", expectedPitchClasses: [9] },
-            { text: "Now play the flat 3rd.", expectedPitchClasses: [0] },
-            { text: "Now play the 5th.", expectedPitchClasses: [4] },
-          ],
-          "Stable tones in A minor",
-        ),
-        droneIdentify(
-          "A",
-          "A-6",
-          STABLE_3,
-          stableTonesPrompts(A_MINOR, 5),
-          "Stable tones recognition — A minor",
-        ),
-        droneIdentify(
-          "A",
-          "A-6",
-          STABLE_3_GENERIC,
-          (() => {
-            const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
-              [];
-            for (let i = 0; i < 5; i++) {
-              const inMinor = Math.random() < 0.5;
-              const k = inMinor ? A_MINOR : C_MAJOR;
-              const choice = Math.floor(Math.random() * 3);
-              const semitone3 = inMinor ? 3 : 4;
-              const pc =
-                choice === 0
-                  ? ((k.tonicMidi % 12) + 12) % 12
-                  : choice === 1
-                    ? pcDegree(k, semitone3)
-                    : pcDegree(k, 7);
-              out.push({
-                key: k,
-                playedPitchClass: pc,
-                correctOptionIndex: choice,
-              });
-            }
-            return out;
-          })(),
-          "Stable tones — cross-key",
-          "Identify the function regardless of key.",
-        ),
-      ];
-    case "A-7":
-      return [
-        dronePlay("A", "A-7", C_MAJOR, [
-          { text: "Play the 7th.", expectedPitchClasses: [11] },
-        ]),
-        dronePlay("A", "A-7", A_MINOR, [
-          { text: "Play the flat 7.", expectedPitchClasses: [7] },
+        dronePlay("A", "A-6", C_MAJOR, [
+          { text: "Play the 7th (B in C major).", expectedPitchClasses: [11] },
         ]),
         dronePlay(
           "A",
-          "A-7",
+          "A-6",
           C_MAJOR,
           [
             { text: "Play the 7th.", expectedPitchClasses: [11] },
-            { text: "Now resolve to the root.", expectedPitchClasses: [0] },
+            { text: "Now resolve up to the root.", expectedPitchClasses: [0] },
           ],
           "Resolve 7 → 1",
         ),
         droneIdentify(
           "A",
-          "A-7",
-          [
-            { label: "The 7th (leading tone)" },
-            { label: "The flat 7 (bluesy)" },
-          ],
+          "A-6",
+          [{ label: "The 5th (open, hovering)" }, { label: "The 7th (leading)" }],
           (() => {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 5; i++) {
-              const major7 = Math.random() < 0.5;
+              const isSeventh = Math.random() < 0.5;
               out.push({
                 key: C_MAJOR,
-                playedPitchClass: major7 ? 11 : 10,
-                correctOptionIndex: major7 ? 0 : 1,
+                playedPitchClass: isSeventh ? 11 : 7,
+                correctOptionIndex: isSeventh ? 1 : 0,
               });
             }
             return out;
           })(),
-          "7 vs. flat 7",
+          "7 vs. 5",
         ),
       ];
-    case "A-8":
+    case "A-7":
       return [
-        dronePlay("A", "A-8", C_MAJOR, [
+        dronePlay("A", "A-7", C_MAJOR, [
           { text: "Play the 4th.", expectedPitchClasses: [5] },
         ]),
         dronePlay(
           "A",
-          "A-8",
+          "A-7",
           C_MAJOR,
           [
             { text: "Play the 4th.", expectedPitchClasses: [5] },
@@ -1364,11 +1560,8 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
         ),
         droneIdentify(
           "A",
-          "A-8",
-          [
-            { label: "The 3rd (resolved)" },
-            { label: "The 4th (leaning)" },
-          ],
+          "A-7",
+          [{ label: "The 3rd (resolved)" }, { label: "The 4th (leaning)" }],
           (() => {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
@@ -1385,21 +1578,19 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           "3 vs. 4",
         ),
       ];
-    case "A-9":
+    case "A-8":
+      // Mid-tension Consolidation — 3 vs. 4 vs. 5 vs. 7.
       return [
-        dronePlay("A", "A-9", C_MAJOR, [
-          { text: "Play the 2nd.", expectedPitchClasses: [2] },
-        ]),
         droneIdentify(
           "A",
-          "A-9",
-          [{ label: "Root" }, { label: "2nd" }, { label: "3rd" }],
+          "A-8",
+          [{ label: "3" }, { label: "4" }, { label: "5" }, { label: "7" }],
           (() => {
+            const map = [4, 5, 7, 11];
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
-            const map = [0, 2, 4];
-            for (let i = 0; i < 5; i++) {
-              const idx = Math.floor(Math.random() * 3);
+            for (let i = 0; i < 6; i++) {
+              const idx = Math.floor(Math.random() * 4);
               out.push({
                 key: C_MAJOR,
                 playedPitchClass: map[idx]!,
@@ -1408,7 +1599,65 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             }
             return out;
           })(),
-          "Identify 2 vs. neighbors",
+          "3 / 4 / 5 / 7 in C major",
+        ),
+        dronePlay(
+          "A",
+          "A-8",
+          C_MAJOR,
+          [
+            { text: "Play the 7.", expectedPitchClasses: [11] },
+            { text: "Resolve up to the root.", expectedPitchClasses: [0] },
+            { text: "Play the 4.", expectedPitchClasses: [5] },
+            { text: "Resolve down to the 3.", expectedPitchClasses: [4] },
+            { text: "Down to the root.", expectedPitchClasses: [0] },
+          ],
+          "Tension → resolution phrase",
+        ),
+      ];
+    case "A-9":
+      return [
+        dronePlay("A", "A-9", C_MAJOR, [
+          { text: "Play the 2nd.", expectedPitchClasses: [2] },
+        ]),
+        droneIdentify(
+          "A",
+          "A-9",
+          [{ label: "2nd" }, { label: "3rd" }],
+          (() => {
+            const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
+              [];
+            for (let i = 0; i < 5; i++) {
+              const isTwo = Math.random() < 0.5;
+              out.push({
+                key: C_MAJOR,
+                playedPitchClass: isTwo ? 2 : 4,
+                correctOptionIndex: isTwo ? 0 : 1,
+              });
+            }
+            return out;
+          })(),
+          "2nd vs. 3rd",
+        ),
+        droneIdentify(
+          "A",
+          "A-9",
+          [{ label: "2" }, { label: "7" }],
+          (() => {
+            const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
+              [];
+            for (let i = 0; i < 5; i++) {
+              const isTwo = Math.random() < 0.5;
+              out.push({
+                key: C_MAJOR,
+                playedPitchClass: isTwo ? 2 : 11,
+                correctOptionIndex: isTwo ? 0 : 1,
+              });
+            }
+            return out;
+          })(),
+          "2 vs. 7 — both a step from the root",
+          "Both are a whole/half step from the root — listen for direction.",
         ),
       ];
     case "A-10":
@@ -1419,95 +1668,129 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
         droneIdentify(
           "A",
           "A-10",
-          SEVEN_DEGREE_BUTTONS,
-          fullDiatonicPrompts(C_MAJOR, 6),
-          "Full diatonic identify",
-        ),
-      ];
-    case "A-11":
-      return [
-        dronePlay(
-          "A",
-          "A-11",
-          A_MINOR,
-          [
-            {
-              text: "Play any chord tone of A minor (root, flat 3rd, or 5th).",
-              expectedPitchClasses: [9, 0, 4],
-            },
-          ],
-          "Play any chord tone",
-        ),
-        dronePlay(
-          "A",
-          "A-11",
-          A_MINOR,
-          [
-            { text: "Play the root.", expectedPitchClasses: [9] },
-            { text: "Now play the flat 3rd.", expectedPitchClasses: [0] },
-            { text: "Now play the 5th.", expectedPitchClasses: [4] },
-          ],
-          "Three chord tones in sequence",
-        ),
-        droneIdentify(
-          "A",
-          "A-11",
-          [
-            { label: "Chord tone (resolved)" },
-            { label: "Not a chord tone" },
-          ],
+          [{ label: "5" }, { label: "6" }],
           (() => {
-            const chordTones = [9, 0, 4];
-            const nonChord = [11, 2, 5, 7]; // B, D, F, G
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 5; i++) {
-              const isChord = Math.random() < 0.5;
+              const isSix = Math.random() < 0.5;
               out.push({
-                key: A_MINOR,
-                playedPitchClass: isChord
-                  ? pickRandom(chordTones)
-                  : pickRandom(nonChord),
-                correctOptionIndex: isChord ? 0 : 1,
+                key: C_MAJOR,
+                playedPitchClass: isSix ? 9 : 7,
+                correctOptionIndex: isSix ? 1 : 0,
               });
             }
             return out;
           })(),
-          "Chord tone vs. non-chord-tone",
+          "5 vs. 6",
         ),
       ];
-    case "A-12":
+    case "A-11":
+      // Full Major Diatonic — drill all six non-root degrees in C, then mix keys.
       return [
-        dronePlay("A", "A-12", A_MINOR, [
-          { text: "Play the flat 7.", expectedPitchClasses: [7] },
-        ]),
-        dronePlay(
+        droneIdentify(
           "A",
-          "A-12",
-          A_MINOR,
-          [
-            {
-              text: "Play any of the four: root, flat 3, 5, or flat 7.",
-              expectedPitchClasses: [9, 0, 4, 7],
-            },
-          ],
-          "Play any of the four blues notes",
+          "A-11",
+          SIX_DEGREE_BUTTONS_MAJOR,
+          fullDiatonicPrompts(C_MAJOR, 6),
+          "Full diatonic — C major",
+          "The drone is the root; identify which non-root degree you hear.",
         ),
         droneIdentify(
           "A",
-          "A-12",
+          "A-11",
+          SIX_DEGREE_BUTTONS_MAJOR,
+          fullDiatonicPrompts(G_MAJOR, 6),
+          "Full diatonic — G major",
+        ),
+        dronePlay(
+          "A",
+          "A-11",
+          C_MAJOR,
           [
-            { label: "Root" },
-            { label: "Flat 3rd" },
-            { label: "5th" },
-            { label: "Flat 7" },
+            { text: "Play the 4.", expectedPitchClasses: [5] },
+            { text: "Play the 6.", expectedPitchClasses: [9] },
+            { text: "Play the 2.", expectedPitchClasses: [2] },
+            { text: "Play the 7.", expectedPitchClasses: [11] },
           ],
+          "Target each non-root degree",
+        ),
+      ];
+
+    // ─── Track A — Phase 2 (Minor) ────────────────────────────────────
+    case "A-12":
+      return [];
+    case "A-13":
+      // Re-orient root + 5th in minor.
+      return [
+        dronePlay("A", "A-13", A_MINOR, [
+          { text: "Play the root.", expectedPitchClasses: [9] },
+        ]),
+        dronePlay("A", "A-13", A_MINOR, [
+          { text: "Play the 5th.", expectedPitchClasses: [4] },
+        ]),
+        dronePlay(
+          "A",
+          "A-13",
+          A_MINOR,
+          [
+            { text: "Play the root.", expectedPitchClasses: [9] },
+            { text: "Now play the 5th.", expectedPitchClasses: [4] },
+            { text: "Now back to the root.", expectedPitchClasses: [9] },
+          ],
+          "Root and 5th in A minor",
+        ),
+      ];
+    case "A-14":
+      return [
+        dronePlay("A", "A-14", A_MINOR, [
+          { text: "Play the flat 3rd (C in A minor).", expectedPitchClasses: [0] },
+        ]),
+        dronePlay(
+          "A",
+          "A-14",
+          A_MINOR,
+          [
+            { text: "Play the root.", expectedPitchClasses: [9] },
+            { text: "Now the flat 3rd.", expectedPitchClasses: [0] },
+            { text: "Now the 5th.", expectedPitchClasses: [4] },
+            { text: "Back to the root.", expectedPitchClasses: [9] },
+          ],
+          "Minor triad: 1 → b3 → 5 → 1",
+        ),
+        droneIdentify(
+          "A",
+          "A-14",
+          FLAT_THREE_VS_FIVE,
+          stableTonesPromptsMinor(A_MINOR, 5),
+          "Flat 3rd vs. 5th — A minor",
+        ),
+      ];
+    case "A-15":
+      return [
+        dronePlay("A", "A-15", A_MINOR, [
+          { text: "Play the flat 7 (G in A minor).", expectedPitchClasses: [7] },
+        ]),
+        dronePlay(
+          "A",
+          "A-15",
+          A_MINOR,
+          [
+            { text: "Play the flat 7.", expectedPitchClasses: [7] },
+            { text: "Now the root.", expectedPitchClasses: [9] },
+          ],
+          "Flat 7 → root",
+        ),
+        droneIdentify(
+          "A",
+          "A-15",
+          [{ label: "Flat 3rd" }, { label: "5th" }, { label: "Flat 7" }],
           (() => {
-            const map = [9, 0, 4, 7];
+            const map = [0, 4, 7];
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
-            for (let i = 0; i < 5; i++) {
-              const idx = Math.floor(Math.random() * 4);
+            for (let i = 0; i < 6; i++) {
+              const idx = Math.floor(Math.random() * 3);
               out.push({
                 key: A_MINOR,
                 playedPitchClass: map[idx]!,
@@ -1516,173 +1799,169 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             }
             return out;
           })(),
-          "Identify which of the four",
+          "b3 / 5 / b7 in A minor",
+          "Drone is the root — pick which other chord/blues tone you hear.",
         ),
       ];
-    case "A-13":
+    case "A-16":
       return [
+        dronePlay("A", "A-16", A_MINOR, [
+          { text: "Play the flat 6 (F in A minor).", expectedPitchClasses: [5] },
+        ]),
+        dronePlay("A", "A-16", A_MINOR, [
+          { text: "Play the 2nd (B in A minor).", expectedPitchClasses: [11] },
+        ]),
         droneIdentify(
           "A",
-          "A-13",
-          [{ label: "Chord tone" }, { label: "Passing tone (the 4)" }],
+          "A-16",
+          [{ label: "2" }, { label: "b3" }],
           (() => {
-            const chordTones = [9, 0, 4, 7];
-            const passing = [2];
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
-            for (let i = 0; i < 6; i++) {
-              const isChord = Math.random() < 0.5;
+            for (let i = 0; i < 5; i++) {
+              const isTwo = Math.random() < 0.5;
               out.push({
                 key: A_MINOR,
-                playedPitchClass: isChord
-                  ? pickRandom(chordTones)
-                  : pickRandom(passing),
-                correctOptionIndex: isChord ? 0 : 1,
+                playedPitchClass: isTwo ? 11 : 0,
+                correctOptionIndex: isTwo ? 0 : 1,
               });
             }
             return out;
           })(),
-          "Chord tone vs. passing tone — pentatonic",
+          "2 vs. b3 in A minor",
         ),
-        dronePlay(
+        droneIdentify(
           "A",
-          "A-13",
-          A_MINOR,
-          [
-            {
-              text: "Play any note from the A minor pentatonic.",
-              expectedPitchClasses: [9, 0, 2, 4, 7],
-            },
-          ],
-          "Any pentatonic note",
-        ),
-        dronePlay(
-          "A",
-          "A-13",
-          A_MINOR,
-          [
-            { text: "Play any chord tone.", expectedPitchClasses: [9, 0, 4, 7] },
-            { text: "Now play the 4 as a passing tone.", expectedPitchClasses: [2] },
-            {
-              text: "Now resolve to any chord tone.",
-              expectedPitchClasses: [9, 0, 4, 7],
-            },
-          ],
-          "Phrase: chord tone → passing → chord tone",
-        ),
-      ];
-    case "A-14":
-      // Two-chord vamp — recognition via simulated chord-change-identify.
-      return [
-        chordIdentify(
-          "A-14",
-          [{ label: "Am (i)" }, { label: "Dm (iv)" }],
+          "A-16",
+          [{ label: "b6" }, { label: "b7" }],
           (() => {
-            const prompts: CardTemplateParams["chord-change-identify"]["prompts"] =
+            const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
-            for (let i = 0; i < 4; i++) {
-              const onAm = i % 2 === 0;
-              prompts.push({
-                keyLabel: "A minor — vamp",
-                chords: onAm ? [CHORDS.Am!, CHORDS.Dm!] : [CHORDS.Dm!, CHORDS.Am!],
-                askPositionIndex: 1,
-                correctOptionIndex: onAm ? 0 : 1,
-                transitionText: "Which chord is sounding right now?",
+            for (let i = 0; i < 5; i++) {
+              const isSix = Math.random() < 0.5;
+              out.push({
+                key: A_MINOR,
+                playedPitchClass: isSix ? 5 : 7,
+                correctOptionIndex: isSix ? 0 : 1,
               });
             }
-            return prompts;
+            return out;
           })(),
-          "Am ↔ Dm vamp — which chord?",
-        ),
-        dronePlay(
-          "A",
-          "A-14",
-          A_MINOR,
-          [
-            {
-              text: "Play any chord tone of the chord currently playing (Am: A C E; Dm: D F A).",
-              expectedPitchClasses: [9, 0, 4, 2, 5],
-            },
-          ],
-          "Chord-tone targeting on a vamp",
-          "Listen for which chord is under you and target its 1, 3, 5.",
+          "b6 vs. b7 in A minor",
         ),
       ];
-    case "A-15":
+    case "A-17":
+      // Full Minor Diatonic — drill the six non-root degrees in A minor + E minor.
       return [
-        chordIdentify(
-          "A-15",
-          [
-            { label: "I" },
-            { label: "IV" },
-            { label: "V" },
-            { label: "vi" },
-          ],
-          [
-            {
-              keyLabel: "C major — I-vi-IV-V",
-              chords: [CHORDS.C!, CHORDS.Am!, CHORDS.F!, CHORDS.G!],
-              askPositionIndex: 2,
-              correctOptionIndex: 3,
-              transitionText: "Which function was the 2nd chord?",
-            },
-            {
-              keyLabel: "C major — I-V-vi-IV",
-              chords: [CHORDS.C!, CHORDS.G!, CHORDS.Am!, CHORDS.F!],
-              askPositionIndex: 3,
-              correctOptionIndex: 3,
-              transitionText: "Which function was the 3rd chord?",
-            },
-            {
-              keyLabel: "C major — I-IV-V-I",
-              chords: [CHORDS.C!, CHORDS.F!, CHORDS.G!, CHORDS.C!],
-              askPositionIndex: 3,
-              correctOptionIndex: 2,
-              transitionText: "Which function was the 3rd chord?",
-            },
-            {
-              keyLabel: "C major — vi-IV-I-V",
-              chords: [CHORDS.Am!, CHORDS.F!, CHORDS.C!, CHORDS.G!],
-              askPositionIndex: 1,
-              correctOptionIndex: 3,
-              transitionText: "Which function was the 1st chord?",
-            },
-          ],
-          "Identify chord tones over a I-IV-V-vi progression",
-        ),
-        dronePlay(
+        droneIdentify(
           "A",
-          "A-15",
-          C_MAJOR,
-          [
-            {
-              text: "Play any chord tone of the chord currently playing (rotate over C → F → G → Am).",
-              expectedPitchClasses: [0, 4, 7, 5, 9, 11, 2],
-            },
-          ],
-          "Chord-tone targeting over the changes",
+          "A-17",
+          SIX_DEGREE_BUTTONS_MINOR,
+          fullDiatonicPrompts(A_MINOR, 6),
+          "Full diatonic — A minor",
+          "The drone is the root; identify which non-root degree you hear.",
+        ),
+        droneIdentify(
+          "A",
+          "A-17",
+          SIX_DEGREE_BUTTONS_MINOR,
+          fullDiatonicPrompts(E_MINOR, 6),
+          "Full diatonic — E minor",
         ),
       ];
-    case "A-16": {
-      const KEYS: KeyContext[] = [
-        { tonicMidi: 60, keyLabel: "C major", mode: "major" },
-        { tonicMidi: 55, keyLabel: "G major", mode: "major" },
-        { tonicMidi: 62, keyLabel: "D major", mode: "major" },
+    case "A-18":
+      // Cross-mode Consolidation — mix major and minor prompts.
+      return [
+        droneIdentify(
+          "A",
+          "A-18",
+          [{ label: "Major 3rd (bright)" }, { label: "Minor 3rd (dark)" }],
+          (() => {
+            const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
+              [];
+            for (let i = 0; i < 6; i++) {
+              const isMajor = Math.random() < 0.5;
+              const k = isMajor ? C_MAJOR : A_MINOR;
+              out.push({
+                key: k,
+                playedPitchClass: isMajor
+                  ? pcDegree(k, 4)
+                  : pcDegree(k, 3),
+                correctOptionIndex: isMajor ? 0 : 1,
+              });
+            }
+            return out;
+          })(),
+          "Major vs. minor 3rd — cross-key",
+        ),
+        droneIdentify(
+          "A",
+          "A-18",
+          [{ label: "Major (3, 6, 7)" }, { label: "Minor (b3, b6, b7)" }],
+          (() => {
+            const majorVariants = [4, 9, 11];
+            const minorVariants = [3, 8, 10];
+            const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
+              [];
+            for (let i = 0; i < 6; i++) {
+              const isMajor = Math.random() < 0.5;
+              const k = isMajor ? C_MAJOR : A_MINOR;
+              const offsets = isMajor ? majorVariants : minorVariants;
+              out.push({
+                key: k,
+                playedPitchClass: pcDegree(k, pickRandom(offsets)),
+                correctOptionIndex: isMajor ? 0 : 1,
+              });
+            }
+            return out;
+          })(),
+          "Major-vs-minor flavor — by ear",
+        ),
+      ];
+
+    // ─── Track A — Phase 3 (Cross-key) ────────────────────────────────
+    case "A-19":
+      return [
+        dronePlay("A", "A-19", G_MAJOR, [
+          { text: "Play the 5th in G major (D).", expectedPitchClasses: [pcDegree(G_MAJOR, 7)] },
+        ]),
+        dronePlay("A", "A-19", D_MAJOR, [
+          { text: "Play the 3rd in D major (F#).", expectedPitchClasses: [pcDegree(D_MAJOR, 4)] },
+        ]),
+        droneIdentify(
+          "A",
+          "A-19",
+          SIX_DEGREE_BUTTONS_MAJOR,
+          fullDiatonicPrompts(G_MAJOR, 5),
+          "Full diatonic — G major",
+        ),
+        droneIdentify(
+          "A",
+          "A-19",
+          SIX_DEGREE_BUTTONS_MAJOR,
+          fullDiatonicPrompts(D_MAJOR, 5),
+          "Full diatonic — D major",
+        ),
+      ];
+    case "A-20": {
+      // All Major Keys — sample a random major key per prompt.
+      const MAJOR_KEYS: KeyContext[] = [
+        C_MAJOR,
+        G_MAJOR,
+        D_MAJOR,
         { tonicMidi: 57, keyLabel: "A major", mode: "major" },
         { tonicMidi: 64, keyLabel: "E major", mode: "major" },
         { tonicMidi: 53, keyLabel: "F major", mode: "major" },
-        { tonicMidi: 60, keyLabel: "C minor", mode: "minor" },
-        { tonicMidi: 57, keyLabel: "A minor", mode: "minor" },
-        { tonicMidi: 62, keyLabel: "D minor", mode: "minor" },
       ];
-      const prompts: CardTemplateParams["drone-degree-identify"]["prompts"] = [];
-      for (let i = 0; i < 6; i++) {
-        const k = pickRandom(KEYS);
-        const scale = k.mode === "major" ? DEGREES_MAJOR : DEGREES_MINOR;
-        const idx = Math.floor(Math.random() * 7);
-        prompts.push({
+      const majorPrompts: CardTemplateParams["drone-degree-identify"]["prompts"] =
+        [];
+      for (let i = 0; i < 8; i++) {
+        const k = pickRandom(MAJOR_KEYS);
+        const nonRoot = DEGREES_MAJOR.slice(1);
+        const idx = Math.floor(Math.random() * nonRoot.length);
+        majorPrompts.push({
           key: k,
-          playedPitchClass: pcDegree(k, scale[idx]!),
+          playedPitchClass: pcDegree(k, nonRoot[idx]!),
           correctOptionIndex: idx,
           transitionText: `Drone in ${k.keyLabel}.`,
         });
@@ -1690,16 +1969,100 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
       return [
         droneIdentify(
           "A",
-          "A-16",
-          SEVEN_DEGREE_BUTTONS,
-          prompts,
-          "Mixed-key degree identification",
-          "Each prompt uses a random key. Identify the degree.",
+          "A-20",
+          SIX_DEGREE_BUTTONS_MAJOR,
+          majorPrompts,
+          "Mixed major keys — degrees 2-7",
+          "Each prompt uses a random major key. Identify the non-root degree.",
+        ),
+      ];
+    }
+    case "A-21":
+      return [
+        dronePlay("A", "A-21", E_MINOR, [
+          { text: "Play the flat 3rd in E minor (G).", expectedPitchClasses: [pcDegree(E_MINOR, 3)] },
+        ]),
+        dronePlay("A", "A-21", D_MINOR, [
+          { text: "Play the 5th in D minor (A).", expectedPitchClasses: [pcDegree(D_MINOR, 7)] },
+        ]),
+        droneIdentify(
+          "A",
+          "A-21",
+          SIX_DEGREE_BUTTONS_MINOR,
+          fullDiatonicPrompts(E_MINOR, 5),
+          "Full diatonic — E minor",
+        ),
+        droneIdentify(
+          "A",
+          "A-21",
+          SIX_DEGREE_BUTTONS_MINOR,
+          fullDiatonicPrompts(D_MINOR, 5),
+          "Full diatonic — D minor",
+        ),
+      ];
+    case "A-22": {
+      // All Keys, All Modes — the capstone consolidation.
+      const ALL_MAJOR: KeyContext[] = [
+        C_MAJOR,
+        G_MAJOR,
+        D_MAJOR,
+        { tonicMidi: 57, keyLabel: "A major", mode: "major" },
+        { tonicMidi: 64, keyLabel: "E major", mode: "major" },
+        { tonicMidi: 53, keyLabel: "F major", mode: "major" },
+      ];
+      const ALL_MINOR: KeyContext[] = [
+        A_MINOR,
+        E_MINOR,
+        D_MINOR,
+        { tonicMidi: 59, keyLabel: "B minor", mode: "minor" },
+      ];
+      const majorPrompts: CardTemplateParams["drone-degree-identify"]["prompts"] =
+        [];
+      const minorPrompts: CardTemplateParams["drone-degree-identify"]["prompts"] =
+        [];
+      for (let i = 0; i < 6; i++) {
+        const k = pickRandom(ALL_MAJOR);
+        const nonRoot = DEGREES_MAJOR.slice(1);
+        const idx = Math.floor(Math.random() * nonRoot.length);
+        majorPrompts.push({
+          key: k,
+          playedPitchClass: pcDegree(k, nonRoot[idx]!),
+          correctOptionIndex: idx,
+          transitionText: `Drone in ${k.keyLabel}.`,
+        });
+      }
+      for (let i = 0; i < 6; i++) {
+        const k = pickRandom(ALL_MINOR);
+        const nonRoot = DEGREES_MINOR.slice(1);
+        const idx = Math.floor(Math.random() * nonRoot.length);
+        minorPrompts.push({
+          key: k,
+          playedPitchClass: pcDegree(k, nonRoot[idx]!),
+          correctOptionIndex: idx,
+          transitionText: `Drone in ${k.keyLabel}.`,
+        });
+      }
+      return [
+        droneIdentify(
+          "A",
+          "A-22",
+          SIX_DEGREE_BUTTONS_MAJOR,
+          majorPrompts,
+          "Any major key — non-root degree",
+          "Each prompt uses a random major key.",
+        ),
+        droneIdentify(
+          "A",
+          "A-22",
+          SIX_DEGREE_BUTTONS_MINOR,
+          minorPrompts,
+          "Any minor key — non-root degree",
+          "Each prompt uses a random minor key.",
         ),
       ];
     }
 
-    // ─── Track B ────────────────────────────────────────────
+    // ─── Track B (note finding, circle-of-fifths order) ──────────────
     case "B-1":
       return [
         noteFinding("B-1", {
@@ -1718,35 +2081,78 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
         }),
       ];
     case "B-3":
-      return [noteFinding("B-3", { noteName: "C", allStringsLowestFret: true })];
+      return [
+        noteFinding("B-3", {
+          noteName: "C",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
+        }),
+      ];
     case "B-4":
-      return [noteFinding("B-4", { noteName: "F", allStringsLowestFret: true })];
+      return [
+        noteFinding("B-4", {
+          noteName: "G",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
+        }),
+      ];
     case "B-5":
-      return [noteFinding("B-5", { noteName: "G", allStringsLowestFret: true })];
+      return [
+        noteFinding("B-5", {
+          noteName: "D",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
+        }),
+      ];
     case "B-6":
       return [
-        noteFinding("B-6", { noteName: "D", allStringsLowestFret: true }),
-        noteFinding("B-6", { noteName: "A", allStringsLowestFret: true }),
         noteFinding("B-6", {
-          pool: { notes: ["D", "A"] },
-          roundCount: 8,
+          noteName: "A",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
         }),
       ];
     case "B-7":
       return [
-        noteFinding("B-7", { noteName: "B", allStringsLowestFret: true }),
-        noteFinding("B-7", { noteName: "F#", allStringsLowestFret: true }),
+        noteFinding("B-7", {
+          noteName: "E",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
+        }),
       ];
     case "B-8":
       return [
         noteFinding("B-8", {
-          pool: { notes: ["C#", "D#", "F#", "G#", "A#"] },
-          roundCount: 10,
+          noteName: "F",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
         }),
       ];
     case "B-9":
       return [
         noteFinding("B-9", {
+          noteName: "B",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
+        }),
+      ];
+    case "B-10":
+      return [
+        noteFinding("B-10", {
+          pool: { notes: ["C#", "D#", "F#", "G#", "A#"] },
+          roundCount: 10,
+        }),
+      ];
+    case "B-11":
+      return [
+        noteFinding("B-11", {
+          pool: { notes: ["C", "D", "E", "F", "G", "A", "B"] },
+          roundCount: 12,
+        }),
+      ];
+    case "B-12":
+      return [
+        noteFinding("B-12", {
           pool: {
             notes: [
               "C",
@@ -1766,9 +2172,9 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           roundCount: 12,
         }),
       ];
-    case "B-10":
+    case "B-13":
       return [
-        noteFinding("B-10", {
+        noteFinding("B-13", {
           pool: {
             notes: [
               "C",
@@ -1790,7 +2196,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
         }),
       ];
 
-    // ─── Track C (revised: open → movable → pentatonic → CAGED) ────
+    // ─── Track C (unchanged) ─────────────────────────────────────────
     case "C-1": {
       const shape = SHAPES_BY_ID["open-c-major"]!;
       return [
@@ -1831,14 +2237,15 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
       const shape = SHAPES_BY_ID["movable-major-e-shape"]!;
       return [
         shapeRecall("C-3", {
-          title: "C·3 · P1 — Movable major (E-shape) ascending in G",
-          intro: "Root at 6/3. Slide the same shape for any major key later.",
+          title: "C·3 · P1 — Position 1 major scale ascending in G",
+          intro:
+            "Two octaves, 15 notes. Root at 6/3 under finger 2. Same fingering slides to any major key.",
           steps: shape.steps,
           restartOnError: true,
         }),
         shapeRecall("C-3", {
-          title: "C·3 · P2 — Movable major (E-shape) descending in G",
-          intro: "Reverse direction; same shape.",
+          title: "C·3 · P2 — Position 1 major scale descending in G",
+          intro: "Reverse direction; same fingering.",
           steps: shape.descending!,
           restartOnError: true,
         }),
@@ -1895,18 +2302,18 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           title: "C·7 · P1 — Play only the flat 3rds",
           intro: "Three C's inside Box 1.",
           steps: [
-            { stringIndex: 5, fret: 8 },
-            { stringIndex: 2, fret: 5 },
-            { stringIndex: 0, fret: 8 },
+            { stringIndex: 5, fret: 8, finger: 4, degree: "b3" },
+            { stringIndex: 2, fret: 5, finger: 1, degree: "b3" },
+            { stringIndex: 0, fret: 8, finger: 4, degree: "b3" },
           ],
           restartOnError: true,
         }),
         shapeRecall("C-7", {
           title: "C·7 · P2 — Play only the 5ths",
-          intro: "Two E's inside Box 1.",
+          intro: "Two E's inside Box 1: A string fret 7, B string fret 5.",
           steps: [
-            { stringIndex: 4, fret: 7 },
-            { stringIndex: 1, fret: 7 },
+            { stringIndex: 4, fret: 7, finger: 3, degree: "5" },
+            { stringIndex: 1, fret: 5, finger: 1, degree: "5" },
           ],
           restartOnError: true,
         }),
@@ -1982,8 +2389,8 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           title: "C·11 · P1 — Roots in Box 2",
           intro: "Two A's: D string fret 7, B string fret 10.",
           steps: [
-            { stringIndex: 3, fret: 7 },
-            { stringIndex: 1, fret: 10 },
+            { stringIndex: 3, fret: 7, finger: 1, degree: "1" },
+            { stringIndex: 1, fret: 10, finger: 4, degree: "1" },
           ],
           restartOnError: true,
         }),
@@ -1992,9 +2399,9 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           intro:
             "Three C's: low E fret 8, D string fret 10, high e fret 8.",
           steps: [
-            { stringIndex: 5, fret: 8 },
-            { stringIndex: 3, fret: 10 },
-            { stringIndex: 0, fret: 8 },
+            { stringIndex: 5, fret: 8, finger: 2, degree: "b3" },
+            { stringIndex: 3, fret: 10, finger: 4, degree: "b3" },
+            { stringIndex: 0, fret: 8, finger: 2, degree: "b3" },
           ],
           restartOnError: true,
         }),
@@ -2002,8 +2409,8 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           title: "C·11 · P3 — 5ths in Box 2",
           intro: "Two E's: 5/7, 3/9.",
           steps: [
-            { stringIndex: 4, fret: 7 },
-            { stringIndex: 2, fret: 9 },
+            { stringIndex: 4, fret: 7, finger: 1, degree: "5" },
+            { stringIndex: 2, fret: 9, finger: 3, degree: "5" },
           ],
           restartOnError: true,
         }),
@@ -2064,9 +2471,9 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           title: "C·14 · P1 — Walk Box 1 into Box 2 on the low E",
           intro: "A → C → D on the 6th string.",
           steps: [
-            { stringIndex: 5, fret: 5 },
-            { stringIndex: 5, fret: 8 },
-            { stringIndex: 5, fret: 10 },
+            { stringIndex: 5, fret: 5, finger: 1, degree: "1" },
+            { stringIndex: 5, fret: 8, finger: 4, degree: "b3" },
+            { stringIndex: 5, fret: 10, finger: 4, degree: "4" },
           ],
           restartOnError: true,
         }),
@@ -2074,12 +2481,12 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           title: "C·14 · P2 — Walk across the boxes ascending",
           intro: "6-note line spanning Box 1 and Box 2.",
           steps: [
-            { stringIndex: 5, fret: 5 },
-            { stringIndex: 4, fret: 5 },
-            { stringIndex: 4, fret: 7 },
-            { stringIndex: 4, fret: 10 },
-            { stringIndex: 3, fret: 7 },
-            { stringIndex: 3, fret: 10 },
+            { stringIndex: 5, fret: 5, finger: 1, degree: "1" },
+            { stringIndex: 4, fret: 5, finger: 1, degree: "4" },
+            { stringIndex: 4, fret: 7, finger: 3, degree: "5" },
+            { stringIndex: 4, fret: 10, finger: 4, degree: "b7" },
+            { stringIndex: 3, fret: 7, finger: 3, degree: "1" },
+            { stringIndex: 3, fret: 10, finger: 4, degree: "b3" },
           ],
           restartOnError: true,
         }),
@@ -2092,9 +2499,10 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
       ];
     }
 
-    // ─── Track D ────────────────────────────────────────────
+    // ─── Track D (chord changes) ─────────────────────────────────────
     case "D-1":
       return [
+        chordDrillPreflight("D-1")!,
         chordIdentify(
           "D-1",
           [{ label: "I (C)" }, { label: "IV (F)" }, { label: "V (G)" }],
@@ -2152,6 +2560,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
       ];
     case "D-2":
       return [
+        chordDrillPreflight("D-2")!,
         chordIdentify(
           "D-2",
           [
@@ -2201,48 +2610,64 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
       ];
     case "D-3":
       return [
+        chordDrillPreflight("D-3")!,
         chordIdentify(
           "D-3",
           [
             { label: "I" },
+            { label: "ii" },
             { label: "IV" },
             { label: "V" },
             { label: "vi" },
           ],
           [
             {
-              keyLabel: "C major — I-V-vi-IV",
-              chords: [CHORDS.C!, CHORDS.G!, CHORDS.Am!, CHORDS.F!],
+              keyLabel: "C major — ii-V-I",
+              chords: [CHORDS.Dm!, CHORDS.G!, CHORDS.C!],
+              askPositionIndex: 1,
+              correctOptionIndex: 1,
+              transitionText: "Which was chord 1? (the 'pre-dominant')",
+            },
+            {
+              keyLabel: "C major — I-vi-ii-V",
+              chords: [CHORDS.C!, CHORDS.Am!, CHORDS.Dm!, CHORDS.G!],
               askPositionIndex: 3,
-              correctOptionIndex: 3,
+              correctOptionIndex: 1,
               transitionText: "Which was chord 3?",
             },
             {
-              keyLabel: "C major — I-IV-V-I",
-              chords: [CHORDS.C!, CHORDS.F!, CHORDS.G!, CHORDS.C!],
-              askPositionIndex: 2,
+              keyLabel: "C major — I-IV-ii-V",
+              chords: [CHORDS.C!, CHORDS.F!, CHORDS.Dm!, CHORDS.G!],
+              askPositionIndex: 3,
               correctOptionIndex: 1,
-              transitionText: "Which was chord 2?",
+              transitionText: "Which was chord 3?",
+            },
+            {
+              keyLabel: "C major — I-V-vi-IV",
+              chords: [CHORDS.C!, CHORDS.G!, CHORDS.Am!, CHORDS.F!],
+              askPositionIndex: 3,
+              correctOptionIndex: 4,
+              transitionText: "Which was chord 3?",
             },
             {
               keyLabel: "C major — I-vi-IV-V",
               chords: [CHORDS.C!, CHORDS.Am!, CHORDS.F!, CHORDS.G!],
               askPositionIndex: 4,
-              correctOptionIndex: 2,
+              correctOptionIndex: 3,
               transitionText: "Which was chord 4?",
             },
             {
               keyLabel: "C major — vi-IV-I-V",
               chords: [CHORDS.Am!, CHORDS.F!, CHORDS.C!, CHORDS.G!],
               askPositionIndex: 1,
-              correctOptionIndex: 3,
+              correctOptionIndex: 4,
               transitionText: "Which was chord 1?",
             },
             {
               keyLabel: "G major — I-V-vi-IV",
               chords: [CHORDS.G!, CHORDS.D!, CHORDS.Em!, CHORDS.C!],
               askPositionIndex: 2,
-              correctOptionIndex: 2,
+              correctOptionIndex: 3,
               transitionText: "Which was chord 2?",
             },
           ],
@@ -2250,6 +2675,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
       ];
     case "D-4":
       return [
+        chordDrillPreflight("D-4")!,
         chordIdentify(
           "D-4",
           [
@@ -2293,6 +2719,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
       ];
     case "D-5":
       return [
+        chordDrillPreflight("D-5")!,
         chordIdentify(
           "D-5",
           [
@@ -2326,10 +2753,10 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             },
             {
               keyLabel: "Pop-punk — D — I-V-vi-IV",
-              chords: [CHORDS.D!, CHORDS.Am!, CHORDS.G!, CHORDS.D!],
-              askPositionIndex: 2,
-              correctOptionIndex: 2,
-              transitionText: "Which was chord 2?",
+              chords: [CHORDS.D!, CHORDS.A!, CHORDS.Bm!, CHORDS.G!],
+              askPositionIndex: 3,
+              correctOptionIndex: 3,
+              transitionText: "Which was chord 3?",
             },
             {
               keyLabel: "12-bar simplified",
@@ -2342,31 +2769,24 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
         ),
       ];
 
-    // ─── Track E ────────────────────────────────────────────
+    // ─── Track E (intervals, 17 levels) ──────────────────────────────
     case "E-1":
+      // Perfect 5th vs. anchor (M3 — both consonant, M3 is smaller).
       return [
         intervalIdentify(
           "E-1",
-          [{ label: "Major 2nd" }, { label: "Larger than a major 2nd" }],
+          [{ label: "Major 3rd" }, { label: "Perfect 5th" }],
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
-            const larger = [4, 5, 7];
             for (let i = 0; i < 5; i++) {
-              const isM2 = Math.random() < 0.5;
-              const semi = isM2 ? 2 : pickRandom(larger);
+              const isP5 = Math.random() < 0.5;
+              const semi = isP5 ? 7 : 4;
               out.push({
                 baseMidi: 60,
                 semitones: semi,
                 direction: "up",
-                correctOptionIndex: isM2 ? 0 : 1,
-                actualLabel:
-                  semi === 2
-                    ? "major 2nd"
-                    : semi === 4
-                      ? "major 3rd"
-                      : semi === 5
-                        ? "perfect 4th"
-                        : "perfect 5th",
+                correctOptionIndex: isP5 ? 1 : 0,
+                actualLabel: isP5 ? "perfect 5th" : "major 3rd",
               });
             }
             return out;
@@ -2374,9 +2794,84 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
         ),
       ];
     case "E-2":
+      // Perfect 4th vs. Perfect 5th.
       return [
         intervalIdentify(
           "E-2",
+          [{ label: "Perfect 4th" }, { label: "Perfect 5th" }],
+          (() => {
+            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
+            for (let i = 0; i < 5; i++) {
+              const isP4 = Math.random() < 0.5;
+              const semi = isP4 ? 5 : 7;
+              out.push({
+                baseMidi: 60,
+                semitones: semi,
+                direction: "up",
+                correctOptionIndex: isP4 ? 0 : 1,
+                actualLabel: isP4 ? "perfect 4th" : "perfect 5th",
+              });
+            }
+            return out;
+          })(),
+        ),
+      ];
+    case "E-3":
+      // Major 3rd vs. Perfect 4th (close in size, opposite color).
+      return [
+        intervalIdentify(
+          "E-3",
+          [{ label: "Major 3rd" }, { label: "Perfect 4th" }],
+          (() => {
+            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
+            for (let i = 0; i < 5; i++) {
+              const isM3 = Math.random() < 0.5;
+              const semi = isM3 ? 4 : 5;
+              out.push({
+                baseMidi: 60,
+                semitones: semi,
+                direction: "up",
+                correctOptionIndex: isM3 ? 0 : 1,
+                actualLabel: isM3 ? "major 3rd" : "perfect 4th",
+              });
+            }
+            return out;
+          })(),
+        ),
+      ];
+    case "E-4":
+      // Consolidation: M3 / P4 / P5.
+      return [
+        intervalIdentify(
+          "E-4",
+          [
+            { label: "Major 3rd" },
+            { label: "Perfect 4th" },
+            { label: "Perfect 5th" },
+          ],
+          (() => {
+            const map = [4, 5, 7];
+            const labels = ["major 3rd", "perfect 4th", "perfect 5th"];
+            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
+            for (let i = 0; i < 6; i++) {
+              const idx = Math.floor(Math.random() * 3);
+              out.push({
+                baseMidi: 60,
+                semitones: map[idx]!,
+                direction: "up",
+                correctOptionIndex: idx,
+                actualLabel: labels[idx]!,
+              });
+            }
+            return out;
+          })(),
+        ),
+      ];
+    case "E-5":
+      // Major 2nd vs. Major 3rd.
+      return [
+        intervalIdentify(
+          "E-5",
           [{ label: "Major 2nd" }, { label: "Major 3rd" }],
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
@@ -2395,20 +2890,193 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           })(),
         ),
       ];
-    case "E-3":
+    case "E-6":
+      // Major 6th vs. Perfect 5th.
       return [
         intervalIdentify(
-          "E-3",
+          "E-6",
+          [{ label: "Perfect 5th" }, { label: "Major 6th" }],
+          (() => {
+            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
+            for (let i = 0; i < 5; i++) {
+              const isM6 = Math.random() < 0.5;
+              const semi = isM6 ? 9 : 7;
+              out.push({
+                baseMidi: 60,
+                semitones: semi,
+                direction: "up",
+                correctOptionIndex: isM6 ? 1 : 0,
+                actualLabel: isM6 ? "major 6th" : "perfect 5th",
+              });
+            }
+            return out;
+          })(),
+        ),
+      ];
+    case "E-7":
+      // Major 7th vs. Perfect 5th (or Octave — but octave isn't taught yet).
+      return [
+        intervalIdentify(
+          "E-7",
+          [{ label: "Perfect 5th" }, { label: "Major 7th" }],
+          (() => {
+            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
+            for (let i = 0; i < 5; i++) {
+              const isM7 = Math.random() < 0.5;
+              const semi = isM7 ? 11 : 7;
+              out.push({
+                baseMidi: 60,
+                semitones: semi,
+                direction: "up",
+                correctOptionIndex: isM7 ? 1 : 0,
+                actualLabel: isM7 ? "major 7th" : "perfect 5th",
+              });
+            }
+            return out;
+          })(),
+        ),
+      ];
+    case "E-8":
+      // Ascending Majors Consolidation: M2 / M3 / P4 / P5 / M6 / M7.
+      return [
+        intervalIdentify(
+          "E-8",
           [
             { label: "Major 2nd" },
             { label: "Major 3rd" },
             { label: "Perfect 4th" },
+            { label: "Perfect 5th" },
+            { label: "Major 6th" },
+            { label: "Major 7th" },
           ],
           (() => {
-            const map = [2, 4, 5];
-            const labels = ["major 2nd", "major 3rd", "perfect 4th"];
+            const map = [2, 4, 5, 7, 9, 11];
+            const labels = [
+              "major 2nd",
+              "major 3rd",
+              "perfect 4th",
+              "perfect 5th",
+              "major 6th",
+              "major 7th",
+            ];
+            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
+            for (let i = 0; i < 6; i++) {
+              const idx = Math.floor(Math.random() * 6);
+              out.push({
+                baseMidi: 60,
+                semitones: map[idx]!,
+                direction: "up",
+                correctOptionIndex: idx,
+                actualLabel: labels[idx]!,
+              });
+            }
+            return out;
+          })(),
+        ),
+      ];
+    case "E-9":
+      // Minor 3rd vs. Major 3rd.
+      return [
+        intervalIdentify(
+          "E-9",
+          [{ label: "Minor 3rd" }, { label: "Major 3rd" }],
+          (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 5; i++) {
+              const isMin = Math.random() < 0.5;
+              const semi = isMin ? 3 : 4;
+              out.push({
+                baseMidi: 60,
+                semitones: semi,
+                direction: "up",
+                correctOptionIndex: isMin ? 0 : 1,
+                actualLabel: isMin ? "minor 3rd" : "major 3rd",
+              });
+            }
+            return out;
+          })(),
+        ),
+      ];
+    case "E-10":
+      // Minor 7th vs. Major 7th.
+      return [
+        intervalIdentify(
+          "E-10",
+          [{ label: "Minor 7th" }, { label: "Major 7th" }],
+          (() => {
+            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
+            for (let i = 0; i < 5; i++) {
+              const isMin = Math.random() < 0.5;
+              const semi = isMin ? 10 : 11;
+              out.push({
+                baseMidi: 60,
+                semitones: semi,
+                direction: "up",
+                correctOptionIndex: isMin ? 0 : 1,
+                actualLabel: isMin ? "minor 7th" : "major 7th",
+              });
+            }
+            return out;
+          })(),
+        ),
+      ];
+    case "E-11":
+      // Minor 6th vs. Major 6th.
+      return [
+        intervalIdentify(
+          "E-11",
+          [{ label: "Minor 6th" }, { label: "Major 6th" }],
+          (() => {
+            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
+            for (let i = 0; i < 5; i++) {
+              const isMin = Math.random() < 0.5;
+              const semi = isMin ? 8 : 9;
+              out.push({
+                baseMidi: 60,
+                semitones: semi,
+                direction: "up",
+                correctOptionIndex: isMin ? 0 : 1,
+                actualLabel: isMin ? "minor 6th" : "major 6th",
+              });
+            }
+            return out;
+          })(),
+        ),
+      ];
+    case "E-12":
+      // Minor 2nd vs. Major 2nd.
+      return [
+        intervalIdentify(
+          "E-12",
+          [{ label: "Minor 2nd" }, { label: "Major 2nd" }],
+          (() => {
+            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
+            for (let i = 0; i < 5; i++) {
+              const isMin = Math.random() < 0.5;
+              const semi = isMin ? 1 : 2;
+              out.push({
+                baseMidi: 60,
+                semitones: semi,
+                direction: "up",
+                correctOptionIndex: isMin ? 0 : 1,
+                actualLabel: isMin ? "minor 2nd" : "major 2nd",
+              });
+            }
+            return out;
+          })(),
+        ),
+      ];
+    case "E-13":
+      // Tritone vs. P4 / P5 (its closest neighbours).
+      return [
+        intervalIdentify(
+          "E-13",
+          [{ label: "Perfect 4th" }, { label: "Tritone" }, { label: "Perfect 5th" }],
+          (() => {
+            const map = [5, 6, 7];
+            const labels = ["perfect 4th", "tritone", "perfect 5th"];
+            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
+            for (let i = 0; i < 6; i++) {
               const idx = Math.floor(Math.random() * 3);
               out.push({
                 baseMidi: 60,
@@ -2422,46 +3090,30 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           })(),
         ),
       ];
-    case "E-4":
+    case "E-14": {
+      // All Ascending Consolidation: 12 chromatic intervals (1..11 semitones).
+      const map = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+      const labels = [
+        "m2",
+        "M2",
+        "m3",
+        "M3",
+        "P4",
+        "tritone",
+        "P5",
+        "m6",
+        "M6",
+        "m7",
+        "M7",
+      ];
       return [
         intervalIdentify(
-          "E-4",
-          [{ label: "Major 3rd" }, { label: "Minor 3rd" }],
+          "E-14",
+          labels.map((l) => ({ label: l })),
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
-            for (let i = 0; i < 5; i++) {
-              const isMaj = Math.random() < 0.5;
-              const semi = isMaj ? 4 : 3;
-              out.push({
-                baseMidi: 60,
-                semitones: semi,
-                direction: "up",
-                correctOptionIndex: isMaj ? 0 : 1,
-                actualLabel: isMaj ? "major 3rd" : "minor 3rd",
-              });
-            }
-            return out;
-          })(),
-        ),
-        intervalIdentify(
-          "E-4",
-          [
-            { label: "Major 2nd" },
-            { label: "Major 3rd" },
-            { label: "Minor 3rd" },
-            { label: "Perfect 4th" },
-          ],
-          (() => {
-            const map = [2, 4, 3, 5];
-            const labels = [
-              "major 2nd",
-              "major 3rd",
-              "minor 3rd",
-              "perfect 4th",
-            ];
-            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
-            for (let i = 0; i < 5; i++) {
-              const idx = Math.floor(Math.random() * 4);
+            for (let i = 0; i < 8; i++) {
+              const idx = Math.floor(Math.random() * map.length);
               out.push({
                 baseMidi: 60,
                 semitones: map[idx]!,
@@ -2474,103 +3126,19 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           })(),
         ),
       ];
-    case "E-5":
+    }
+    case "E-15": {
+      // Descending — major anchors only: P5, P4, M3, m3.
+      const map = [3, 4, 5, 7];
+      const labels = ["m3", "M3", "P4", "P5"];
       return [
         intervalIdentify(
-          "E-5",
-          [
-            { label: "Major 2nd" },
-            { label: "Minor 3rd" },
-            { label: "Major 3rd" },
-            { label: "Perfect 4th" },
-            { label: "Perfect 5th" },
-          ],
+          "E-15",
+          labels.map((l) => ({ label: l })),
           (() => {
-            const map = [2, 3, 4, 5, 7];
-            const labels = [
-              "major 2nd",
-              "minor 3rd",
-              "major 3rd",
-              "perfect 4th",
-              "perfect 5th",
-            ];
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
-            for (let i = 0; i < 5; i++) {
-              const idx = Math.floor(Math.random() * 5);
-              out.push({
-                baseMidi: 60,
-                semitones: map[idx]!,
-                direction: "up",
-                correctOptionIndex: idx,
-                actualLabel: labels[idx]!,
-              });
-            }
-            return out;
-          })(),
-        ),
-      ];
-    case "E-6":
-      return [
-        intervalIdentify(
-          "E-6",
-          [
-            { label: "Major 2nd" },
-            { label: "Minor 3rd" },
-            { label: "Major 3rd" },
-            { label: "Perfect 4th" },
-            { label: "Perfect 5th" },
-            { label: "Minor 7th" },
-          ],
-          (() => {
-            const map = [2, 3, 4, 5, 7, 10];
-            const labels = [
-              "major 2nd",
-              "minor 3rd",
-              "major 3rd",
-              "perfect 4th",
-              "perfect 5th",
-              "minor 7th",
-            ];
-            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
-            for (let i = 0; i < 5; i++) {
-              const idx = Math.floor(Math.random() * 6);
-              out.push({
-                baseMidi: 60,
-                semitones: map[idx]!,
-                direction: "up",
-                correctOptionIndex: idx,
-                actualLabel: labels[idx]!,
-              });
-            }
-            return out;
-          })(),
-        ),
-      ];
-    case "E-7":
-      return [
-        intervalIdentify(
-          "E-7",
-          [
-            { label: "Major 2nd" },
-            { label: "Minor 3rd" },
-            { label: "Major 3rd" },
-            { label: "Perfect 4th" },
-            { label: "Perfect 5th" },
-            { label: "Minor 7th" },
-          ],
-          (() => {
-            const map = [2, 3, 4, 5, 7, 10];
-            const labels = [
-              "major 2nd",
-              "minor 3rd",
-              "major 3rd",
-              "perfect 4th",
-              "perfect 5th",
-              "minor 7th",
-            ];
-            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
-            for (let i = 0; i < 5; i++) {
-              const idx = Math.floor(Math.random() * 6);
+            for (let i = 0; i < 6; i++) {
+              const idx = Math.floor(Math.random() * map.length);
               out.push({
                 baseMidi: 72,
                 semitones: map[idx]!,
@@ -2583,31 +3151,56 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           })(),
         ),
       ];
-    case "E-8":
+    }
+    case "E-16": {
+      // Descending — remaining intervals.
+      const map = [1, 2, 6, 8, 9, 10, 11];
+      const labels = ["m2", "M2", "tritone", "m6", "M6", "m7", "M7"];
       return [
         intervalIdentify(
-          "E-8",
-          [
-            { label: "Major 2nd" },
-            { label: "Minor 3rd" },
-            { label: "Major 3rd" },
-            { label: "Perfect 4th" },
-            { label: "Perfect 5th" },
-            { label: "Minor 7th" },
-          ],
+          "E-16",
+          labels.map((l) => ({ label: l })),
           (() => {
-            const map = [2, 3, 4, 5, 7, 10];
-            const labels = [
-              "major 2nd",
-              "minor 3rd",
-              "major 3rd",
-              "perfect 4th",
-              "perfect 5th",
-              "minor 7th",
-            ];
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 6; i++) {
-              const idx = Math.floor(Math.random() * 6);
+              const idx = Math.floor(Math.random() * map.length);
+              out.push({
+                baseMidi: 72,
+                semitones: map[idx]!,
+                direction: "down",
+                correctOptionIndex: idx,
+                actualLabel: labels[idx]!,
+              });
+            }
+            return out;
+          })(),
+        ),
+      ];
+    }
+    case "E-17": {
+      // Mixed Direction Consolidation — all intervals, either direction.
+      const map = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+      const labels = [
+        "m2",
+        "M2",
+        "m3",
+        "M3",
+        "P4",
+        "tritone",
+        "P5",
+        "m6",
+        "M6",
+        "m7",
+        "M7",
+      ];
+      return [
+        intervalIdentify(
+          "E-17",
+          labels.map((l) => ({ label: l })),
+          (() => {
+            const out: CardTemplateParams["interval-identify"]["prompts"] = [];
+            for (let i = 0; i < 8; i++) {
+              const idx = Math.floor(Math.random() * map.length);
               const dir = Math.random() < 0.5 ? "up" : "down";
               out.push({
                 baseMidi: dir === "up" ? 60 : 72,
@@ -2620,6 +3213,115 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             return out;
           })(),
         ),
+      ];
+    }
+
+    // ─── Track F (Improvisation) ─────────────────────────────────
+    case "F-1":
+      return [
+        card("drone-degree-play", "F", "F-1", {
+          keyLabel: C_MAJOR.keyLabel,
+          tonicMidi: C_MAJOR.tonicMidi,
+          mode: "major",
+          uiTitle: "Chord tones of C major",
+          uiDescription: "Land on any chord tone: 1 (C), 3 (E), or 5 (G).",
+          prompts: [
+            {
+              text: "Play any chord tone of C major (C, E, or G).",
+              expectedPitchClasses: [0, 4, 7],
+            },
+            { text: "Now the root (C).", expectedPitchClasses: [0] },
+            { text: "Now the 3rd (E).", expectedPitchClasses: [4] },
+            { text: "Now the 5th (G).", expectedPitchClasses: [7] },
+          ],
+          hintEmphasis: "default",
+        }),
+      ];
+    case "F-2":
+      return [
+        card("drone-degree-play", "F", "F-2", {
+          keyLabel: A_MINOR.keyLabel,
+          tonicMidi: A_MINOR.tonicMidi,
+          mode: "minor",
+          uiTitle: "Chord tones of A minor",
+          uiDescription: "Land on any chord tone: 1 (A), b3 (C), or 5 (E).",
+          prompts: [
+            {
+              text: "Play any chord tone of A minor (A, C, or E).",
+              expectedPitchClasses: [9, 0, 4],
+            },
+            { text: "Now the root (A).", expectedPitchClasses: [9] },
+            { text: "Now the flat 3rd (C).", expectedPitchClasses: [0] },
+            { text: "Now the 5th (E).", expectedPitchClasses: [4] },
+          ],
+          hintEmphasis: "default",
+        }),
+      ];
+    case "F-3":
+      return [
+        droneIdentify(
+          "F",
+          "F-3",
+          [{ label: "Chord tone" }, { label: "Not a chord tone" }],
+          (() => {
+            const chordTones = [0, 4, 7];
+            const nonChord = [2, 5, 9, 11];
+            const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
+              [];
+            for (let i = 0; i < 6; i++) {
+              const isChord = Math.random() < 0.5;
+              out.push({
+                key: C_MAJOR,
+                playedPitchClass: isChord
+                  ? pickRandom(chordTones)
+                  : pickRandom(nonChord),
+                correctOptionIndex: isChord ? 0 : 1,
+              });
+            }
+            return out;
+          })(),
+          "Chord tone vs. non-chord-tone (C major)",
+        ),
+        card("drone-degree-play", "F", "F-3", {
+          keyLabel: C_MAJOR.keyLabel,
+          tonicMidi: C_MAJOR.tonicMidi,
+          mode: "major",
+          uiTitle: "Target chord tones over a C major vamp",
+          uiDescription: "Solo using diatonic notes, but land on chord tones.",
+          prompts: [
+            {
+              text: "Phrase ending on any chord tone (C, E, or G).",
+              expectedPitchClasses: [0, 4, 7],
+            },
+          ],
+          hintEmphasis: "subtle",
+        }),
+      ];
+    case "F-4":
+      return [
+        card("drone-degree-play", "F", "F-4", {
+          keyLabel: A_MINOR.keyLabel,
+          tonicMidi: A_MINOR.tonicMidi,
+          mode: "minor",
+          uiTitle: "Freeplay over A minor — capstone",
+          uiDescription:
+            "Drone is A. Solo freely. Resolve each phrase on a chord tone (A, C, or E).",
+          prompts: [
+            {
+              text: "Solo any phrase. Resolve on A, C, or E.",
+              expectedPitchClasses: [9, 0, 4],
+            },
+            {
+              text: "Solo any phrase. Resolve on A, C, or E.",
+              expectedPitchClasses: [9, 0, 4],
+            },
+            {
+              text: "Solo any phrase. Resolve on A, C, or E.",
+              expectedPitchClasses: [9, 0, 4],
+            },
+          ],
+          hintEmphasis: "subtle",
+        }),
       ];
     default:
       return [];

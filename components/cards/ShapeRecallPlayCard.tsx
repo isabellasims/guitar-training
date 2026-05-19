@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Mic, MicOff, RotateCcw, Lightbulb } from "lucide-react";
 
-import type { ShapeRecallPlayParams } from "@/lib/cards/types";
+import type {
+  ShapeLabelMode,
+  ShapeRecallPlayParams,
+  ShapeRecallStep,
+} from "@/lib/cards/types";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,8 +20,12 @@ import {
   Fretboard,
   type FretboardHighlight,
 } from "@/components/fretboard/Fretboard";
+import { LabelModeToggle } from "@/components/fretboard/LabelModeToggle";
 import { useContinuousPitchListener } from "@/lib/audio/continuousPitch";
 import { midiAtPosition } from "@/lib/fretboard/model";
+import { midiToHashPitchLabel } from "@/lib/audio/noteUtils";
+import { labelForStep } from "@/lib/fretboard/labelForStep";
+import { windowForSteps } from "@/lib/fretboard/window";
 import { playReferenceMidiNote } from "@/lib/audio/referenceNote";
 import { useSettingsStore } from "@/lib/store/settingsStore";
 
@@ -28,7 +36,7 @@ export function ShapeRecallPlayCard({
   onContinue,
 }: {
   params: ShapeRecallPlayParams;
-  onContinue: (correct: boolean) => void;
+  onContinue: (correct: boolean, opts?: { usedHelp?: boolean }) => void;
 }) {
   const pitchOn = useSettingsStore((s) => s.settings.pitchDetectionEnabled);
   const hydrated = useSettingsStore((s) => s.hydrated);
@@ -41,6 +49,9 @@ export function ShapeRecallPlayCard({
   const [usedHint, setUsedHint] = useState(false);
   const [hintFlash, setHintFlash] = useState(false);
   const [previewBusy, setPreviewBusy] = useState(false);
+  const [labelMode, setLabelMode] = useState<ShapeLabelMode>(
+    params.defaultLabelMode ?? "none",
+  );
 
   // Mirror step into a ref so the rAF callback inside the listener doesn't
   // capture a stale value mid-sequence.
@@ -72,13 +83,20 @@ export function ShapeRecallPlayCard({
     }
   };
 
+  // Persisted across the whole card so a hint at any step counts.
+  // (UI-state `usedHint` is also kept for the "Hint used." badge below.)
+  const usedHintRef = useRef(false);
+
   const handleMatch = () => {
     if (settledRef.current) return;
     if (stepRef.current + 1 >= total) {
       settledRef.current = true;
       setStep(total);
       setPhase("complete");
-      window.setTimeout(() => onContinue(true), 1200);
+      window.setTimeout(
+        () => onContinue(true, { usedHelp: usedHintRef.current }),
+        1200,
+      );
       return;
     }
     setStep((s) => s + 1);
@@ -89,6 +107,7 @@ export function ShapeRecallPlayCard({
   const listener = useContinuousPitchListener({
     enabled: phase === "running" && pitchOn && expectedMidi != null,
     targetMidi: expectedMidi,
+    targetGeneration: step,
     onMatch: handleMatch,
   });
 
@@ -100,6 +119,7 @@ export function ShapeRecallPlayCard({
 
   const hint = () => {
     setUsedHint(true);
+    usedHintRef.current = true;
     setHintFlash(true);
     window.setTimeout(() => setHintFlash(false), 900);
   };
@@ -108,32 +128,46 @@ export function ShapeRecallPlayCard({
     setPhase("running");
     setStep(0);
     setUsedHint(false);
+    usedHintRef.current = false;
     settledRef.current = false;
   };
 
-  // Build highlights: every step is dim, completed steps are green, the
-  // current expected step is rust (and may briefly flash on hint).
+  // Build highlights: every step is dim, completed steps are gold, the
+  // current expected step is rust (and may briefly flash on hint). Tonic
+  // notes (degree "1") get an underlying sage-green highlight so the
+  // shape's roots are visible at a glance, except when they're the
+  // current target or already played — those states take precedence so
+  // the user always sees which note to play next. The per-cell `label`
+  // is computed from the active label mode so flipping the toggle
+  // re-renders without rebuilding the fretboard.
+  const stepsRef = params.steps;
   const highlights = useMemo<FretboardHighlight[]>(() => {
+    const decorate = (s: ShapeRecallStep) => ({
+      stringIndex: s.stringIndex,
+      fret: s.fret,
+      label: labelForStep(s, labelMode),
+    });
+    const isTonic = (s: ShapeRecallStep) => s.degree === "1";
     if (phase === "idle") {
-      return params.steps.map((s) => ({
-        stringIndex: s.stringIndex,
-        fret: s.fret,
-        variant: "dim" as const,
+      return stepsRef.map((s) => ({
+        ...decorate(s),
+        variant: isTonic(s) ? ("tonic" as const) : ("dim" as const),
       }));
     }
-    return params.steps.map((s, i) => {
-      if (i < step) {
-        return { ...s, variant: "success" as const };
-      }
+    return stepsRef.map((s, i) => {
+      if (i < step) return { ...decorate(s), variant: "success" as const };
       if (i === step) {
         return {
-          ...s,
+          ...decorate(s),
           variant: hintFlash ? ("warning" as const) : ("primary" as const),
         };
       }
-      return { ...s, variant: "dim" as const };
+      return {
+        ...decorate(s),
+        variant: isTonic(s) ? ("tonic" as const) : ("dim" as const),
+      };
     });
-  }, [params.steps, step, phase, hintFlash]);
+  }, [stepsRef, step, phase, hintFlash, labelMode]);
 
   if (!hydrated) {
     return (
@@ -145,7 +179,12 @@ export function ShapeRecallPlayCard({
     );
   }
 
-  const maxFretInShape = params.steps.reduce((m, s) => Math.max(m, s.fret), 0);
+  // Pick a tight window around the shape so the diagram keeps a constant
+  // per-fret zoom level regardless of where on the neck the shape lives.
+  // Shapes that touch open strings stay anchored at the nut.
+  const { startFret: windowStart, maxFret: windowMax } = windowForSteps(
+    params.steps,
+  );
 
   return (
     <Card>
@@ -164,15 +203,22 @@ export function ShapeRecallPlayCard({
           <p className="text-sm text-ink-soft">{params.intro}</p>
         ) : null}
 
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-ink-mute">
+            Labels
+          </span>
+          <LabelModeToggle value={labelMode} onChange={setLabelMode} />
+        </div>
+
         <div
           className={
             phase === "complete" ? "rounded-md ring-2 ring-gold" : ""
           }
         >
           <Fretboard
-            maxFret={Math.max(5, maxFretInShape + 2)}
+            startFret={windowStart}
+            maxFret={windowMax}
             highlights={highlights}
-            showNoteLabels
             leftHanded={leftHanded}
             aria-label={`${params.title} diagram`}
           />
@@ -226,10 +272,20 @@ export function ShapeRecallPlayCard({
                   <span className="text-ink-soft">Requesting mic…</span>
                 ) : null}
                 {listener.phase === "listening" ? (
-                  <span className="text-ink-soft">
-                    Mic on — play the rust-colored note next. Wrong notes are
-                    ignored.
-                  </span>
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <span className="text-ink-soft">
+                      Mic on — play the rust-outlined note next (green dots are
+                      the shape&apos;s roots). Wrong notes are ignored.
+                    </span>
+                    {expectedMidi != null ? (
+                      <span className="text-xs text-ink-mute">
+                        target {midiToHashPitchLabel(expectedMidi)}
+                        {listener.liveMidi != null
+                          ? ` · heard ${midiToHashPitchLabel(listener.liveMidi)}`
+                          : ""}
+                      </span>
+                    ) : null}
+                  </div>
                 ) : null}
                 {listener.phase === "idle" ? (
                   <span className="text-ink-soft">Starting mic…</span>
@@ -253,7 +309,7 @@ export function ShapeRecallPlayCard({
                 variant="ghost"
                 onClick={() => {
                   settledRef.current = true;
-                  onContinue(true);
+                  onContinue(true, { usedHelp: usedHintRef.current });
                 }}
               >
                 Skip

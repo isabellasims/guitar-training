@@ -63,7 +63,7 @@ export function TracksWithProgress() {
     let cancelled = false;
     const load = async () => {
       try {
-        const ids = ["A", "B", "C", "D", "E"] as const;
+        const ids = ["A", "B", "C", "D", "E", "F"] as const;
         const next: ProgressByTrack = {};
         for (const id of ids) {
           next[id] = (await getTrackProgress(id)) as ProgressRow | undefined;
@@ -96,6 +96,16 @@ export function TracksWithProgress() {
       {TRACKS.map((track) => {
         const entered = isTrackEntered(track.id, byTrack);
         const prog = byTrack[track.id] as TrackProgress | undefined;
+        // When a track is locked, surface the actual blocking prerequisite
+        // (the first level whose own prereqs aren't all met) instead of a
+        // hard-coded "Locked until A·5" message.
+        const firstLevel = track.levels[0];
+        const blocker = !entered && firstLevel
+          ? firstBlockingPrerequisite(firstLevel.id, byTrack)
+          : null;
+        const blockerLabel = blocker
+          ? `${blocker.replace("-", "·")} complete`
+          : "earlier level complete";
         return (
           <li key={track.id}>
             <Card>
@@ -108,7 +118,7 @@ export function TracksWithProgress() {
                   {track.description}
                   {!entered ? (
                     <span className="ml-2 rounded border border-rule px-1.5 py-0.5 text-[10px] uppercase tracking-wider text-ink-mute">
-                      Locked until A·5 complete
+                      Locked until {blockerLabel}
                     </span>
                   ) : null}
                 </CardDescription>

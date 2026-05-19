@@ -36,10 +36,11 @@ export function TodayStrip() {
         getTrackProgress("C"),
         getTrackProgress("D"),
         getTrackProgress("E"),
+        getTrackProgress("F"),
       ])
-        .then(([a, b, c, d, e]) => {
-          const byTrack: ProgressByTrack = { A: a, B: b, C: c, D: d, E: e };
-          const ids: TrackId[] = ["A", "B", "C", "D", "E"];
+        .then(([a, b, c, d, e, f]) => {
+          const byTrack: ProgressByTrack = { A: a, B: b, C: c, D: d, E: e, F: f };
+          const ids: TrackId[] = ["A", "B", "C", "D", "E", "F"];
           const next: CurrentByTrack = {};
           for (const t of ids) {
             if (!isTrackEntered(t, byTrack)) {
@@ -90,6 +91,7 @@ export function TodayStrip() {
   const lineC = trackLine("C");
   const lineD = trackLine("D");
   const lineE = trackLine("E");
+  const lineF = trackLine("F");
 
   if (
     !streak &&
@@ -98,7 +100,8 @@ export function TodayStrip() {
     !lineB &&
     !lineC &&
     !lineD &&
-    !lineE
+    !lineE &&
+    !lineF
   ) {
     return null;
   }
@@ -131,6 +134,7 @@ export function TodayStrip() {
       {lineC ? <span>{lineC}</span> : null}
       {lineD ? <span>{lineD}</span> : null}
       {lineE ? <span>{lineE}</span> : null}
+      {lineF ? <span>{lineF}</span> : null}
     </div>
   );
 }

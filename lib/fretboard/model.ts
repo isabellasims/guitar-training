@@ -30,7 +30,7 @@ export function midiAtPosition(
 export const OPEN_STRING_LABELS = ["e", "B", "G", "D", "A", "E"] as const;
 
 /** Position markers: 3, 5, 7, 8, 12 (double), 15. */
-export const INLAY_FRETS = [3, 5, 7, 8, 12, 15] as const;
+export const INLAY_FRETS = [3, 5, 7, 9, 12, 15] as const;
 
 /** e.g. "open", "3rd fret", "12th fret". */
 export function ordinalFretPhrase(fret: number): string {

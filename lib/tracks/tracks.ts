@@ -38,10 +38,14 @@ const DESCRIPTIONS: Record<TrackId, { name: string; description: string }> = {
     name: "Intervals",
     description: "Distance from a known reference — the secondary lens to scale degrees.",
   },
+  F: {
+    name: "Improvisation",
+    description: "Chord-tone targeting + freeplay over real changes.",
+  },
 };
 
 export const TRACKS: TrackDefinition[] = (
-  ["A", "B", "C", "D", "E"] as const
+  ["A", "B", "C", "D", "E", "F"] as const
 ).map((id) => ({
   id,
   ...DESCRIPTIONS[id],

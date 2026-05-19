@@ -3,6 +3,7 @@ import { Crimson_Pro, Fraunces, JetBrains_Mono } from "next/font/google";
 
 import { AppProviders } from "@/components/providers/AppProviders";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { DevServiceWorkerCleanup } from "@/components/system/DevServiceWorkerCleanup";
 
 import "./globals.css";
 
@@ -65,6 +66,7 @@ export default function RootLayout({
         className={`${fraunces.variable} ${crimson.variable} ${jetbrains.variable} font-sans antialiased`}
       >
         <AppProviders>
+          <DevServiceWorkerCleanup />
           <div className="mx-auto min-h-dvh max-w-lg pb-24 pt-safe">
             {children}
           </div>

@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef, useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,9 +14,99 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useSettingsStore } from "@/lib/store/settingsStore";
+import { db } from "@/lib/db/index";
+import { ensureDbSeeded, ensureTrackProgressSeeded } from "@/lib/db/bootstrap";
+import {
+  downloadProgressExport,
+  importProgress,
+  parseImportFile,
+} from "@/lib/db/progressExport";
 
 export default function SettingsPage() {
   const { settings, hydrated, update } = useSettingsStore();
+  const [resetting, setResetting] = useState(false);
+  const [resetMsg, setResetMsg] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [transferMsg, setTransferMsg] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const onExport = async () => {
+    setExporting(true);
+    setTransferMsg(null);
+    try {
+      await downloadProgressExport();
+      setTransferMsg("Export downloaded.");
+    } catch (err) {
+      setTransferMsg(
+        `Export failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const onImportFile = async (file: File) => {
+    setImporting(true);
+    setTransferMsg(null);
+    try {
+      const payload = await parseImportFile(file);
+      const ok = window.confirm(
+        `Importing will overwrite everything currently saved on this device — progress, custom flashcards, stars, saved backing tracks, all of it. Continue?\n\nExported at ${payload.exportedAt ?? "(unknown)"}.`,
+      );
+      if (!ok) {
+        setTransferMsg("Import cancelled.");
+        return;
+      }
+      const { counts } = await importProgress(payload);
+      // Reseed any tables the export left empty (e.g. settings).
+      await Promise.all([ensureDbSeeded(), ensureTrackProgressSeeded()]);
+      const total = Object.values(counts).reduce((a, b) => a + b, 0);
+      setTransferMsg(
+        `Imported ${total} rows. Reload to pick up settings and progress changes.`,
+      );
+      window.dispatchEvent(new CustomEvent("tonic-track-progress-updated"));
+      window.dispatchEvent(new CustomEvent("tonic-streak-updated"));
+    } catch (err) {
+      setTransferMsg(
+        `Import failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const resetProgress = async () => {
+    const ok = window.confirm(
+      "Wipe all progress on this device? This clears every track, every review item, every session, your streak, and your starred cards. Settings are kept. This cannot be undone.",
+    );
+    if (!ok) return;
+    setResetting(true);
+    setResetMsg(null);
+    try {
+      await Promise.all([
+        db.trackProgress.clear(),
+        db.reviewItems.clear(),
+        db.sessions.clear(),
+        db.streak.clear(),
+        db.starredCards?.clear?.(),
+        db.customCards?.clear?.(),
+        db.skippedCards?.clear?.(),
+        db.backingTracks?.clear?.(),
+      ]);
+      await Promise.all([ensureDbSeeded(), ensureTrackProgressSeeded()]);
+      setResetMsg("Progress wiped. Reload any open tabs.");
+      window.dispatchEvent(new CustomEvent("tonic-track-progress-updated"));
+      window.dispatchEvent(new CustomEvent("tonic-streak-updated"));
+    } catch (err) {
+      setResetMsg(
+        `Reset failed: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    } finally {
+      setResetting(false);
+    }
+  };
 
   if (!hydrated) {
     return (
@@ -142,18 +234,73 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        <p className="px-1 font-mono text-[10px] text-ink-mute">
-          No accounts. Export/import JSON can be added later for a second
-          device.
-        </p>
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          disabled
-        >
-          Export progress (soon)
-        </Button>
+        <Card>
+          <CardHeader>
+            <CardTitle>Move to another device</CardTitle>
+            <CardDescription>
+              No accounts — everything lives in your browser&apos;s IndexedDB.
+              Export a JSON snapshot of your progress, custom flashcards,
+              starred cards, saved backing tracks, and streak; import it on
+              another device or browser to pick up where you left off.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={exporting}
+                onClick={() => void onExport()}
+              >
+                {exporting ? "Exporting…" : "Export progress"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={importing}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {importing ? "Importing…" : "Import progress"}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/json,.json"
+                className="hidden"
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) void onImportFile(f);
+                }}
+              />
+            </div>
+            {transferMsg ? (
+              <p className="text-xs text-ink-mute">{transferMsg}</p>
+            ) : null}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Danger zone</CardTitle>
+            <CardDescription>
+              Wipe local progress and start over. Settings are kept.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <Button
+              type="button"
+              variant="destructive"
+              className="w-full"
+              disabled={resetting}
+              onClick={() => void resetProgress()}
+            >
+              {resetting ? "Resetting…" : "Reset all progress"}
+            </Button>
+            {resetMsg ? (
+              <p className="text-xs text-ink-mute">{resetMsg}</p>
+            ) : null}
+          </CardContent>
+        </Card>
       </div>
     </main>
   );

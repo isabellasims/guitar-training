@@ -55,6 +55,56 @@ export const NOTE_FINDING_ENTRIES: NoteFindingLibraryEntry[] = [
     }),
   },
   {
+    id: "a-string-natural",
+    unlockedBy: "B-2",
+    name: "A string drill",
+    description: "Random natural notes on the 5th string only.",
+    buildParams: () => ({
+      pool: { notes: NATURAL_NOTES, stringIndices: [4] },
+      roundCount: 12,
+    }),
+  },
+  {
+    id: "d-string-natural",
+    unlockedBy: "B-3",
+    name: "D string drill",
+    description: "Random natural notes on the 4th string only.",
+    buildParams: () => ({
+      pool: { notes: NATURAL_NOTES, stringIndices: [3] },
+      roundCount: 12,
+    }),
+  },
+  {
+    id: "g-string-natural",
+    unlockedBy: "B-4",
+    name: "G string drill",
+    description: "Random natural notes on the 3rd string only.",
+    buildParams: () => ({
+      pool: { notes: NATURAL_NOTES, stringIndices: [2] },
+      roundCount: 12,
+    }),
+  },
+  {
+    id: "b-string-natural",
+    unlockedBy: "B-5",
+    name: "B string drill",
+    description: "Random natural notes on the 2nd string only.",
+    buildParams: () => ({
+      pool: { notes: NATURAL_NOTES, stringIndices: [1] },
+      roundCount: 12,
+    }),
+  },
+  {
+    id: "high-e-natural",
+    unlockedBy: "B-6",
+    name: "High E string drill",
+    description: "Random natural notes on the 1st string only.",
+    buildParams: () => ({
+      pool: { notes: NATURAL_NOTES, stringIndices: [0] },
+      roundCount: 12,
+    }),
+  },
+  {
     id: "find-c",
     unlockedBy: "B-3",
     name: "Find C across all strings",
@@ -66,7 +116,7 @@ export const NOTE_FINDING_ENTRIES: NoteFindingLibraryEntry[] = [
   },
   {
     id: "find-f",
-    unlockedBy: "B-4",
+    unlockedBy: "B-8",
     name: "Find F across all strings",
     description: "F on each of the 6 strings.",
     buildParams: () => ({
@@ -76,7 +126,7 @@ export const NOTE_FINDING_ENTRIES: NoteFindingLibraryEntry[] = [
   },
   {
     id: "find-g",
-    unlockedBy: "B-5",
+    unlockedBy: "B-4",
     name: "Find G across all strings",
     description: "G on each of the 6 strings.",
     buildParams: () => ({
@@ -86,7 +136,7 @@ export const NOTE_FINDING_ENTRIES: NoteFindingLibraryEntry[] = [
   },
   {
     id: "find-d",
-    unlockedBy: "B-6",
+    unlockedBy: "B-5",
     name: "Find D across all strings",
     description: "D on each string.",
     buildParams: () => ({
@@ -106,7 +156,7 @@ export const NOTE_FINDING_ENTRIES: NoteFindingLibraryEntry[] = [
   },
   {
     id: "find-b",
-    unlockedBy: "B-7",
+    unlockedBy: "B-9",
     name: "Find B across all strings",
     description: "B on each string.",
     buildParams: () => ({
@@ -116,7 +166,7 @@ export const NOTE_FINDING_ENTRIES: NoteFindingLibraryEntry[] = [
   },
   {
     id: "find-fsharp",
-    unlockedBy: "B-7",
+    unlockedBy: "B-10",
     name: "Find F# across all strings",
     description: "F# on each string.",
     buildParams: () => ({
@@ -126,7 +176,7 @@ export const NOTE_FINDING_ENTRIES: NoteFindingLibraryEntry[] = [
   },
   {
     id: "random-sharps-flats",
-    unlockedBy: "B-8",
+    unlockedBy: "B-10",
     name: "Random sharps and flats",
     description: "Random chromatic note on a random string.",
     buildParams: () => ({
@@ -136,7 +186,7 @@ export const NOTE_FINDING_ENTRIES: NoteFindingLibraryEntry[] = [
   },
   {
     id: "full-recall",
-    unlockedBy: "B-9",
+    unlockedBy: "B-12",
     name: "Full fretboard recall",
     description: "Any chromatic note on any string.",
     buildParams: () => ({
@@ -146,7 +196,7 @@ export const NOTE_FINDING_ENTRIES: NoteFindingLibraryEntry[] = [
   },
   {
     id: "speed-mode",
-    unlockedBy: "B-10",
+    unlockedBy: "B-13",
     name: "Speed mode (under 2s)",
     description: "Same as full recall, with a 2-second timer per prompt.",
     buildParams: () => ({

@@ -4,9 +4,12 @@
   "private": true,
   "scripts": {
     "sync-manual": "node scripts/sync-manual.mjs",
+    "free-port": "node scripts/free-port.mjs 3000",
     "predev": "npm run sync-manual",
     "prebuild": "npm run sync-manual",
-    "dev": "next dev",
+    "dev": "node scripts/dev-with-restart.mjs",
+    "dev:plain": "npm run free-port && next dev -p 3000",
+    "dev:fresh": "npm run free-port && rm -rf .next && npm run dev:plain",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

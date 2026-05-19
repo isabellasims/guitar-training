@@ -52,13 +52,26 @@ export function currentLevelIdForTrack(
 }
 
 /**
- * Per `rules.md` §4: D and E enter only after A-5 is complete.
- * A, B, C are always entered.
+ * Track entry gates:
+ *   - A, B, C: always entered.
+ *   - D (chord functions) + E (intervals): enter when A-11 is complete
+ *     (full major diatonic recognition). Chord-function and interval
+ *     recognition both build on top of scale-degree recognition — don't
+ *     drill "hear the IV chord" before "hear the 4th degree."
+ *   - F (improvisation): enters when A-11 + D-2 are both complete. You
+ *     need full major diatonic + the vi chord by ear before chord-tone
+ *     improv really pays off.
  */
 export function isTrackEntered(
   trackId: TrackId,
   byTrack: ProgressByTrack,
 ): boolean {
   if (trackId === "A" || trackId === "B" || trackId === "C") return true;
-  return isCompleted(byTrack, "A-5");
+  if (trackId === "D" || trackId === "E") {
+    return isCompleted(byTrack, "A-11");
+  }
+  if (trackId === "F") {
+    return isCompleted(byTrack, "A-11") && isCompleted(byTrack, "D-2");
+  }
+  return false;
 }

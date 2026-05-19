@@ -2,7 +2,7 @@
 
 Personal **guitar theory practice** app aligned with the written manual [`guitar-practice-plan.html`](./guitar-practice-plan.html) (*Hear It · Find It · Play It*). This repo is the Next.js implementation: mobile-first UI, local-only data, pitch-aware grading, and PWA install support.
 
-**Curriculum is level-based** per [`public/rules.md`](./public/rules.md): each track is a list of **named levels** (Foundation [F] vs. Practice [P]) with hard prerequisites — including cross-track edges (`A-2 → C-2`, `C-5 → A-5`, `A-15 → D-3`, `A-13 → C-5`). Tracks **A, B, C** start on day one; **D** and **E** enter only after **A·5** is complete. **Track F** (song vocabulary) remains out of scope.
+**Curriculum is level-based** per [`public/rules.md`](./public/rules.md): each track is a list of **named levels** (Foundation [F] vs. Practice [P]) with hard prerequisites — including cross-track edges (`A-12 → C-2`, `C-7 → A-4`). Tracks **A, B, C** start on day one; **D** (chord functions) and **E** (intervals) enter only after **A·11** (Full Major Diatonic) is complete. **Track F** (improvisation / chord-tone targeting) enters once **A·11** and **D·2** are both complete.
 
 ---
 

@@ -12,7 +12,8 @@ export function initialReviewItemFields(today: string): Pick<
   return {
     easeFactor: SRS_INITIAL_EASE,
     intervalDays: 1,
-    dueDate: addCalendarDays(today, 1),
+    /** Same calendar day — reviews surface on the next session today. */
+    dueDate: today,
     consecutiveCorrect: 0,
     totalReviews: 0,
   };

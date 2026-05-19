@@ -43,7 +43,7 @@ async function seedTrackIfMissing(trackId: TrackId): Promise<void> {
   });
 }
 
-/** Tracks A–E: seeded with the first level current; nothing completed. */
+/** Tracks A–F: seeded with the first level current; nothing completed. */
 export async function ensureTrackProgressSeeded(): Promise<void> {
   await Promise.all([
     seedTrackIfMissing("A"),
@@ -51,5 +51,6 @@ export async function ensureTrackProgressSeeded(): Promise<void> {
     seedTrackIfMissing("C"),
     seedTrackIfMissing("D"),
     seedTrackIfMissing("E"),
+    seedTrackIfMissing("F"),
   ]);
 }

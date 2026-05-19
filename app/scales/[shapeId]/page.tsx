@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import {
   SHAPES_BY_ID,
+  resolvePatternToSteps,
   semitoneOffsetForPitchClass,
   transposeSteps,
 } from "@/lib/curriculum/shapeLibrary";
@@ -31,18 +32,29 @@ export default function ScaleDrillPage() {
   );
   const [round, setRound] = useState(0);
 
-  const offset = useMemo(
-    () =>
-      shape && shape.transposable
-        ? semitoneOffsetForPitchClass(shape, tonicPc)
-        : 0,
-    [shape, tonicPc],
-  );
-
-  const steps = useMemo(
-    () => (shape ? transposeSteps(shape.steps, offset) : []),
-    [shape, offset],
-  );
+  /**
+   * Two transposition paths:
+   *   - Pattern-based shapes (e.g. the new movable major E-shape) re-resolve
+   *     the relative-offset pattern at the chosen tonic. This preserves
+   *     finger / degree metadata so the Fingers + Degrees label modes work
+   *     identically across keys — exactly the lesson the toggle is meant
+   *     to teach.
+   *   - Legacy transposable shapes without a pattern fall back to the
+   *     existing semitone-shift helper. They still work, they just don't
+   *     carry finger / degree data, so those toggle modes will fall back
+   *     to note names.
+   */
+  const steps = useMemo(() => {
+    if (!shape) return [];
+    if (shape.pattern && shape.transposable) {
+      return resolvePatternToSteps(shape.pattern, tonicPc);
+    }
+    if (shape.transposable) {
+      const offset = semitoneOffsetForPitchClass(shape, tonicPc);
+      return transposeSteps(shape.steps, offset);
+    }
+    return shape.steps;
+  }, [shape, tonicPc]);
 
   if (!shape) return notFound();
 
@@ -63,12 +75,16 @@ export default function ScaleDrillPage() {
         <p className="mt-1 text-sm text-ink-soft">{shape.description}</p>
       </header>
 
-      {shape.transposable ? (
+            {shape.transposable ? (
         <Card className="mb-4">
           <CardHeader>
             <CardTitle>Tonic — {keyLabel}</CardTitle>
             <CardDescription>
-              Same fingering, slid to wherever you want home to be.
+              Same fingering, slid to wherever you want home to be. The green
+              dots are the pattern&apos;s root notes — pitch detection matches
+              that pitch class (e.g. A minor on the low string listens for A,
+              not C). If you pick C as the tonic, the whole shape moves so the
+              roots are C.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -107,6 +123,9 @@ export default function ScaleDrillPage() {
             "Continuous listening — wrong notes are ignored. Tap Done in the header to leave.",
           steps,
           restartOnError: true,
+          // Library default: notes (the most useful general-purpose lens).
+          // The user can flip to Fingers / Degrees for transposable shapes.
+          defaultLabelMode: "notes",
         }}
         onContinue={() => setRound((r) => r + 1)}
       />

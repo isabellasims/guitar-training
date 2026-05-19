@@ -27,7 +27,7 @@ const INTROS: Record<
     tagline: "From one shape to the whole neck.",
     body: [
       "Knowing what note you want is useless without a physical map of where it lives.",
-      "We start with one minor scale shape, then pentatonic boxes, then CAGED chord-tone maps so the neck stops being five disconnected boxes.",
+      "We start with the open C major and A minor scales, then movable major and pentatonic boxes, then CAGED chord-tone maps so the neck stops being five disconnected boxes.",
     ],
   },
   D: {
@@ -44,6 +44,14 @@ const INTROS: Record<
     body: [
       "The secondary lens to scale degrees: hear a major third, a perfect fifth, a minor seventh.",
       "Track E enters alongside Track D — pedagogically, scale-degree thinking comes first; intervals reinforce it.",
+    ],
+  },
+  F: {
+    name: "Improvisation",
+    tagline: "Hear it, then play it.",
+    body: [
+      "Track F is where the ear meets the hand: targeting chord tones over real changes, then freeplay over backing tracks.",
+      "Enters once you've owned diatonic recognition (A·11) and heard the vi chord (D·2).",
     ],
   },
 };

@@ -16,7 +16,8 @@ export type CardTemplateId =
   | "drone-listen-warmup"
   | "freeplay-afterglow"
   | "interval-play"
-  | "interval-identify";
+  | "interval-identify"
+  | "melodic-dictation";
 
 export type ConceptVocabularyTerm = {
   term: string;
@@ -69,6 +70,8 @@ export type ConceptExplainerParams = {
     steps: ShapeRecallStep[];
     /** Optional color override per step (e.g. "rust" for roots, "gold" for 3rds). */
     colorClasses?: string[];
+    /** Initial state of the label toggle. Defaults to "fingers" for shape introductions. */
+    defaultLabelMode?: ShapeLabelMode;
   };
   /** Custom continue label. Defaults to "Continue". */
   continueLabel?: string;
@@ -80,6 +83,15 @@ export type ConceptExplainerParams = {
  * cards (e.g. root → 5 → root) have multiple. Per-prompt expected pitch
  * classes support multi-target acceptance (e.g. "any chord tone").
  */
+/**
+ * Visual emphasis applied to in-card hint affordances ("Show positions",
+ * "Hint", etc.). Cards earlier in a track can call attention to the hint
+ * ("emphasized") so the user discovers the safety net; later cards
+ * de-emphasize it ("subtle") because the user is expected to know the
+ * answer. Defaults to "default" — a normal, neutral button.
+ */
+export type HintEmphasis = "default" | "subtle" | "emphasized";
+
 export type DroneDegreePlayParams = {
   uiTitle?: string;
   uiDescription?: string;
@@ -91,6 +103,8 @@ export type DroneDegreePlayParams = {
     /** Acceptable pitch classes 0–11; any octave counts. */
     expectedPitchClasses: number[];
   }>;
+  /** Visual treatment of the in-card "Show positions" toggle. */
+  hintEmphasis?: HintEmphasis;
 };
 
 /**
@@ -161,6 +175,13 @@ export type NoteFindingPlayParams = {
    */
   allStringsLowestFret?: boolean;
   /**
+   * When set with `allStringsLowestFret` + `noteName`: drill low E → high e,
+   * but only advance to the next string after **two** successful finds on the
+   * current string. Completes one lap (6×2 = 12 successes). Skipping a note
+   * advances the string without counting a success.
+   */
+  allStringsProgressiveTwoPerString?: boolean;
+  /**
    * Random-rounds mode. The card draws `roundCount` prompts, picking a random
    * note from `pool.notes` and a random string from `pool.stringIndices`.
    */
@@ -171,12 +192,33 @@ export type NoteFindingPlayParams = {
   roundCount?: number;
   /** When true, each round shows a 2s countdown — fail if not played in time. */
   speedTimerSec?: number;
+  /** Visual treatment of the in-card "Show positions" toggle. */
+  hintEmphasis?: HintEmphasis;
 };
 
+/**
+ * One position in a shape sequence. `finger` and `degree` are optional
+ * metadata used by the three-way label toggle (Notes / Fingers / Scale
+ * degrees) — shapes that pre-date the toggle simply omit them and the
+ * Fingers / Degrees modes fall back to the note name.
+ */
 export type ShapeRecallStep = {
   stringIndex: StringIndex;
   fret: number;
+  /** Recommended fingering: 1=index, 2=middle, 3=ring, 4=pinky. */
+  finger?: 1 | 2 | 3 | 4;
+  /** Scale-degree label relative to the shape's tonic ("1", "2", "b3", "3", "4", "5", "b6", "6", "b7", "7"). */
+  degree?: string;
 };
+
+/**
+ * Three-way (plus None) label mode used by the Fretboard's segmented
+ * control. Defaults are chosen per surface — concept explainers default
+ * to "fingers" (the pattern is the lesson), practice cards default to
+ * "none" (the user is past needing labels), the Scale Library defaults
+ * to "notes".
+ */
+export type ShapeLabelMode = "none" | "notes" | "fingers" | "degrees";
 
 export type ShapeRecallPlayParams = {
   title: string;
@@ -184,6 +226,8 @@ export type ShapeRecallPlayParams = {
   steps: ShapeRecallStep[];
   /** When true, a wrong note resets to step 1. Defaults to true for sequences > 1. */
   restartOnError?: boolean;
+  /** Initial state of the in-card label toggle. Defaults to "none". */
+  defaultLabelMode?: ShapeLabelMode;
 };
 
 export type ChordToneTargetingParams = {
@@ -248,6 +292,31 @@ export type IntervalIdentifyParams = {
   }>;
 };
 
+/**
+ * Production card: app plays a short melodic phrase (typically 3 notes);
+ * the user plays it back note by note. Pitch detection grades each note
+ * in order. Octave-equivalent: hitting any C counts as the target C.
+ */
+export type MelodicDictationParams = {
+  uiTitle?: string;
+  uiDescription?: string;
+  /** Key context shown in the header + optional drone toggle. */
+  keyLabel: string;
+  tonicMidi: number;
+  mode: "major" | "minor";
+  /** Notes the user will hear, in order. */
+  sequence: number[];
+  /** Seconds per played note (audition phase). Defaults to 0.6. */
+  noteDurationSec?: number;
+  /** Gap between notes during playback (ms). Defaults to 120. */
+  gapMs?: number;
+  /** When true, the in-card drone toggle is offered. Defaults to false. */
+  droneEnabled?: boolean;
+  /** Optional scale-degree labels for the hint reveal ("1", "3", "5", etc.). */
+  degreeLabels?: string[];
+  hintEmphasis?: HintEmphasis;
+};
+
 export type CardTemplateParams = {
   "concept-explainer": ConceptExplainerParams;
   "drone-degree-play": DroneDegreePlayParams;
@@ -263,6 +332,7 @@ export type CardTemplateParams = {
   "freeplay-afterglow": FreeplayAfterglowParams;
   "interval-play": IntervalPlayParams;
   "interval-identify": IntervalIdentifyParams;
+  "melodic-dictation": MelodicDictationParams;
 };
 
 export type BuiltCard<T extends CardTemplateId = CardTemplateId> = {

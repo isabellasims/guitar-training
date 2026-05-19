@@ -7,7 +7,13 @@ let oscillator: Tone.Oscillator | null = null;
 let baseLinear = 0.2;
 /**
  * Multiplier applied while pitch detection is listening.
- * 0.2 → about 80% quieter than base (matches “duck drone by 80%” spec).
+ * 0.04 → ~28 dB attenuation. The old 0.2 (~14 dB) wasn't enough — laptop
+ * speakers played the drone loud enough that Pitchy reliably locked onto
+ * the tonic instead of the user's guitar, so "play the 5th" prompts
+ * would either match instantly off the drone (when target = tonic) or
+ * never match (when target != tonic, because the drone dominated the
+ * detected pitch). At 0.04 the drone is still audible enough to hold a
+ * tonic reference in your head, but the mic path is firmly on the guitar.
  */
 let duckMultiplier = 1;
 /** Applied while an in-app scale demo plays so the melody reads over the held drone. */
@@ -89,6 +95,6 @@ export function isDroneActive(): boolean {
  * Safe to call when no drone is playing (no-op).
  */
 export function setDroneDucked(ducked: boolean): void {
-  duckMultiplier = ducked ? 0.2 : 1;
+  duckMultiplier = ducked ? 0.04 : 1;
   refreshDroneOutputVolume();
 }

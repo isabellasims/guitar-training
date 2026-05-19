@@ -16,6 +16,8 @@ const buttonVariants = cva(
           "border border-rule bg-transparent text-ink hover:bg-paper-soft",
         ghost: "text-ink hover:bg-paper-soft",
         link: "text-rust underline-offset-4 hover:underline",
+        destructive:
+          "border border-red-600 bg-red-50 text-red-700 hover:bg-red-100",
       },
       size: {
         default: "h-11 px-5 py-2",

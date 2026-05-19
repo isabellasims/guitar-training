@@ -26,20 +26,55 @@ const PAD_B = 14;
  *
  *   - `primary` (default) — strong rust outline + light fill (current target).
  *   - `dim`               — hollow ink outline (upcoming / "play me later").
- *   - `success`           — gold/green filled (already played correctly).
+ *   - `success`           — gold filled (already played correctly).
  *   - `warning`           — rust-deep solid (hint flash).
+ *   - `tonic`             — sage green filled (the pattern's root/tonic note,
+ *                           drawn underneath primary/success so it's visible
+ *                           as a reference while not interfering with the
+ *                           current-target / played-correctly states).
  */
-export type HighlightVariant = "primary" | "dim" | "success" | "warning";
+export type HighlightVariant =
+  | "primary"
+  | "dim"
+  | "success"
+  | "warning"
+  | "tonic";
 
-export type FretboardHighlight = FretPosition & { variant?: HighlightVariant };
+export type FretboardHighlight = FretPosition & {
+  variant?: HighlightVariant;
+  /**
+   * Per-cell label override. When set, this string is rendered inside the
+   * highlight regardless of `showNoteLabels`. Used by the Fingers / Scale
+   * degrees label modes — the caller picks what to show; the Fretboard
+   * just renders it.
+   */
+  label?: string;
+};
 
 type FretboardProps = {
-  /** Highest fret wire drawn (inclusive). */
+  /**
+   * Highest fret wire drawn (inclusive). Together with `startFret` defines
+   * the window of the neck to draw.
+   */
   maxFret?: number;
+  /**
+   * Lowest fret cell drawn (inclusive). Defaults to 0 — show the nut and
+   * open-string column. When > 0, the diagram skips the nut and starts at
+   * the requested fret, keeping the per-fret zoom level constant for
+   * shapes that live up the neck. The leftmost edge is the wire of
+   * `startFret` itself; the first cell is `startFret + 1`.
+   */
+  startFret?: number;
   /** Cells to emphasize. Accepts plain {string,fret} or with `variant`. */
   highlights?: FretboardHighlight[] | FretPosition[];
   /** Show pitch-class labels on fretted notes (not on open strings; open uses string names). */
   showNoteLabels?: boolean;
+  /**
+   * Render fret numbers in a row beneath the diagram. Defaults to true
+   * when `startFret > 0` (so the user knows where on the neck they are),
+   * false otherwise.
+   */
+  showFretNumbers?: boolean;
   /** Mirror horizontally for left-handed setting. */
   leftHanded?: boolean;
   className?: string;
@@ -49,9 +84,22 @@ type FretboardProps = {
   "aria-label"?: string;
 };
 
-function logicalXForFret(fret: number): number {
-  if (fret <= 0) return NUT_W * 0.38;
-  return NUT_W + (fret - 0.5) * FRET_W;
+/**
+ * Convert a fret number to its logical X coordinate. The coordinate
+ * system shifts depending on whether we're rendering the open/nut column:
+ *   - `startFret === 0` (open-position view): preserves the original
+ *     layout — the nut occupies `NUT_W` on the left, the open column sits
+ *     inside the nut, and fretted cells follow.
+ *   - `startFret > 0` (windowed view): no nut. The leftmost edge is the
+ *     wire of `startFret` (i.e. logicalX 0). Cells start at startFret+1.
+ */
+function logicalXForFret(fret: number, startFret: number): number {
+  if (startFret === 0) {
+    if (fret <= 0) return NUT_W * 0.38;
+    return NUT_W + (fret - 0.5) * FRET_W;
+  }
+  // Windowed: cell `f` sits at (f - startFret - 0.5) * FRET_W.
+  return (fret - startFret - 0.5) * FRET_W;
 }
 
 function toScreenX(logicalX: number, leftHanded: boolean, innerW: number): number {
@@ -113,21 +161,44 @@ const VARIANT_STYLE: Record<
     strokeWidth: 1.75,
     radius: 8,
   },
+  tonic: {
+    fill: "var(--sage)",
+    fillOpacity: 0.85,
+    stroke: "var(--sage-soft)",
+    strokeWidth: 1.5,
+    radius: 7.5,
+  },
 };
 
 export function Fretboard({
   maxFret = DEFAULT_MAX_FRET,
+  startFret = 0,
   highlights = [],
   showNoteLabels = false,
+  showFretNumbers,
   leftHanded = false,
   className,
   onFretTap,
   "aria-label": ariaLabel = "Guitar fretboard",
 }: FretboardProps) {
-  const innerW = NUT_W + maxFret * FRET_W;
+  // Defensive clamp: a windowed view must always show at least 1 cell.
+  const safeMaxFret = Math.max(maxFret, startFret + 1);
+  const fretCount = safeMaxFret - startFret;
+  const isWindowed = startFret > 0;
+  // First cell that participates in the cell loop. In open-position view
+  // we start at fret 0 (the open-string column); in windowed view we
+  // start one fret to the right of the leftmost wire.
+  const firstCellFret = isWindowed ? startFret + 1 : 0;
+
+  // Inner width: nut + frets (open-position) or just frets (windowed).
+  const innerW = (isWindowed ? 0 : NUT_W) + fretCount * FRET_W;
   const innerH = (STRINGS - 1) * STRING_GAP;
+  // Auto-default: number the frets when we're not rendering the nut, so
+  // the user has a positional anchor.
+  const renderFretNumbers = showFretNumbers ?? isWindowed;
+  const NUMBERS_H = renderFretNumbers ? 16 : 0;
   const width = PAD_L + innerW + PAD_R;
-  const height = PAD_T + innerH + PAD_B;
+  const height = PAD_T + innerH + PAD_B + NUMBERS_H;
 
   const stringY = (s: number) => PAD_T + s * STRING_GAP;
 
@@ -160,22 +231,34 @@ export function Fretboard({
         strokeWidth={1}
       />
 
-      {/* Nut */}
-      <rect
-        x={Math.min(nutScreenLeft, nutScreenRight)}
-        y={PAD_T}
-        width={Math.abs(nutScreenRight - nutScreenLeft)}
-        height={innerH}
-        fill="var(--paper)"
-        stroke="var(--ink-mute)"
-        strokeWidth={1}
-        opacity={0.95}
-      />
+      {/* Nut — only rendered in open-position view. In windowed view the
+          leftmost edge is just the wire of `startFret` (drawn below). */}
+      {isWindowed ? null : (
+        <rect
+          x={Math.min(nutScreenLeft, nutScreenRight)}
+          y={PAD_T}
+          width={Math.abs(nutScreenRight - nutScreenLeft)}
+          height={innerH}
+          fill="var(--paper)"
+          stroke="var(--ink-mute)"
+          strokeWidth={1}
+          opacity={0.95}
+        />
+      )}
 
-      {/* Frets */}
-      {Array.from({ length: maxFret }, (_, i) => i + 1).map((fretNum) => {
-        const lx = NUT_W + fretNum * FRET_W;
+      {/* Frets. Each entry is the wire at fret `fretNum`. In open-position
+          view we draw wires 1..maxFret; in windowed view we additionally
+          draw the leftmost wire (the `startFret` edge) and continue
+          through `maxFret`. */}
+      {Array.from({ length: fretCount + (isWindowed ? 1 : 0) }, (_, i) =>
+        isWindowed ? startFret + i : i + 1,
+      ).map((fretNum) => {
+        const lx = isWindowed
+          ? (fretNum - startFret) * FRET_W
+          : NUT_W + fretNum * FRET_W;
         const x = toScreenX(lx, leftHanded, innerW);
+        // Emphasize the first wire in either view (the nut analogue).
+        const isFirstWire = isWindowed ? fretNum === startFret : fretNum === 1;
         return (
           <line
             key={fretNum}
@@ -184,7 +267,7 @@ export function Fretboard({
             y1={PAD_T}
             y2={PAD_T + innerH}
             stroke="var(--ink-soft)"
-            strokeWidth={fretNum === 1 ? 1.35 : 1}
+            strokeWidth={isFirstWire ? 1.35 : 1}
             opacity={0.95}
           />
         );
@@ -209,9 +292,9 @@ export function Fretboard({
         );
       })}
 
-      {/* Fret markers (inlays) */}
-      {INLAY_FRETS.filter((f) => f <= maxFret).map((f) => {
-        const lx = logicalXForFret(f);
+      {/* Fret markers (inlays) — filtered to the current window. */}
+      {INLAY_FRETS.filter((f) => f >= firstCellFret && f <= safeMaxFret).map((f) => {
+        const lx = logicalXForFret(f, startFret);
         const cx = toScreenX(lx, leftHanded, innerW);
         const cy = PAD_T + innerH / 2;
         const isDouble = f > 0 && f % 12 === 0;
@@ -261,17 +344,44 @@ export function Fretboard({
         );
       })}
 
-      {/* Tap targets + fretted note labels + highlights */}
+      {/* Tap targets + fretted note labels + highlights. We only render
+          cells inside the current window — anything below `firstCellFret`
+          or above `safeMaxFret` is silently clipped (highlights outside
+          the window are dropped, which is the desired behavior for shape
+          views that intentionally don't show the full neck). */}
       {Array.from({ length: STRINGS }, (_, s) =>
-        Array.from({ length: maxFret + 1 }, (_, f) => {
-          const lx = logicalXForFret(f);
+        Array.from(
+          { length: safeMaxFret - firstCellFret + 1 },
+          (_, i) => firstCellFret + i,
+        ).map((f) => {
+          const lx = logicalXForFret(f, startFret);
           const cx = toScreenX(lx, leftHanded, innerW);
           const cy = stringY(s);
           const hl = highlightAt(highlights, s, f);
           const variantKey: HighlightVariant = hl?.variant ?? "primary";
           const variant = hl ? VARIANT_STYLE[variantKey] : null;
           const midi = midiAtPosition(s, f, STANDARD_OPEN_MIDI);
-          const label = midiToDiagramLabel(midi);
+          const noteLabel = midiToDiagramLabel(midi);
+          /**
+           * Label precedence:
+           *   1. explicit per-highlight `label` (Fingers / Degrees toggle)
+           *   2. global `showNoteLabels` falls back to the note name
+           *   3. nothing
+           * If `showNoteLabels` is on but a highlight has `label: ""` we
+           * treat that as "intentionally blank" and skip rendering, which
+           * lets the practice-card "None" mode keep the fretboard clean.
+           */
+          const cellLabel: string | null = hl
+            ? hl.label !== undefined
+              ? hl.label === ""
+                ? null
+                : hl.label
+              : showNoteLabels
+                ? noteLabel
+                : null
+            : showNoteLabels
+              ? noteLabel
+              : null;
           const cellW = f === 0 ? NUT_W * 0.75 : FRET_W;
           const hitHalfW = f === 0 ? cellW / 2 : FRET_W / 2;
 
@@ -300,7 +410,7 @@ export function Fretboard({
                   strokeWidth={variant.strokeWidth}
                 />
               ) : null}
-              {showNoteLabels && f > 0 ? (
+              {cellLabel && f > 0 ? (
                 <text
                   x={cx}
                   y={cy + 4}
@@ -314,7 +424,7 @@ export function Fretboard({
                   fontWeight={700}
                   pointerEvents="none"
                 >
-                  {label}
+                  {cellLabel}
                 </text>
               ) : null}
             </g>
@@ -322,31 +432,73 @@ export function Fretboard({
         }),
       )}
 
-      {/* Open-string names on top so hit-areas do not cover them */}
-      {Array.from({ length: STRINGS }, (_, s) => {
-        const lx = logicalXForFret(0);
-        const cx = toScreenX(lx, leftHanded, innerW);
-        const cy = stringY(s);
-        const name = OPEN_STRING_LABELS[s];
-        return (
-          <text
-            key={`open-${s}`}
-            x={cx}
-            y={cy + 4}
-            textAnchor="middle"
-            fill="var(--ink)"
-            stroke="var(--paper-soft)"
-            strokeWidth={2.5}
-            paintOrder="stroke fill"
-            fontFamily="var(--font-jetbrains), ui-monospace, monospace"
-            fontSize={11}
-            fontWeight={700}
-            pointerEvents="none"
-          >
-            {name}
-          </text>
-        );
-      })}
+      {/* Open-string names — only rendered in open-position view (no nut
+          column exists in windowed view). A highlight with an explicit
+          label at fret 0 overrides the open-string letter so Fingers /
+          Degrees modes work on shapes that include open strings. */}
+      {isWindowed
+        ? null
+        : Array.from({ length: STRINGS }, (_, s) => {
+            const lx = logicalXForFret(0, 0);
+            const cx = toScreenX(lx, leftHanded, innerW);
+            const cy = stringY(s);
+            const hl = highlightAt(highlights, s, 0);
+            const override = hl?.label;
+            const name =
+              override !== undefined && override !== ""
+                ? override
+                : override === ""
+                  ? null
+                  : OPEN_STRING_LABELS[s];
+            if (name == null) return null;
+            return (
+              <text
+                key={`open-${s}`}
+                x={cx}
+                y={cy + 4}
+                textAnchor="middle"
+                fill={override !== undefined ? "var(--burgundy)" : "var(--ink)"}
+                stroke="var(--paper-soft)"
+                strokeWidth={2.5}
+                paintOrder="stroke fill"
+                fontFamily="var(--font-jetbrains), ui-monospace, monospace"
+                fontSize={11}
+                fontWeight={700}
+                pointerEvents="none"
+              >
+                {name}
+              </text>
+            );
+          })}
+
+      {/* Fret-number row beneath the diagram. Each number sits centered
+          under the cell it labels, so the user can tell at a glance which
+          fret is which when the diagram is windowed up the neck. */}
+      {renderFretNumbers
+        ? Array.from(
+            { length: safeMaxFret - firstCellFret + 1 },
+            (_, i) => firstCellFret + i,
+          ).map((f) => {
+            const lx = logicalXForFret(f, startFret);
+            const cx = toScreenX(lx, leftHanded, innerW);
+            const y = PAD_T + innerH + PAD_B + 2;
+            return (
+              <text
+                key={`fretnum-${f}`}
+                x={cx}
+                y={y}
+                textAnchor="middle"
+                fill="var(--ink-mute)"
+                fontFamily="var(--font-jetbrains), ui-monospace, monospace"
+                fontSize={9}
+                fontWeight={600}
+                pointerEvents="none"
+              >
+                {f}
+              </text>
+            );
+          })
+        : null}
     </svg>
   );
 }

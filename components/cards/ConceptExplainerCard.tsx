@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import type { ConceptExplainerParams } from "@/lib/cards/types";
+import type { ConceptExplainerParams, ShapeLabelMode } from "@/lib/cards/types";
 import { playDiatonicScaleAscending } from "@/lib/audio/scaleAscend";
 import { withQuieterDroneForScaleDemo } from "@/lib/audio/drone";
 import { playReferenceMidiNote } from "@/lib/audio/referenceNote";
 import { playChordSequence } from "@/lib/audio/chordSynth";
 import { LessonDroneToggle } from "@/components/audio/LessonDroneToggle";
 import { Fretboard } from "@/components/fretboard/Fretboard";
+import { LabelModeToggle } from "@/components/fretboard/LabelModeToggle";
+import { labelForStep } from "@/lib/fretboard/labelForStep";
+import { windowForSteps } from "@/lib/fretboard/window";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,6 +35,29 @@ export function ConceptExplainerCard({
   const [scaleBusy, setScaleBusy] = useState(false);
   const [customBusy, setCustomBusy] = useState(false);
   const [progBusy, setProgBusy] = useState(false);
+  // Concept-explainer cards default to the Fingers view: the lesson is the
+  // pattern itself ("look, the same hand shape works in every key"). The
+  // user can flip to Notes for a sanity check or Degrees to see structure.
+  const [labelMode, setLabelMode] = useState<ShapeLabelMode>(
+    params.fretboardShape?.defaultLabelMode ?? "fingers",
+  );
+
+  const shapeHighlights = useMemo(() => {
+    if (!params.fretboardShape) return null;
+    return params.fretboardShape.steps.map((s) => ({
+      stringIndex: s.stringIndex,
+      fret: s.fret,
+      label: labelForStep(s, labelMode),
+    }));
+  }, [params.fretboardShape, labelMode]);
+
+  // Same windowing logic as practice cards: keeps the per-fret zoom level
+  // constant when the shape lives up the neck (e.g. C-4 in A minor at
+  // fret 5–8, where a 0..8 view would compress the diagram).
+  const shapeWindow = useMemo(() => {
+    if (!params.fretboardShape) return null;
+    return windowForSteps(params.fretboardShape.steps);
+  }, [params.fretboardShape]);
 
   const hearCustom = params.customListen
     ? async () => {
@@ -124,17 +150,24 @@ export function ConceptExplainerCard({
           </dl>
         ) : null}
 
-        {params.fretboardShape ? (
-          <div className="rounded-md border border-rule bg-paper-soft px-3 py-3">
-            {params.fretboardShape.title ? (
-              <p className="mb-2 text-xs text-ink-mute">
-                {params.fretboardShape.title}
-              </p>
-            ) : null}
+        {params.fretboardShape && shapeHighlights ? (
+          <div className="space-y-2 rounded-md border border-rule bg-paper-soft px-3 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              {params.fretboardShape.title ? (
+                <p className="text-xs text-ink-mute">
+                  {params.fretboardShape.title}
+                </p>
+              ) : (
+                <span />
+              )}
+              <LabelModeToggle value={labelMode} onChange={setLabelMode} />
+            </div>
             <Fretboard
-              maxFret={params.fretboardShape.maxFret ?? 8}
-              highlights={params.fretboardShape.steps}
-              showNoteLabels
+              startFret={shapeWindow?.startFret ?? 0}
+              maxFret={
+                shapeWindow?.maxFret ?? params.fretboardShape.maxFret ?? 8
+              }
+              highlights={shapeHighlights}
               leftHanded={leftHanded}
               aria-label="Shape diagram"
             />

@@ -16,7 +16,7 @@ import {
 } from "@/lib/curriculum/prerequisites";
 import { getLevel, getLevelsForTrack } from "@/lib/curriculum/levels";
 
-const TRACK_IDS: TrackId[] = ["A", "B", "C", "D", "E"];
+const TRACK_IDS: TrackId[] = ["A", "B", "C", "D", "E", "F"];
 
 /** Outcome of a session apply: which levels just completed (for level-up screen). */
 export type SessionApplyOutcome = {
@@ -31,6 +31,7 @@ export type SessionApplyOutcome = {
 
 function gradedToBool(card: SessionCard): boolean | null {
   if (card.grading === "correct") return true;
+  if (card.grading === "correct-with-help") return true;
   if (card.grading === "incorrect") return false;
   return null;
 }
@@ -77,13 +78,29 @@ export async function applySessionToTrackProgress(
   const explainerCompletedByTrack = new Map<TrackId, Set<string>>();
 
   for (const card of session.cards) {
+    // Review and warmup-slot cards re-drill old material — they must not
+    // touch level session counts, accuracy, or "appeared" stats for the
+    // current track progression. The drone-listen warmup, due-review
+    // warmups, and the new maintenance-from-completed-levels samples all
+    // land in the "warmup" slot.
+    if (card.slot === "review") continue;
+    if (card.slot === "warmup") continue;
+
     const lvl = getLevel(card.nodeId);
     if (!lvl) continue;
     if (lvl.trackId !== card.trackId) continue; // sanity
 
-    const appeared = levelsAppearedByTrack.get(lvl.trackId) ?? new Set<string>();
-    appeared.add(lvl.id);
-    levelsAppearedByTrack.set(lvl.trackId, appeared);
+    // Skipped cards are an explicit "I'm not attempting this" signal — they
+    // do not count toward the level's session occurrence (and never toward
+    // accuracy). Pending cards (incomplete sessions) likewise don't count.
+    const appearedForCounting =
+      card.grading !== "skipped" && card.grading !== "pending";
+    if (appearedForCounting) {
+      const appeared =
+        levelsAppearedByTrack.get(lvl.trackId) ?? new Set<string>();
+      appeared.add(lvl.id);
+      levelsAppearedByTrack.set(lvl.trackId, appeared);
+    }
 
     if (
       card.cardTemplateId === "concept-explainer" &&
@@ -108,7 +125,13 @@ export async function applySessionToTrackProgress(
       continue;
     }
     const arr = resultsByTrack.get(lvl.trackId) ?? [];
-    arr.push({ levelId: lvl.id, correct: ok, ts });
+    const usedHint = card.grading === "correct-with-help";
+    arr.push({
+      levelId: lvl.id,
+      correct: ok,
+      ts,
+      ...(usedHint ? { usedHint: true } : {}),
+    });
     resultsByTrack.set(lvl.trackId, arr);
   }
 
@@ -159,12 +182,19 @@ export async function applySessionToTrackProgress(
   const newlyCompleted: SessionApplyOutcome["newlyCompleted"] = [];
 
   // Iterate so cascading completion updates currentLevel/currentNode (e.g. A-1 → A-2).
+  // We deliberately recompute `cur` via `currentLevelIdForTrack` rather than
+  // trusting `prog.currentNodeId` — older versions of this app stored
+  // bespoke node IDs (e.g. "a-hear-tonic") that aren't real curriculum
+  // levels. If we trusted the stored value we'd loop forever trying to
+  // "complete" a phantom level whose criteria can never be met. Using the
+  // prereq engine guarantees `cur` is always a valid, unlocked, not-yet-
+  // completed level — exactly what should be evaluated next.
   for (let pass = 0; pass < 10; pass++) {
     let advanced = false;
     for (const trackId of TRACK_IDS) {
       const prog = byTrack[trackId];
       if (!prog) continue;
-      const cur = prog.currentNodeId;
+      const cur = currentLevelIdForTrack(trackId, byTrack);
       if (!cur) continue;
       if (prog.completedNodeIds.includes(cur)) continue;
 

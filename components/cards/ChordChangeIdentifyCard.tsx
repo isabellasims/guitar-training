@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { ChordChangeIdentifyParams } from "@/lib/cards/types";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,23 @@ export function ChordChangeIdentifyCard({
   const finished = step >= params.prompts.length;
   const correctCount = results.filter((r) => r === "correct").length;
 
+  const playOnce = useCallback(async () => {
+    // `cur` is undefined once we've stepped past the last prompt; the
+    // "finished" branch renders before this would ever be called, but the
+    // callback is still constructed each render and would otherwise crash
+    // dereferencing `cur.chords` for the deps array.
+    if (!cur) return;
+    handleRef.current?.cancel();
+    setPlaying(true);
+    const handle = playChordSequence(cur.chords, { chordDurationSec: 1.4 });
+    handleRef.current = handle;
+    try {
+      await handle.promise;
+    } finally {
+      setPlaying(false);
+    }
+  }, [cur]);
+
   useEffect(() => {
     return () => {
       handleRef.current?.cancel();
@@ -44,10 +61,22 @@ export function ChordChangeIdentifyCard({
   }, []);
 
   useEffect(() => {
+    if (finished) return;
     setHasPlayed(false);
-    handleRef.current?.cancel();
-    handleRef.current = null;
-  }, [step]);
+    let cancelled = false;
+    void (async () => {
+      try {
+        await playOnce();
+        if (!cancelled) setHasPlayed(true);
+      } catch {
+        /* cancelled */
+      }
+    })();
+    return () => {
+      cancelled = true;
+      handleRef.current?.cancel();
+    };
+  }, [step, finished, playOnce]);
 
   if (finished) {
     return (
@@ -73,18 +102,10 @@ export function ChordChangeIdentifyCard({
     );
   }
 
-  const playProgression = async () => {
+  const replay = async () => {
     if (playing) return;
-    handleRef.current?.cancel();
-    setPlaying(true);
-    const handle = playChordSequence(cur.chords, { chordDurationSec: 1.4 });
-    handleRef.current = handle;
-    try {
-      await handle.promise;
-      setHasPlayed(true);
-    } finally {
-      setPlaying(false);
-    }
+    await playOnce();
+    setHasPlayed(true);
   };
 
   const submit = (chosenIndex: number) => {
@@ -118,18 +139,19 @@ export function ChordChangeIdentifyCard({
           </p>
         )}
 
+        <p className="text-xs text-ink-mute">
+          The progression plays automatically when each step appears. Use replay
+          if you want another pass before answering.
+        </p>
+
         <div className="rounded-md border border-rule bg-paper-soft px-3 py-3">
           <Button
             type="button"
             variant="rust"
             disabled={playing}
-            onClick={() => void playProgression()}
+            onClick={() => void replay()}
           >
-            {playing
-              ? "Playing…"
-              : hasPlayed
-                ? "Replay progression"
-                : "Play progression"}
+            {playing ? "Playing…" : "Replay progression"}
           </Button>
         </div>
 
