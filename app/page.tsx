@@ -92,6 +92,28 @@ export default function HomePage() {
             </Link>
           </Card>
           <Card>
+            <Link href="/intervals" className="block">
+              <CardHeader>
+                <CardTitle>Interval library</CardTitle>
+                <CardDescription>
+                  Hear two notes, pick the interval. Pools by direction and
+                  flavor — major/perfect, minor, tritones, mixed.
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+          <Card>
+            <Link href="/chord-functions" className="block">
+              <CardHeader>
+                <CardTitle>Chord function library</CardTitle>
+                <CardDescription>
+                  Hear a diatonic progression, name the function (I, IV, V,
+                  vi…). Major and minor pools in any key.
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+          <Card>
             <Link href="/library" className="block">
               <CardHeader>
                 <CardTitle>Audio lab</CardTitle>
