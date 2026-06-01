@@ -285,7 +285,9 @@ function buildTrackBlock(
           ? "track-C"
           : trackId === "D"
             ? "track-D"
-            : "track-E";
+            : trackId === "E"
+              ? "track-E"
+              : "track-F";
 
   const intro = shouldShowTrackIntro(byTrack[trackId])
     ? builtToSession(buildTrackIntroCard(trackId, cur), "track-intro")
@@ -354,7 +356,7 @@ function trim(slots: CoreSlots, targetSec: number): CoreSlots {
   // trim. They were popped from the persistent skipped-card queue when this
   // session was built — dropping them here would silently lose the user's
   // "come back to this" signal. The soft cap (×1.2) absorbs the cost.
-  for (const t of ["D", "E", "C", "B"] as TrackId[]) {
+  for (const t of ["F", "D", "E", "C", "B"] as TrackId[]) {
     const block = blockFor(t);
     if (
       totalSeconds(slots) > cap &&

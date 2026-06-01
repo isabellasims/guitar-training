@@ -11,5 +11,8 @@ if (!existsSync(src)) {
   process.exit(1);
 }
 
+// Refresh auto-generated curriculum tables from levels.ts
+await import("./inject-manual-curriculum.mjs");
+
 mkdirSync(destDir, { recursive: true });
 copyFileSync(src, dest);

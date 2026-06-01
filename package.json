@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "sync-manual": "node scripts/sync-manual.mjs",
+    "inject-manual": "node scripts/inject-manual-curriculum.mjs",
     "free-port": "node scripts/free-port.mjs 3000",
     "predev": "npm run sync-manual",
     "prebuild": "npm run sync-manual",

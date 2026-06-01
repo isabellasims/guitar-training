@@ -9,9 +9,9 @@ export default function TracksPage() {
         </p>
         <h1 className="font-display text-3xl text-ink">Skill paths</h1>
         <p className="mt-2 text-sm text-ink-soft">
-          Five tracks (A–E). Each level shows session count and rolling
-          accuracy. Levels marked 🔒 are blocked by a prerequisite — see the
-          explanation underneath.
+          Six tracks (A–F). Each level shows session count and rolling accuracy.
+          Levels marked 🔒 are blocked by a prerequisite. Use Bypass on any
+          incomplete level to skip it manually.
         </p>
       </header>
 

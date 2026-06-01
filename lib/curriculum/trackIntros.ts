@@ -19,7 +19,7 @@ const INTROS: Record<
     tagline: "Pure spatial recall.",
     body: [
       "Independent from your ears: name a note, find it on the neck, fast.",
-      "Sessions add a few quick reps — over weeks of small drills you’ll know any note on any string in under two seconds.",
+      "You’ll learn each string in order (low E → A → … → high e), then find one note everywhere, then full random recall.",
     ],
   },
   C: {
@@ -35,7 +35,7 @@ const INTROS: Record<
     tagline: "Stay oriented inside real songs.",
     body: [
       "When the chord shifts under you, you should feel which function just appeared — I, IV, V, vi.",
-      "Track D enters once you know the root, fifth, and third by ear (after Track A · Level 5).",
+      "Track D enters once you know the full major scale by ear (after Track A · Level 11).",
     ],
   },
   E: {

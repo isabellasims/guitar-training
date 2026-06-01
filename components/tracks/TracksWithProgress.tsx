@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import type { TrackProgress } from "@/lib/domain/types";
 import { getTrackProgress } from "@/lib/db/index";
+import { manuallyBypassLevel } from "@/lib/db/trackProgressOps";
 import { TRACKS } from "@/lib/tracks/tracks";
 import {
   firstBlockingPrerequisite,
@@ -58,34 +60,58 @@ function statusGlyph(s: LevelStatus): string {
 export function TracksWithProgress() {
   const [byTrack, setByTrack] = useState<ProgressByTrack>({});
   const [ready, setReady] = useState(false);
+  const [bypassingId, setBypassingId] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    const ids = ["A", "B", "C", "D", "E", "F"] as const;
+    const next: ProgressByTrack = {};
+    for (const id of ids) {
+      next[id] = (await getTrackProgress(id)) as ProgressRow | undefined;
+    }
+    setByTrack(next);
+    setReady(true);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
-    const load = async () => {
+    const run = async () => {
       try {
-        const ids = ["A", "B", "C", "D", "E", "F"] as const;
-        const next: ProgressByTrack = {};
-        for (const id of ids) {
-          next[id] = (await getTrackProgress(id)) as ProgressRow | undefined;
-        }
-        if (!cancelled) {
-          setByTrack(next);
-          setReady(true);
-        }
+        if (!cancelled) await load();
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error("[TracksWithProgress] load failed", err);
         if (!cancelled) setReady(true);
       }
     };
-    void load();
+    void run();
     const onUpdate = () => void load();
     window.addEventListener("tonic-track-progress-updated", onUpdate);
     return () => {
       cancelled = true;
       window.removeEventListener("tonic-track-progress-updated", onUpdate);
     };
-  }, []);
+  }, [load]);
+
+  const onBypass = async (levelId: string, levelLabel: string) => {
+    const ok = window.confirm(
+      `Mark ${levelLabel} as complete without meeting the usual session/accuracy requirements?\n\nLater levels that depend on it will unlock. This cannot be undone from the app (use Settings → Import only if you exported a backup).`,
+    );
+    if (!ok) return;
+    setBypassingId(levelId);
+    try {
+      await manuallyBypassLevel(levelId);
+      await load();
+      window.dispatchEvent(new CustomEvent("tonic-track-progress-updated"));
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[TracksWithProgress] bypass failed", err);
+      window.alert(
+        err instanceof Error ? err.message : "Could not bypass this level.",
+      );
+    } finally {
+      setBypassingId(null);
+    }
+  };
 
   if (!ready) {
     return <p className="text-sm text-ink-mute">Loading track progress…</p>;
@@ -130,43 +156,59 @@ export function TracksWithProgress() {
                     const summary = prog
                       ? summarizeLevelProgress(prog, l.id)
                       : null;
+                    const levelLabel = `${track.id}·${l.level} · ${l.name}`;
                     return (
                       <li key={l.id} className="pl-1">
-                        <span className="inline-flex items-start gap-2">
-                          <span
-                            className="mt-0.5 font-mono text-xs text-ink-mute"
-                            aria-hidden
-                          >
-                            {statusGlyph(st)}
-                          </span>
-                          <span>
-                            <span className="font-medium text-ink">
-                              {track.id}·{l.level} · {l.name}
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="inline-flex min-w-0 items-start gap-2">
+                            <span
+                              className="mt-0.5 font-mono text-xs text-ink-mute"
+                              aria-hidden
+                            >
+                              {statusGlyph(st)}
                             </span>
-                            <span className="ml-2 rounded border border-rule px-1 py-px text-[9px] uppercase tracking-wider text-ink-mute">
-                              {l.type === "F" ? "foundation" : "practice"}
+                            <span className="min-w-0">
+                              <span className="font-medium text-ink">
+                                {levelLabel}
+                              </span>
+                              <span className="ml-2 rounded border border-rule px-1 py-px text-[9px] uppercase tracking-wider text-ink-mute">
+                                {l.type === "F" ? "foundation" : "practice"}
+                              </span>
+                              {st.kind === "blocked" ? (
+                                <span className="mt-0.5 block text-ink-mute">
+                                  Unlocks after {st.blockedBy}
+                                </span>
+                              ) : null}
+                              {summary && st.kind !== "blocked" ? (
+                                <span className="mt-0.5 block font-mono text-[10px] text-ink-mute">
+                                  {summary.sessionsSeen} sessions ·{" "}
+                                  {summary.recentAccuracy === null
+                                    ? "no graded cards yet"
+                                    : `${Math.round(summary.recentAccuracy * 100)}% recent (${summary.recentCorrect}/${summary.recentWindow})`}
+                                </span>
+                              ) : null}
                             </span>
-                            {st.kind === "blocked" ? (
-                              <span className="mt-0.5 block text-ink-mute">
-                                Unlocks after {st.blockedBy}
-                              </span>
-                            ) : null}
-                            {summary && st.kind !== "blocked" ? (
-                              <span className="mt-0.5 block font-mono text-[10px] text-ink-mute">
-                                {summary.sessionsSeen} sessions ·{" "}
-                                {summary.recentAccuracy === null
-                                  ? "no graded cards yet"
-                                  : `${Math.round(summary.recentAccuracy * 100)}% recent (${summary.recentCorrect}/${summary.recentWindow})`}
-                              </span>
-                            ) : null}
                           </span>
-                        </span>
+                          {st.kind !== "done" ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="shrink-0 text-[10px] uppercase tracking-wider"
+                              disabled={bypassingId != null}
+                              onClick={() => void onBypass(l.id, levelLabel)}
+                            >
+                              {bypassingId === l.id ? "…" : "Bypass"}
+                            </Button>
+                          ) : null}
+                        </div>
                       </li>
                     );
                   })}
                 </ol>
                 <p className="mt-4 font-mono text-[10px] uppercase tracking-wider text-ink-mute">
-                  ✓ complete · ● current · ○ open · 🔒 blocked.
+                  ✓ complete · ● current · ○ open · 🔒 blocked. Use Bypass to
+                  mark a level complete without drilling it.
                 </p>
                 <p className="mt-2 font-mono text-[10px] uppercase tracking-wider text-ink-mute">
                   <Link href="/guitar-practice-plan.html" className="text-rust">

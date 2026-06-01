@@ -3,7 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 
 import { frequencyToMidi } from "@/lib/audio/noteUtils";
-import { setDroneDucked } from "@/lib/audio/drone";
+import {
+  DRONE_DUCK_LINEAR_DEFAULT,
+  DRONE_DUCK_LINEAR_VS_TONIC,
+  setDroneDucked,
+} from "@/lib/audio/drone";
 import type { PitchDetector as PitchDetectorClass } from "pitchy";
 
 export type ContinuousPitchOptions = {
@@ -79,6 +83,11 @@ export type ContinuousPitchOptions = {
    * previous prompt. Default 0.
    */
   armingDelayMs?: number;
+  /**
+   * When set, duck the drone extra hard whenever the target shares this pitch
+   * class (playing the tonic over a tonic drone otherwise false-positives).
+   */
+  droneTonicPitchClass?: number;
 };
 
 export type ContinuousPitchState = {
@@ -177,11 +186,25 @@ export function useContinuousPitchListener(
     prevTargetPcRef.current = newPc;
     armedAtRef.current =
       armingDelayMs > 0 ? performance.now() + armingDelayMs : 0;
+
+    if (opts.enabled && newPc != null) {
+      const tonicPc =
+        opts.droneTonicPitchClass == null
+          ? null
+          : (((opts.droneTonicPitchClass % 12) + 12) % 12);
+      const duckLinear =
+        tonicPc != null && newPc === tonicPc
+          ? DRONE_DUCK_LINEAR_VS_TONIC
+          : DRONE_DUCK_LINEAR_DEFAULT;
+      setDroneDucked(true, duckLinear);
+    }
   }, [
     opts.targetMidi,
     opts.targetGeneration ?? 0,
     requireFreshAttackMode,
     armingDelayMs,
+    opts.droneTonicPitchClass,
+    opts.enabled,
   ]);
 
   useEffect(() => {
@@ -251,7 +274,21 @@ export function useContinuousPitchListener(
         detectorRef.current = detector;
         const data = new Float32Array(analyser.fftSize);
 
-        setDroneDucked(true);
+        const targetPc =
+          targetRef.current == null
+            ? null
+            : (((Math.round(targetRef.current) % 12) + 12) % 12);
+        const tonicPc =
+          opts.droneTonicPitchClass == null
+            ? null
+            : (((opts.droneTonicPitchClass % 12) + 12) % 12);
+        const duckLinear =
+          targetPc != null &&
+          tonicPc != null &&
+          targetPc === tonicPc
+            ? DRONE_DUCK_LINEAR_VS_TONIC
+            : DRONE_DUCK_LINEAR_DEFAULT;
+        setDroneDucked(true, duckLinear);
         setPhase("listening");
 
         const tick = () => {

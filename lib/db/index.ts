@@ -136,7 +136,18 @@ export async function getTrackProgress(
   trackId: string,
 ): Promise<(TrackProgress & { id: string }) | undefined> {
   const row = await db.trackProgress.get(trackId);
-  return normalizeTrackProgress(row);
+  let normalized = normalizeTrackProgress(row);
+  if (normalized?.trackId === "B") {
+    const { migrateTrackBProgress } = await import(
+      "@/lib/curriculum/trackBMigration"
+    );
+    const migrated = migrateTrackBProgress(normalized);
+    if (migrated !== normalized) {
+      normalized = { ...migrated, id: "B" };
+      await db.trackProgress.put(normalized);
+    }
+  }
+  return normalized;
 }
 
 export async function putTrackProgress(

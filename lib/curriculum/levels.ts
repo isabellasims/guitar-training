@@ -65,25 +65,29 @@ export const LEVELS: Level[] = [
   { id: "A-22", trackId: "A", level: 22, type: "P", name: "All Keys, All Modes", prerequisiteLevelIds: ["A-21"] },
 
   // ─────────────────────────────────────────────────────────────────────
-  // Track B — Note Finding (13 levels, ordered by circle-of-fifths)
-  //   B-1..B-2 anchor the 6th + 5th strings.
-  //   B-3..B-9 walk each natural-note class across all 6 strings:
-  //   C → G → D → A → E → F → B  (circle-of-fifths order).
-  //   B-10..B-13 add sharps/flats then push speed.
+  // Track B — Note Finding (18 levels)
+  //   B-1..B-7: one string at a time (low E → A → mix → D → G → B → high e).
+  //   B-8..B-14: each natural note class across all strings (circle-of-fifths).
+  //   B-15..B-18: sharps/flats, full random recall, speed.
   // ─────────────────────────────────────────────────────────────────────
-  { id: "B-1", trackId: "B", level: 1, type: "F", name: "E String", prerequisiteLevelIds: [] },
-  { id: "B-2", trackId: "B", level: 2, type: "P", name: "E + A Random", prerequisiteLevelIds: ["B-1"] },
-  { id: "B-3", trackId: "B", level: 3, type: "F", name: "C Across Strings", prerequisiteLevelIds: ["B-2"] },
-  { id: "B-4", trackId: "B", level: 4, type: "P", name: "G Across Strings", prerequisiteLevelIds: ["B-3"] },
-  { id: "B-5", trackId: "B", level: 5, type: "P", name: "D Across Strings", prerequisiteLevelIds: ["B-4"] },
-  { id: "B-6", trackId: "B", level: 6, type: "P", name: "A Across Strings", prerequisiteLevelIds: ["B-5"] },
-  { id: "B-7", trackId: "B", level: 7, type: "P", name: "E Across Strings", prerequisiteLevelIds: ["B-6"] },
-  { id: "B-8", trackId: "B", level: 8, type: "P", name: "F Across Strings", prerequisiteLevelIds: ["B-7"] },
-  { id: "B-9", trackId: "B", level: 9, type: "P", name: "B Across Strings", prerequisiteLevelIds: ["B-8"] },
-  { id: "B-10", trackId: "B", level: 10, type: "F", name: "Sharps and Flats", prerequisiteLevelIds: ["B-9"] },
-  { id: "B-11", trackId: "B", level: 11, type: "P", name: "Mixed Naturals", prerequisiteLevelIds: ["B-10"] },
-  { id: "B-12", trackId: "B", level: 12, type: "P", name: "Mixed Chromatic", prerequisiteLevelIds: ["B-11"] },
-  { id: "B-13", trackId: "B", level: 13, type: "P", name: "Speed (Under 2s)", prerequisiteLevelIds: ["B-12"] },
+  { id: "B-1", trackId: "B", level: 1, type: "F", name: "Low E String", prerequisiteLevelIds: [] },
+  { id: "B-2", trackId: "B", level: 2, type: "F", name: "A String", prerequisiteLevelIds: ["B-1"] },
+  { id: "B-3", trackId: "B", level: 3, type: "P", name: "E + A Mix", prerequisiteLevelIds: ["B-2"] },
+  { id: "B-4", trackId: "B", level: 4, type: "F", name: "D String", prerequisiteLevelIds: ["B-3"] },
+  { id: "B-5", trackId: "B", level: 5, type: "P", name: "G String", prerequisiteLevelIds: ["B-4"] },
+  { id: "B-6", trackId: "B", level: 6, type: "F", name: "B String (2nd)", prerequisiteLevelIds: ["B-5"] },
+  { id: "B-7", trackId: "B", level: 7, type: "P", name: "High E String", prerequisiteLevelIds: ["B-6"] },
+  { id: "B-8", trackId: "B", level: 8, type: "F", name: "C Note — All Strings", prerequisiteLevelIds: ["B-7"] },
+  { id: "B-9", trackId: "B", level: 9, type: "P", name: "G Note — All Strings", prerequisiteLevelIds: ["B-8"] },
+  { id: "B-10", trackId: "B", level: 10, type: "P", name: "D Note — All Strings", prerequisiteLevelIds: ["B-9"] },
+  { id: "B-11", trackId: "B", level: 11, type: "P", name: "A Note — All Strings", prerequisiteLevelIds: ["B-10"] },
+  { id: "B-12", trackId: "B", level: 12, type: "P", name: "E Note — All Strings", prerequisiteLevelIds: ["B-11"] },
+  { id: "B-13", trackId: "B", level: 13, type: "P", name: "F Note — All Strings", prerequisiteLevelIds: ["B-12"] },
+  { id: "B-14", trackId: "B", level: 14, type: "P", name: "B Note — All Strings", prerequisiteLevelIds: ["B-13"] },
+  { id: "B-15", trackId: "B", level: 15, type: "F", name: "Sharps and Flats", prerequisiteLevelIds: ["B-14"] },
+  { id: "B-16", trackId: "B", level: 16, type: "P", name: "Mixed Naturals", prerequisiteLevelIds: ["B-15"] },
+  { id: "B-17", trackId: "B", level: 17, type: "P", name: "Mixed Chromatic", prerequisiteLevelIds: ["B-16"] },
+  { id: "B-18", trackId: "B", level: 18, type: "P", name: "Speed (Under 2s)", prerequisiteLevelIds: ["B-17"] },
 
   // ─────────────────────────────────────────────────────────────────────
   // Track C — Fretboard & CAGED (14 levels, unchanged)

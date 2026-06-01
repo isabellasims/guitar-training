@@ -56,9 +56,9 @@ export default function DegreeDrillLibraryPage() {
           Drill degrees in groups — no progression, just practice
         </h1>
         <p className="mt-2 max-w-md text-sm text-ink-soft">
-          Each group bundles related prompts (stable triad, diatonic color, minor
-          colors). Pick a tonic on the drill page. Locked entries are still
-          drillable — we just recommend hitting them in curriculum order.
+          Each group bundles listen-and-identify drills (like the interval
+          library) and play-over-drone drills. Pick a tonic on the drill page.
+          Locked entries are still drillable — we recommend curriculum order.
         </p>
       </header>
 
@@ -114,7 +114,14 @@ export default function DegreeDrillLibraryPage() {
                     <Link href={href} className="block">
                       <CardHeader>
                         <CardTitle>{item.name}</CardTitle>
-                        <CardDescription>{item.description}</CardDescription>
+                        <CardDescription>
+                          <span className="font-mono text-[10px] uppercase tracking-widest text-ink-mute">
+                            {item.kind === "identify"
+                              ? "Listen & identify"
+                              : "Play over drone"}
+                          </span>
+                          <span className="mt-1 block">{item.description}</span>
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         <span className="text-xs uppercase tracking-widest text-rust">

@@ -36,7 +36,7 @@ export type LevelResult = {
 };
 
 /**
- * Curriculum is level-based per `public/rules.md`.
+ * Curriculum is level-based; see `public/rules.md` and `lib/curriculum/levels.ts`.
  * `currentNodeId` is kept as a mirror of the current level id for legacy code paths.
  */
 export type TrackProgress = {

@@ -12,6 +12,7 @@ import {
 } from "@/lib/curriculum/completion";
 import {
   currentLevelIdForTrack,
+  unlockedLevelIdsForTrack,
   type ProgressByTrack,
 } from "@/lib/curriculum/prerequisites";
 import { getLevel, getLevelsForTrack } from "@/lib/curriculum/levels";
@@ -49,14 +50,60 @@ function nextLevelInTrack(
 }
 
 async function loadAllProgress(): Promise<ProgressByTrack> {
-  const [a, b, c, d, e] = await Promise.all([
-    getTrackProgress("A"),
-    getTrackProgress("B"),
-    getTrackProgress("C"),
-    getTrackProgress("D"),
-    getTrackProgress("E"),
-  ]);
-  return { A: a, B: b, C: c, D: d, E: e };
+  const ids: TrackId[] = ["A", "B", "C", "D", "E", "F"];
+  const rows = await Promise.all(ids.map((id) => getTrackProgress(id)));
+  const out: ProgressByTrack = {};
+  ids.forEach((id, i) => {
+    out[id] = rows[i];
+  });
+  return out;
+}
+
+/**
+ * Mark a level complete without meeting session/accuracy gates — for manual
+ * skip from the Tracks page. Advances that track's current level when needed.
+ */
+export async function manuallyBypassLevel(levelId: string): Promise<boolean> {
+  const lvl = getLevel(levelId);
+  if (!lvl) return false;
+
+  const prog = await getTrackProgress(lvl.trackId);
+  if (!prog) return false;
+
+  if (prog.completedNodeIds.includes(levelId)) {
+    return true;
+  }
+
+  const updated: TrackProgress = {
+    ...prog,
+    completedNodeIds: [...prog.completedNodeIds, levelId],
+    seenExplainerLevelIds: [...prog.seenExplainerLevelIds],
+  };
+
+  if (
+    lvl.type === "F" &&
+    !updated.seenExplainerLevelIds.includes(levelId)
+  ) {
+    updated.seenExplainerLevelIds.push(levelId);
+  }
+
+  await putTrackProgress(updated);
+
+  const byTrack = await loadAllProgress();
+  const fresh = byTrack[lvl.trackId];
+  if (!fresh) return true;
+
+  const nextCurrent = currentLevelIdForTrack(lvl.trackId, byTrack);
+  if (nextCurrent) {
+    const nextLvl = getLevel(nextCurrent);
+    await putTrackProgress({
+      ...fresh,
+      currentNodeId: nextCurrent,
+      currentLevel: nextLvl?.level ?? fresh.currentLevel,
+    });
+  }
+
+  return true;
 }
 
 /**
@@ -213,8 +260,19 @@ export async function applySessionToTrackProgress(
       const nextLvl = getLevel(nextCurrent);
       updated.currentNodeId = nextCurrent;
       updated.currentLevel = nextLvl?.level ?? updated.currentLevel;
-
-      await putTrackProgress(updated);
+      nextByTrack[trackId] = updated;
+      for (const tid of TRACK_IDS) {
+        const row = nextByTrack[tid];
+        if (!row) continue;
+        nextByTrack[tid] = {
+          ...row,
+          unlockedNodeIds: unlockedLevelIdsForTrack(tid, nextByTrack),
+        };
+      }
+      for (const tid of TRACK_IDS) {
+        const row = nextByTrack[tid];
+        if (row) await putTrackProgress(row);
+      }
 
       const justCompleted = getLevel(cur);
       const link = nextLevelInTrack(trackId, cur);

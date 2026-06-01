@@ -1,3 +1,7 @@
+# Feature ideas & backlog
+
+> **Curriculum in the app** is defined in `lib/curriculum/levels.ts` and `public/rules.md` (75 levels, tracks A–F). The level lists below this note are **outdated** — kept for historical context only.
+
 # fretboard
 - option to select a note and it displays at every place on the board, then shows the tabs for that note on every string
 

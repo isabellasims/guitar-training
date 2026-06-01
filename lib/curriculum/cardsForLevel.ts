@@ -8,6 +8,11 @@ import type { TrackId } from "@/lib/domain/types";
 import { SHAPES_BY_ID } from "@/lib/curriculum/shapeLibrary";
 import { getLevel } from "@/lib/curriculum/levels";
 import { chord as buildChord } from "@/lib/music/chords";
+import {
+  pickSeeded,
+  seededChance,
+  seededIndex,
+} from "@/lib/curriculum/seededRandom";
 
 /**
  * Curriculum content. Authored verbatim from the project content spec.
@@ -145,8 +150,8 @@ const CHORDS: Record<string, number[]> = {
 };
 
 // ───── helpers for randomized recognition prompts ──────────────────────────
-function pickRandom<T>(pool: T[]): T {
-  return pool[Math.floor(Math.random() * pool.length)]!;
+function pickRandom<T>(pool: readonly T[], seed: string): T {
+  return pickSeeded(pool, seed);
 }
 
 function pcDegree(key: KeyContext, degreeIntervalSemitones: number): number {
@@ -195,8 +200,8 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
           },
         ],
         body: [
-          "Drone in C. Sing or play C anywhere on the neck. Notice the 'arrived, home' feeling.",
-          "This is degree 1 — the foundation of every other degree you'll learn. Every other note in the key is heard relative to it.",
+          "Drone in C and listen until the home pitch feels obvious. Hum along if it helps — you do not need to play C over the drone (the mic cannot tell your guitar apart from the tonic).",
+          "This is degree 1 — the foundation of every other degree you'll learn. Practice finding C on the fretboard in the cards that follow.",
         ],
         droneTonicMidi: C_MAJOR.tonicMidi,
         droneKeyLabel: C_MAJOR.keyLabel,
@@ -413,21 +418,48 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         title: "Solidify the low E string",
         body: [
           "Track B is pure fretboard recall — separate from ear training, but it makes everything you hear in Track A land faster.",
-          "First foothold: own the 6th string (low E). Frets give names; names give freedom.",
+          "First foothold: the 6th string (low E). Learn every natural note on this string, including open E.",
         ],
         continueLabel: "Got it",
       });
-    case "B-3":
-      return card("concept-explainer", "B", "B-3", {
-        title: "C across all six strings",
+    case "B-2":
+      return card("concept-explainer", "B", "B-2", {
+        title: "Own the A string",
         body: [
-          "Same letter, six places. Owning one note across the neck is the gateway to owning all of them.",
-          "We work in circle-of-fifths order from here: C → G → D → A → E → F → B. Each adds one note across the whole neck.",
+          "Same job as low E, one string closer to the floor: random naturals on the 5th string only.",
+          "When this feels easy, the next level mixes low E and A so you learn which string you're on.",
         ],
         continueLabel: "Got it",
       });
-    case "B-10":
-      return card("concept-explainer", "B", "B-10", {
+    case "B-4":
+      return card("concept-explainer", "B", "B-4", {
+        title: "The D string",
+        body: [
+          "Work outward from the strings you know: the 4th string (D) is next.",
+          "Same drill — find random naturals on this string only before we connect notes across the neck.",
+        ],
+        continueLabel: "Got it",
+      });
+    case "B-6":
+      return card("concept-explainer", "B", "B-6", {
+        title: "The second string (called B)",
+        body: [
+          "Guitar strings are named E, A, D, G, B, e. This level is the thin B string — not the note B.",
+          "Random naturals on the 2nd string only.",
+        ],
+        continueLabel: "Got it",
+      });
+    case "B-8":
+      return card("concept-explainer", "B", "B-8", {
+        title: "C everywhere on the neck",
+        body: [
+          "You've mapped each string. Now one note at a time across all six: same letter, six locations.",
+          "Circle-of-fifths order from here: C → G → D → A → E → F → B (the note). Each level adds one pitch class across the whole fretboard.",
+        ],
+        continueLabel: "Got it",
+      });
+    case "B-15":
+      return card("concept-explainer", "B", "B-15", {
         title: "Sharps and flats — the in-between notes",
         terms: [
           {
@@ -512,16 +544,7 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         fretboardShape: {
           title: "Open A natural minor — open strings + frets 2–3.",
           maxFret: 4,
-          steps: [
-            { stringIndex: 4, fret: 0 },
-            { stringIndex: 4, fret: 2 },
-            { stringIndex: 4, fret: 3 },
-            { stringIndex: 3, fret: 0 },
-            { stringIndex: 3, fret: 2 },
-            { stringIndex: 3, fret: 3 },
-            { stringIndex: 2, fret: 0 },
-            { stringIndex: 2, fret: 2 },
-          ],
+          steps: SHAPES_BY_ID["open-a-minor"]!.steps,
         },
         continueLabel: "Got it",
       });
@@ -1161,9 +1184,9 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
 //   drone is). Asking "is this the root or the 5th?" is pitch-matching to
 //   the drone, not functional ear training. Every option pool below
 //   excludes the root, and every helper that samples a played pitch
-//   class skips degree 1 of the active key. Production cards asking the
-//   user to *play* the root are fine — finding the root on the guitar is
-//   a separate skill.
+//   class skips degree 1 of the active key. Do not ask the user to *play*
+//   the root over a tonic drone — pitch detection locks onto the drone.
+//   Finding the root on the neck uses note-finding cards (no drone).
 const THREE_VS_FIVE_MAJOR: Array<{ label: string }> = [
   { label: "The 3rd (bright)" },
   { label: "The 5th (hovering)" },
@@ -1202,8 +1225,8 @@ function hintEmphasisForLevel(
   const lvl = getLevel(levelId);
   const n = lvl?.level;
   if (trackId === "B") {
-    if (n != null && n <= 5) return "emphasized";
-    if (n != null && n >= 10) return "subtle";
+    if (n != null && n <= 7) return "emphasized";
+    if (n != null && n >= 16) return "subtle";
   }
   return "default";
 }
@@ -1216,11 +1239,17 @@ function dronePlay(
   uiTitle?: string,
   uiDescription?: string,
 ): BuiltCard<"drone-degree-play"> {
+  const tonicPc = ((key.tonicMidi % 12) + 12) % 12;
+  const filtered = prompts.filter((p) =>
+    p.expectedPitchClasses.some(
+      (pc) => (((pc % 12) + 12) % 12) !== tonicPc,
+    ),
+  );
   return card("drone-degree-play", trackId, levelId, {
     keyLabel: key.keyLabel,
     tonicMidi: key.tonicMidi,
     mode: key.mode,
-    prompts,
+    prompts: filtered,
     uiTitle,
     uiDescription,
     hintEmphasis: hintEmphasisForLevel(trackId, levelId),
@@ -1244,13 +1273,14 @@ function droneIdentify(
 }
 
 function noteFinding(
+  trackId: TrackId,
   levelId: string,
   params: CardTemplateParams["note-finding-play"],
 ): BuiltCard<"note-finding-play"> {
-  return card("note-finding-play", "B", levelId, {
+  return card("note-finding-play", trackId, levelId, {
     ...params,
     hintEmphasis:
-      params.hintEmphasis ?? hintEmphasisForLevel("B", levelId),
+      params.hintEmphasis ?? hintEmphasisForLevel(trackId, levelId),
   });
 }
 
@@ -1309,10 +1339,11 @@ function intervalPlay(
 function stableTonesPromptsMajor(
   key: KeyContext,
   count: number,
+  seedPrefix: string,
 ): CardTemplateParams["drone-degree-identify"]["prompts"] {
   const out: CardTemplateParams["drone-degree-identify"]["prompts"] = [];
   for (let i = 0; i < count; i++) {
-    const isThird = Math.random() < 0.5;
+    const isThird = seededChance(`${seedPrefix}:maj-3v5:${i}`);
     out.push({
       key,
       playedPitchClass: isThird ? pcDegree(key, 4) : pcDegree(key, 7),
@@ -1326,10 +1357,11 @@ function stableTonesPromptsMajor(
 function stableTonesPromptsMinor(
   key: KeyContext,
   count: number,
+  seedPrefix: string,
 ): CardTemplateParams["drone-degree-identify"]["prompts"] {
   const out: CardTemplateParams["drone-degree-identify"]["prompts"] = [];
   for (let i = 0; i < count; i++) {
-    const isThird = Math.random() < 0.5;
+    const isThird = seededChance(`${seedPrefix}:min-b3v5:${i}`);
     out.push({
       key,
       playedPitchClass: isThird ? pcDegree(key, 3) : pcDegree(key, 7),
@@ -1347,12 +1379,13 @@ function stableTonesPromptsMinor(
 function fullDiatonicPrompts(
   key: KeyContext,
   count: number,
+  seedPrefix: string,
 ): CardTemplateParams["drone-degree-identify"]["prompts"] {
   const scale = key.mode === "major" ? DEGREES_MAJOR : DEGREES_MINOR;
   const nonRoot = scale.slice(1);
   const out: CardTemplateParams["drone-degree-identify"]["prompts"] = [];
   for (let i = 0; i < count; i++) {
-    const idx = Math.floor(Math.random() * nonRoot.length);
+    const idx = seededIndex(`${seedPrefix}:full-diat:${i}`, nonRoot.length);
     out.push({
       key,
       playedPitchClass: pcDegree(key, nonRoot[idx]!),
@@ -1375,26 +1408,25 @@ export const EXPLAINER_ONLY_LEVELS: ReadonlySet<string> = new Set([
   "A-12",
 ]);
 
-export function practiceCardsForLevel(levelId: string): BuiltCard[] {
+function resolvePracticeCards(levelId: string): BuiltCard[] {
   switch (levelId) {
     // ─── Track A — Phase 1 (Major) ────────────────────────────────────
     case "A-1":
       return [];
     case "A-2":
       return [
-        dronePlay("A", "A-2", C_MAJOR, [
-          { text: "Play the root.", expectedPitchClasses: [0] },
-        ]),
-        dronePlay(
-          "A",
-          "A-2",
-          C_MAJOR,
-          [
-            { text: "Play the root.", expectedPitchClasses: [0] },
-            { text: "Play the root again, anywhere on the neck.", expectedPitchClasses: [0] },
-          ],
-          "Root in two places",
-        ),
+        noteFinding("A", "A-2", {
+          noteName: "C",
+          stringIndex: 5,
+          stringDescription: "low E",
+          roundCount: 8,
+          hintEmphasis: hintEmphasisForLevel("A", "A-2"),
+        }),
+        noteFinding("A", "A-2", {
+          pool: { notes: ["C"], stringIndices: [5, 4, 3, 2, 1, 0] },
+          roundCount: 10,
+          hintEmphasis: hintEmphasisForLevel("A", "A-2"),
+        }),
       ];
     case "A-3":
       return [
@@ -1437,7 +1469,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 4; i++) {
-              const isMajor = Math.random() < 0.5;
+              const isMajor = seededChance(`A-4:ch:0`);
               out.push({
                 key: isMajor ? C_MAJOR : C_MINOR_LABEL,
                 playedPitchClass: isMajor ? 4 : 3,
@@ -1457,7 +1489,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           "A",
           "A-5",
           THREE_VS_FIVE_MAJOR,
-          stableTonesPromptsMajor(C_MAJOR, 6),
+          stableTonesPromptsMajor(C_MAJOR, 6, "A-5"),
           "3rd vs. 5th — C major",
         ),
         dronePlay(
@@ -1483,14 +1515,14 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             "3": 64,
             "5": 67,
           };
-          const labels = ["1", "3", "5"] as const;
+          const labels = ["3", "5"] as const;
           // Pick three labels with no immediate repeats — gives "1-3-5",
           // "5-3-1", "3-5-1", "1-5-3", etc.
           const seq: string[] = [];
           for (let i = 0; i < 3; i++) {
-            let pick = labels[Math.floor(Math.random() * labels.length)]!;
+            let pick = labels[seededIndex(`A-5:seq:${i}`, labels.length)]!;
             while (i > 0 && pick === seq[i - 1]) {
-              pick = labels[Math.floor(Math.random() * labels.length)]!;
+              pick = labels[seededIndex(`A-5:seq:${i}:retry`, labels.length)]!;
             }
             seq.push(pick);
           }
@@ -1531,7 +1563,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 5; i++) {
-              const isSeventh = Math.random() < 0.5;
+              const isSeventh = seededChance(`A-6:ch:0`);
               out.push({
                 key: C_MAJOR,
                 playedPitchClass: isSeventh ? 11 : 7,
@@ -1566,7 +1598,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 5; i++) {
-              const isThree = Math.random() < 0.5;
+              const isThree = seededChance(`A-7:ch:0`);
               out.push({
                 key: C_MAJOR,
                 playedPitchClass: isThree ? 4 : 5,
@@ -1590,7 +1622,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 6; i++) {
-              const idx = Math.floor(Math.random() * 4);
+              const idx = seededIndex(`A-8:idx:0`, 4);
               out.push({
                 key: C_MAJOR,
                 playedPitchClass: map[idx]!,
@@ -1628,7 +1660,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 5; i++) {
-              const isTwo = Math.random() < 0.5;
+              const isTwo = seededChance(`A-9:ch:0`);
               out.push({
                 key: C_MAJOR,
                 playedPitchClass: isTwo ? 2 : 4,
@@ -1647,7 +1679,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 5; i++) {
-              const isTwo = Math.random() < 0.5;
+              const isTwo = seededChance(`A-9:ch:1`);
               out.push({
                 key: C_MAJOR,
                 playedPitchClass: isTwo ? 2 : 11,
@@ -1673,7 +1705,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 5; i++) {
-              const isSix = Math.random() < 0.5;
+              const isSix = seededChance(`A-10:ch:0`);
               out.push({
                 key: C_MAJOR,
                 playedPitchClass: isSix ? 9 : 7,
@@ -1692,7 +1724,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           "A",
           "A-11",
           SIX_DEGREE_BUTTONS_MAJOR,
-          fullDiatonicPrompts(C_MAJOR, 6),
+          fullDiatonicPrompts(C_MAJOR, 6, "A-11"),
           "Full diatonic — C major",
           "The drone is the root; identify which non-root degree you hear.",
         ),
@@ -1700,7 +1732,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           "A",
           "A-11",
           SIX_DEGREE_BUTTONS_MAJOR,
-          fullDiatonicPrompts(G_MAJOR, 6),
+          fullDiatonicPrompts(G_MAJOR, 6, "A-11"),
           "Full diatonic — G major",
         ),
         dronePlay(
@@ -1762,7 +1794,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           "A",
           "A-14",
           FLAT_THREE_VS_FIVE,
-          stableTonesPromptsMinor(A_MINOR, 5),
+          stableTonesPromptsMinor(A_MINOR, 5, "A-13"),
           "Flat 3rd vs. 5th — A minor",
         ),
       ];
@@ -1790,7 +1822,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 6; i++) {
-              const idx = Math.floor(Math.random() * 3);
+              const idx = seededIndex(`A-15:idx:0`, 3);
               out.push({
                 key: A_MINOR,
                 playedPitchClass: map[idx]!,
@@ -1819,7 +1851,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 5; i++) {
-              const isTwo = Math.random() < 0.5;
+              const isTwo = seededChance(`A-16:ch:0`);
               out.push({
                 key: A_MINOR,
                 playedPitchClass: isTwo ? 11 : 0,
@@ -1838,7 +1870,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 5; i++) {
-              const isSix = Math.random() < 0.5;
+              const isSix = seededChance(`A-16:ch:1`);
               out.push({
                 key: A_MINOR,
                 playedPitchClass: isSix ? 5 : 7,
@@ -1857,7 +1889,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           "A",
           "A-17",
           SIX_DEGREE_BUTTONS_MINOR,
-          fullDiatonicPrompts(A_MINOR, 6),
+          fullDiatonicPrompts(A_MINOR, 6, "A-17"),
           "Full diatonic — A minor",
           "The drone is the root; identify which non-root degree you hear.",
         ),
@@ -1865,7 +1897,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           "A",
           "A-17",
           SIX_DEGREE_BUTTONS_MINOR,
-          fullDiatonicPrompts(E_MINOR, 6),
+          fullDiatonicPrompts(E_MINOR, 6, "A-17"),
           "Full diatonic — E minor",
         ),
       ];
@@ -1880,7 +1912,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 6; i++) {
-              const isMajor = Math.random() < 0.5;
+              const isMajor = seededChance(`A-18:ch:0`);
               const k = isMajor ? C_MAJOR : A_MINOR;
               out.push({
                 key: k,
@@ -1904,12 +1936,12 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 6; i++) {
-              const isMajor = Math.random() < 0.5;
+              const isMajor = seededChance(`A-18:ch:${i}`);
               const k = isMajor ? C_MAJOR : A_MINOR;
               const offsets = isMajor ? majorVariants : minorVariants;
               out.push({
                 key: k,
-                playedPitchClass: pcDegree(k, pickRandom(offsets)),
+                playedPitchClass: pcDegree(k, pickRandom(offsets, `A-18:off:${i}`)),
                 correctOptionIndex: isMajor ? 0 : 1,
               });
             }
@@ -1932,14 +1964,14 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           "A",
           "A-19",
           SIX_DEGREE_BUTTONS_MAJOR,
-          fullDiatonicPrompts(G_MAJOR, 5),
+          fullDiatonicPrompts(G_MAJOR, 5, "A-20"),
           "Full diatonic — G major",
         ),
         droneIdentify(
           "A",
           "A-19",
           SIX_DEGREE_BUTTONS_MAJOR,
-          fullDiatonicPrompts(D_MAJOR, 5),
+          fullDiatonicPrompts(D_MAJOR, 5, "A-20"),
           "Full diatonic — D major",
         ),
       ];
@@ -1956,9 +1988,9 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
       const majorPrompts: CardTemplateParams["drone-degree-identify"]["prompts"] =
         [];
       for (let i = 0; i < 8; i++) {
-        const k = pickRandom(MAJOR_KEYS);
+        const k = pickRandom(MAJOR_KEYS, `A-20:key:${i}`);
         const nonRoot = DEGREES_MAJOR.slice(1);
-        const idx = Math.floor(Math.random() * nonRoot.length);
+        const idx = seededIndex(`A-20:idx:${i}`, nonRoot.length);
         majorPrompts.push({
           key: k,
           playedPitchClass: pcDegree(k, nonRoot[idx]!),
@@ -1989,14 +2021,14 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           "A",
           "A-21",
           SIX_DEGREE_BUTTONS_MINOR,
-          fullDiatonicPrompts(E_MINOR, 5),
+          fullDiatonicPrompts(E_MINOR, 5, "A-22"),
           "Full diatonic — E minor",
         ),
         droneIdentify(
           "A",
           "A-21",
           SIX_DEGREE_BUTTONS_MINOR,
-          fullDiatonicPrompts(D_MINOR, 5),
+          fullDiatonicPrompts(D_MINOR, 5, "A-22"),
           "Full diatonic — D minor",
         ),
       ];
@@ -2021,9 +2053,9 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
       const minorPrompts: CardTemplateParams["drone-degree-identify"]["prompts"] =
         [];
       for (let i = 0; i < 6; i++) {
-        const k = pickRandom(ALL_MAJOR);
+        const k = pickRandom(ALL_MAJOR, `A-22:maj-key:${i}`);
         const nonRoot = DEGREES_MAJOR.slice(1);
-        const idx = Math.floor(Math.random() * nonRoot.length);
+        const idx = seededIndex(`A-22:maj-idx:${i}`, nonRoot.length);
         majorPrompts.push({
           key: k,
           playedPitchClass: pcDegree(k, nonRoot[idx]!),
@@ -2032,9 +2064,9 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
         });
       }
       for (let i = 0; i < 6; i++) {
-        const k = pickRandom(ALL_MINOR);
+        const k = pickRandom(ALL_MINOR, `A-22:min-key:${i}`);
         const nonRoot = DEGREES_MINOR.slice(1);
-        const idx = Math.floor(Math.random() * nonRoot.length);
+        const idx = seededIndex(`A-22:min-idx:${i}`, nonRoot.length);
         minorPrompts.push({
           key: k,
           playedPitchClass: pcDegree(k, nonRoot[idx]!),
@@ -2062,97 +2094,150 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
       ];
     }
 
-    // ─── Track B (note finding, circle-of-fifths order) ──────────────
+    // ─── Track B (string-by-string, then note-class across neck) ─────
     case "B-1":
       return [
-        noteFinding("B-1", {
-          pool: { notes: ["F", "G", "A", "B", "C", "D"], stringIndices: [5] },
-          roundCount: 8,
+        noteFinding("B", "B-1", {
+          pool: {
+            notes: ["C", "D", "E", "F", "G", "A", "B"],
+            stringIndices: [5],
+          },
+          roundCount: 10,
         }),
       ];
     case "B-2":
       return [
-        noteFinding("B-2", {
+        noteFinding("B", "B-2", {
           pool: {
-            notes: ["F", "G", "A", "B", "C", "D", "E"],
-            stringIndices: [5, 4],
+            notes: ["C", "D", "E", "F", "G", "A", "B"],
+            stringIndices: [4],
           },
           roundCount: 10,
         }),
       ];
     case "B-3":
       return [
-        noteFinding("B-3", {
-          noteName: "C",
-          allStringsLowestFret: true,
-          allStringsProgressiveTwoPerString: true,
+        noteFinding("B", "B-3", {
+          pool: {
+            notes: ["C", "D", "E", "F", "G", "A", "B"],
+            stringIndices: [5, 4],
+          },
+          roundCount: 10,
         }),
       ];
     case "B-4":
       return [
-        noteFinding("B-4", {
-          noteName: "G",
-          allStringsLowestFret: true,
-          allStringsProgressiveTwoPerString: true,
+        noteFinding("B", "B-4", {
+          pool: {
+            notes: ["C", "D", "E", "F", "G", "A", "B"],
+            stringIndices: [3],
+          },
+          roundCount: 10,
         }),
       ];
     case "B-5":
       return [
-        noteFinding("B-5", {
-          noteName: "D",
-          allStringsLowestFret: true,
-          allStringsProgressiveTwoPerString: true,
+        noteFinding("B", "B-5", {
+          pool: {
+            notes: ["C", "D", "E", "F", "G", "A", "B"],
+            stringIndices: [2],
+          },
+          roundCount: 10,
         }),
       ];
     case "B-6":
       return [
-        noteFinding("B-6", {
-          noteName: "A",
-          allStringsLowestFret: true,
-          allStringsProgressiveTwoPerString: true,
+        noteFinding("B", "B-6", {
+          pool: {
+            notes: ["C", "D", "E", "F", "G", "A", "B"],
+            stringIndices: [1],
+          },
+          roundCount: 10,
         }),
       ];
     case "B-7":
       return [
-        noteFinding("B-7", {
-          noteName: "E",
-          allStringsLowestFret: true,
-          allStringsProgressiveTwoPerString: true,
+        noteFinding("B", "B-7", {
+          pool: {
+            notes: ["C", "D", "E", "F", "G", "A", "B"],
+            stringIndices: [0],
+          },
+          roundCount: 10,
         }),
       ];
     case "B-8":
       return [
-        noteFinding("B-8", {
-          noteName: "F",
+        noteFinding("B", "B-8", {
+          noteName: "C",
           allStringsLowestFret: true,
           allStringsProgressiveTwoPerString: true,
         }),
       ];
     case "B-9":
       return [
-        noteFinding("B-9", {
-          noteName: "B",
+        noteFinding("B", "B-9", {
+          noteName: "G",
           allStringsLowestFret: true,
           allStringsProgressiveTwoPerString: true,
         }),
       ];
     case "B-10":
       return [
-        noteFinding("B-10", {
-          pool: { notes: ["C#", "D#", "F#", "G#", "A#"] },
-          roundCount: 10,
+        noteFinding("B", "B-10", {
+          noteName: "D",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
         }),
       ];
     case "B-11":
       return [
-        noteFinding("B-11", {
-          pool: { notes: ["C", "D", "E", "F", "G", "A", "B"] },
-          roundCount: 12,
+        noteFinding("B", "B-11", {
+          noteName: "A",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
         }),
       ];
     case "B-12":
       return [
-        noteFinding("B-12", {
+        noteFinding("B", "B-12", {
+          noteName: "E",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
+        }),
+      ];
+    case "B-13":
+      return [
+        noteFinding("B", "B-13", {
+          noteName: "F",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
+        }),
+      ];
+    case "B-14":
+      return [
+        noteFinding("B", "B-14", {
+          noteName: "B",
+          allStringsLowestFret: true,
+          allStringsProgressiveTwoPerString: true,
+        }),
+      ];
+    case "B-15":
+      return [
+        noteFinding("B", "B-15", {
+          pool: { notes: ["C#", "D#", "F#", "G#", "A#"] },
+          roundCount: 10,
+        }),
+      ];
+    case "B-16":
+      return [
+        noteFinding("B", "B-16", {
+          pool: { notes: ["C", "D", "E", "F", "G", "A", "B"] },
+          roundCount: 12,
+        }),
+      ];
+    case "B-17":
+      return [
+        noteFinding("B", "B-17", {
           pool: {
             notes: [
               "C",
@@ -2172,9 +2257,9 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           roundCount: 12,
         }),
       ];
-    case "B-13":
+    case "B-18":
       return [
-        noteFinding("B-13", {
+        noteFinding("B", "B-18", {
           pool: {
             notes: [
               "C",
@@ -2472,7 +2557,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           intro: "A → C → D on the 6th string.",
           steps: [
             { stringIndex: 5, fret: 5, finger: 1, degree: "1" },
-            { stringIndex: 5, fret: 8, finger: 4, degree: "b3" },
+            { stringIndex: 5, fret: 8, finger: 3, degree: "b3" },
             { stringIndex: 5, fret: 10, finger: 4, degree: "4" },
           ],
           restartOnError: true,
@@ -2779,7 +2864,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 5; i++) {
-              const isP5 = Math.random() < 0.5;
+              const isP5 = seededChance(`E-1:ch:0`);
               const semi = isP5 ? 7 : 4;
               out.push({
                 baseMidi: 60,
@@ -2802,7 +2887,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 5; i++) {
-              const isP4 = Math.random() < 0.5;
+              const isP4 = seededChance(`E-2:ch:0`);
               const semi = isP4 ? 5 : 7;
               out.push({
                 baseMidi: 60,
@@ -2825,7 +2910,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 5; i++) {
-              const isM3 = Math.random() < 0.5;
+              const isM3 = seededChance(`E-3:ch:0`);
               const semi = isM3 ? 4 : 5;
               out.push({
                 baseMidi: 60,
@@ -2854,7 +2939,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const labels = ["major 3rd", "perfect 4th", "perfect 5th"];
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 6; i++) {
-              const idx = Math.floor(Math.random() * 3);
+              const idx = seededIndex(`E-4:idx:0`, 3);
               out.push({
                 baseMidi: 60,
                 semitones: map[idx]!,
@@ -2876,7 +2961,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 5; i++) {
-              const isM2 = Math.random() < 0.5;
+              const isM2 = seededChance(`E-5:ch:0`);
               const semi = isM2 ? 2 : 4;
               out.push({
                 baseMidi: 60,
@@ -2899,7 +2984,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 5; i++) {
-              const isM6 = Math.random() < 0.5;
+              const isM6 = seededChance(`E-6:ch:0`);
               const semi = isM6 ? 9 : 7;
               out.push({
                 baseMidi: 60,
@@ -2922,7 +3007,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 5; i++) {
-              const isM7 = Math.random() < 0.5;
+              const isM7 = seededChance(`E-7:ch:0`);
               const semi = isM7 ? 11 : 7;
               out.push({
                 baseMidi: 60,
@@ -2961,7 +3046,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             ];
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 6; i++) {
-              const idx = Math.floor(Math.random() * 6);
+              const idx = seededIndex(`E-8:idx:0`, 6);
               out.push({
                 baseMidi: 60,
                 semitones: map[idx]!,
@@ -2983,7 +3068,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 5; i++) {
-              const isMin = Math.random() < 0.5;
+              const isMin = seededChance(`E-9:ch:0`);
               const semi = isMin ? 3 : 4;
               out.push({
                 baseMidi: 60,
@@ -3006,7 +3091,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 5; i++) {
-              const isMin = Math.random() < 0.5;
+              const isMin = seededChance(`E-10:ch:0`);
               const semi = isMin ? 10 : 11;
               out.push({
                 baseMidi: 60,
@@ -3029,7 +3114,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 5; i++) {
-              const isMin = Math.random() < 0.5;
+              const isMin = seededChance(`E-11:ch:0`);
               const semi = isMin ? 8 : 9;
               out.push({
                 baseMidi: 60,
@@ -3052,7 +3137,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 5; i++) {
-              const isMin = Math.random() < 0.5;
+              const isMin = seededChance(`E-12:ch:0`);
               const semi = isMin ? 1 : 2;
               out.push({
                 baseMidi: 60,
@@ -3077,7 +3162,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const labels = ["perfect 4th", "tritone", "perfect 5th"];
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 6; i++) {
-              const idx = Math.floor(Math.random() * 3);
+              const idx = seededIndex(`E-13:idx:0`, 3);
               out.push({
                 baseMidi: 60,
                 semitones: map[idx]!,
@@ -3113,7 +3198,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 8; i++) {
-              const idx = Math.floor(Math.random() * map.length);
+              const idx = seededIndex(`E-14:idx:0`, map.length);
               out.push({
                 baseMidi: 60,
                 semitones: map[idx]!,
@@ -3138,7 +3223,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 6; i++) {
-              const idx = Math.floor(Math.random() * map.length);
+              const idx = seededIndex(`E-15:idx:0`, map.length);
               out.push({
                 baseMidi: 72,
                 semitones: map[idx]!,
@@ -3163,7 +3248,7 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 6; i++) {
-              const idx = Math.floor(Math.random() * map.length);
+              const idx = seededIndex(`E-16:idx:0`, map.length);
               out.push({
                 baseMidi: 72,
                 semitones: map[idx]!,
@@ -3200,8 +3285,8 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
           (() => {
             const out: CardTemplateParams["interval-identify"]["prompts"] = [];
             for (let i = 0; i < 8; i++) {
-              const idx = Math.floor(Math.random() * map.length);
-              const dir = Math.random() < 0.5 ? "up" : "down";
+              const idx = seededIndex(`E-17:idx:0`, map.length);
+              const dir = seededChance(`E-17:ch:1`) ? "up" : "down";
               out.push({
                 baseMidi: dir === "up" ? 60 : 72,
                 semitones: map[idx]!,
@@ -3269,12 +3354,12 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
             const out: CardTemplateParams["drone-degree-identify"]["prompts"] =
               [];
             for (let i = 0; i < 6; i++) {
-              const isChord = Math.random() < 0.5;
+              const isChord = seededChance(`F-3:ch:${i}`);
               out.push({
                 key: C_MAJOR,
                 playedPitchClass: isChord
-                  ? pickRandom(chordTones)
-                  : pickRandom(nonChord),
+                  ? pickRandom(chordTones, `F-3:ct:${i}`)
+                  : pickRandom(nonChord, `F-3:nc:${i}`),
                 correctOptionIndex: isChord ? 0 : 1,
               });
             }
@@ -3326,6 +3411,17 @@ export function practiceCardsForLevel(levelId: string): BuiltCard[] {
     default:
       return [];
   }
+}
+
+/** Drops drone-play cards whose prompts were all tonic-only (removed by `dronePlay`). */
+export function practiceCardsForLevel(levelId: string): BuiltCard[] {
+  return resolvePracticeCards(levelId).filter((c) => {
+    if (c.templateId === "drone-degree-play") {
+      const p = c as BuiltCard<"drone-degree-play">;
+      return p.parameters.prompts.length > 0;
+    }
+    return true;
+  });
 }
 
 // Re-export utility shapes for other modules / tests.

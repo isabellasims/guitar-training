@@ -6,26 +6,34 @@ let oscillator: Tone.Oscillator | null = null;
 /** User-facing drone level (0–1 linear, before ducking). */
 let baseLinear = 0.2;
 /**
- * Multiplier applied while pitch detection is listening.
- * 0.04 → ~28 dB attenuation. The old 0.2 (~14 dB) wasn't enough — laptop
- * speakers played the drone loud enough that Pitchy reliably locked onto
- * the tonic instead of the user's guitar, so "play the 5th" prompts
- * would either match instantly off the drone (when target = tonic) or
- * never match (when target != tonic, because the drone dominated the
- * detected pitch). At 0.04 the drone is still audible enough to hold a
- * tonic reference in your head, but the mic path is firmly on the guitar.
+ * While the pitch mic is open on drone cards, linear gain applied to the drone
+ * output (in addition to `baseLinear`). Persists across `startDrone` / `stopDrone`
+ * so tapping "Play drone" after the mic opens does not blast the tonic back to
+ * full volume.
  */
-let duckMultiplier = 1;
+let pitchListenDuckLinear: number | null = null;
 /** Applied while an in-app scale demo plays so the melody reads over the held drone. */
 let scaleDemoDroneMultiplier = 1;
+
+function listenDuckMultiplier(): number {
+  return pitchListenDuckLinear ?? 1;
+}
 
 function refreshDroneOutputVolume(): void {
   if (!oscillator) return;
   const effective = Math.max(
     0.0001,
-    Math.min(1, baseLinear * duckMultiplier * scaleDemoDroneMultiplier),
+    Math.min(1, baseLinear * listenDuckMultiplier() * scaleDemoDroneMultiplier),
   );
   oscillator.volume.value = Tone.gainToDb(effective);
+}
+
+function disposeOscillator(): void {
+  if (oscillator) {
+    oscillator.stop();
+    oscillator.dispose();
+    oscillator = null;
+  }
 }
 
 /**
@@ -34,9 +42,8 @@ function refreshDroneOutputVolume(): void {
  */
 export async function startDrone(frequency: number, volume = 0.2): Promise<void> {
   await Tone.start();
-  stopDrone();
+  disposeOscillator();
   baseLinear = Math.max(0.0001, Math.min(1, volume));
-  duckMultiplier = 1;
   scaleDemoDroneMultiplier = 1;
   oscillator = new Tone.Oscillator(frequency, "sine").toDestination();
   refreshDroneOutputVolume();
@@ -49,13 +56,9 @@ export async function startDroneMidi(midi: number, volume = 0.2): Promise<void> 
 }
 
 export function stopDrone(): void {
-  if (oscillator) {
-    oscillator.stop();
-    oscillator.dispose();
-    oscillator = null;
-  }
-  duckMultiplier = 1;
+  disposeOscillator();
   scaleDemoDroneMultiplier = 1;
+  // Keep `pitchListenDuckLinear` — the mic may still be listening on drone cards.
 }
 
 /**
@@ -90,11 +93,26 @@ export function isDroneActive(): boolean {
   return oscillator != null;
 }
 
+/** Default duck while the pitch mic listens (see module comment in continuousPitch). */
+export const DRONE_DUCK_LINEAR_DEFAULT = 0.04;
+/** Extra attenuation when the target pitch class equals the drone tonic. */
+export const DRONE_DUCK_LINEAR_VS_TONIC = 0.008;
+
 /**
  * While `true`, drone output is reduced so the mic path can hear the guitar.
- * Safe to call when no drone is playing (no-op).
+ * Safe to call when no drone is playing (remembered until cleared).
  */
-export function setDroneDucked(ducked: boolean): void {
-  duckMultiplier = ducked ? 0.04 : 1;
+export function setDroneDucked(
+  ducked: boolean,
+  linearMultiplier = DRONE_DUCK_LINEAR_DEFAULT,
+): void {
+  pitchListenDuckLinear = ducked
+    ? Math.max(0.0001, Math.min(1, linearMultiplier))
+    : null;
   refreshDroneOutputVolume();
+}
+
+/** Whether pitch-listen ducking is active (for diagnostics). */
+export function isPitchListenDucking(): boolean {
+  return pitchListenDuckLinear != null;
 }

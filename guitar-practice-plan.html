@@ -175,6 +175,14 @@
   table.week-grid td.week-num { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--rust); background: var(--paper); text-align: center; }
   table.week-grid td.empty { color: var(--paper-deep); text-align: center; background: var(--paper); }
   table.week-grid tr:hover td:not(.week-num):not(.empty) { background: #f7eed9; }
+  .level-table-wrap { overflow-x: auto; margin: 24px 0 40px; }
+  table.level-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  table.level-table th { background: var(--ink); color: var(--paper-soft); text-align: left; padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; font-weight: 500; border: 1px solid var(--ink); }
+  table.level-table td { padding: 10px 14px; border: 1px solid var(--rule); background: var(--paper-soft); vertical-align: top; color: var(--ink-soft); line-height: 1.4; }
+  table.level-table td.level-id { font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; color: var(--rust); white-space: nowrap; }
+  table.level-table tr:hover td { background: #f7eed9; }
+  .app-banner { font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.55; color: var(--rust); background: var(--paper-soft); border: 1px solid var(--rule); padding: 14px 18px; margin-bottom: 32px; }
+  .app-banner strong { letter-spacing: 0.12em; text-transform: uppercase; }
   .callout { background: var(--ink); color: var(--paper-soft); padding: 56px; margin: 80px 0 40px; border: 1px solid var(--ink); }
   .callout-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold-soft); margin-bottom: 24px; font-weight: 500; }
   .callout h3 { font-family: 'Fraunces', serif; font-weight: 300; font-style: italic; font-size: 38px; line-height: 1.15; margin-bottom: 28px; letter-spacing: -0.015em; max-width: 880px; }
@@ -216,16 +224,23 @@
 <body>
 <div class="container">
 
+<p class="app-banner">
+  <strong>Tonic app.</strong>
+  Level progression, sessions, and mastery gates live in <code>lib/curriculum/levels.ts</code> and <code>public/rules.md</code> — <strong>80 levels</strong> across tracks A–F.
+  This manual adds philosophy, optional personal work (hero solos, song lists), and rough week pacing.
+  In the app: <strong>E = intervals</strong>, <strong>F = improvisation</strong> (not hero solo / song vocabulary).
+</p>
+
 <header class="hero">
   <div class="hero-meta">
-    <span class="left">A practice manual</span>
-    <span>16 weeks · 6 tracks · ~45 min/day</span>
+    <span class="left">Practice manual + Tonic app</span>
+    <span>6 tracks · ~45 min/day · level-based in app</span>
   </div>
-  <div class="edition-mark">Second Edition · Revised &amp; Expanded</div>
+  <div class="edition-mark">Third Edition · Aligned with Tonic</div>
   <div class="eyebrow">For Bella · Mayer / Hazel · Electric Guitar</div>
   <h1 class="title">Hear it<span class="dot">.</span><br/>Find it<span class="dot">.</span><br/><span class="it">Play it.</span></h1>
-  <p class="subtitle">A theory plan for moving from <em>pentatonic purgatory</em> to intentional, soulful soloing — built around scale degrees, fretboard fluency, and chord-tone targeting, with hero solos and song vocabulary as the application layer.</p>
-  <blockquote class="pull-quote">The goal at week 16: you put on an Am backing track, you hear a melody in your head, you know it starts on the 5th, your hand goes there, and you play what you imagined.</blockquote>
+  <p class="subtitle">Scale degrees, fretboard maps, ear training, and chord-tone improvisation — with optional hero-solo and song-vocabulary work on the side. The <em>Tonic</em> app runs the structured curriculum; this document explains <em>why</em> and holds personal repertoire goals.</p>
+  <blockquote class="pull-quote">The end state: over a backing track you hear a melody, know its scale degree, find it on the neck without hunting, and play what you imagined — with chord tones as home and everything else as motion.</blockquote>
 </header>
 
 <nav class="toc">
@@ -234,16 +249,19 @@
     <li><a href="#framing"><span class="num">I.</span><span>The Framing</span></a></li>
     <li><a href="#tracks"><span class="num">II.</span><span>The Six Tracks</span></a></li>
     <li><a href="#parallel"><span class="num">III.</span><span>Parallel &amp; Sequential</span></a></li>
-    <li><a href="#track-a"><span class="num">IV.</span><span>Track A — Scale Degrees</span></a></li>
-    <li><a href="#track-b"><span class="num">V.</span><span>Track B — Note Finding</span></a></li>
-    <li><a href="#track-c"><span class="num">VI.</span><span>Track C — Fretboard &amp; CAGED</span></a></li>
-    <li><a href="#track-d"><span class="num">VII.</span><span>Track D — Chord Changes</span></a></li>
-    <li><a href="#track-e"><span class="num">VIII.</span><span>Track E — Hero Solo</span></a></li>
-    <li><a href="#track-f"><span class="num">IX.</span><span>Track F — Song Vocabulary</span></a></li>
-    <li><a href="#transpose"><span class="num">X.</span><span>Transposition Practice</span></a></li>
-    <li><a href="#daily"><span class="num">XI.</span><span>Daily Structure</span></a></li>
-    <li><a href="#weeks"><span class="num">XII.</span><span>Week-by-Week</span></a></li>
-    <li><a href="#priorities"><span class="num">XIII.</span><span>Priorities</span></a></li>
+    <li><a href="#app-curriculum"><span class="num">IV.</span><span>Tonic App — All Levels</span></a></li>
+    <li><a href="#track-a"><span class="num">V.</span><span>Track A — Scale Degrees</span></a></li>
+    <li><a href="#track-b"><span class="num">VI.</span><span>Track B — Note Finding</span></a></li>
+    <li><a href="#track-c"><span class="num">VII.</span><span>Track C — Fretboard &amp; CAGED</span></a></li>
+    <li><a href="#track-d"><span class="num">VIII.</span><span>Track D — Chord Changes</span></a></li>
+    <li><a href="#track-e"><span class="num">IX.</span><span>Track E — Intervals (app)</span></a></li>
+    <li><a href="#track-f"><span class="num">X.</span><span>Track F — Improvisation (app)</span></a></li>
+    <li><a href="#hero-solo"><span class="num">XI.</span><span>Hero Solo (personal)</span></a></li>
+    <li><a href="#song-vocab"><span class="num">XII.</span><span>Song Vocabulary (optional)</span></a></li>
+    <li><a href="#transpose"><span class="num">XIII.</span><span>Transposition Practice</span></a></li>
+    <li><a href="#daily"><span class="num">XIV.</span><span>Daily Structure</span></a></li>
+    <li><a href="#weeks"><span class="num">XV.</span><span>Week-by-Week (pacing)</span></a></li>
+    <li><a href="#priorities"><span class="num">XVI.</span><span>Priorities</span></a></li>
   </ul>
 </nav>
 
@@ -255,7 +273,7 @@
       <h2>Six skills, one <em>fused</em> ability.</h2>
     </div>
   </div>
-  <p class="lead">The gap — <span class="key">hear note → search 10 notes → find it</span> — is six skills, not one. <strong>Scale degrees</strong> tell you <em>which</em> note you want. <strong>Note finding</strong> and <strong>shape memory</strong> tell you <em>where</em> it lives. <strong>CAGED</strong> ties chord shapes to chord tones across the entire neck. <strong>Chord-change hearing</strong> tells you <em>what's underneath you</em> in real time. The <strong>hero solo</strong> and <strong>song vocabulary</strong> are where everything fuses into actual playing.</p>
+  <p class="lead">The gap — <span class="key">hear note → search 10 notes → find it</span> — is six skills in the app, not one. <strong>Scale degrees</strong> tell you <em>which</em> note you want. <strong>Note finding</strong> and <strong>shape memory</strong> tell you <em>where</em> it lives. <strong>CAGED</strong> ties chord shapes to chord tones across the neck. <strong>Chord-change hearing</strong> and <strong>intervals</strong> sharpen relative pitch. <strong>Improvisation</strong> applies chord-tone targeting on a backing track. <strong>Hero solos</strong> and <strong>song vocabulary</strong> (below, outside the app) are optional depth and repertoire work.</p>
   <p class="lead">Every note is measured against the <em>tonic</em>, not the last note you played. The tonic is always there — droning under the music — and your ear is already measuring against it instinctively. You're not learning a new sense; you're learning to consciously notice what your ear has been doing all along.</p>
 </section>
 
@@ -269,40 +287,40 @@
   </div>
   <div class="tracks-grid">
     <article class="track-card t-a">
-      <div class="track-tag"><span>Track A · The Spine</span><span>Wk 1+</span></div>
+      <div class="track-tag"><span>Track A · 22 levels</span><span>Day 1</span></div>
       <div class="track-name">Scale <em>Degrees</em></div>
-      <p class="track-desc">Hear any note's function in the key — root, 3rd, 5th, 7th, etc. — instead of measuring intervals from the last note. The skill that translates ear into fretboard.</p>
-      <div class="track-meta"><span>15–20 min</span><span>Daily</span></div>
+      <p class="track-desc">Major degrees A·1–11, minor from A·12 (needs C·2), cross-key A·19–22. Hear function against the tonic.</p>
+      <div class="track-meta"><span>App + drone</span><span>Daily</span></div>
     </article>
     <article class="track-card t-b">
-      <div class="track-tag"><span>Track B</span><span>Wk 1+</span></div>
+      <div class="track-tag"><span>Track B · 18 levels</span><span>Day 1</span></div>
       <div class="track-name">Note <em>Finding</em></div>
-      <p class="track-desc">Random recall across all six strings. Independent, mechanical.</p>
-      <div class="track-meta"><span>5–7 min</span><span>Daily</span></div>
+      <p class="track-desc">String-by-string (B·1–7), then note-class across the neck (B·8–14), then sharps/flats and speed.</p>
+      <div class="track-meta"><span>Flashcards</span><span>Daily</span></div>
     </article>
     <article class="track-card t-c">
-      <div class="track-tag"><span>Track C</span><span>Wk 1+</span></div>
+      <div class="track-tag"><span>Track C · 14 levels</span><span>Day 1</span></div>
       <div class="track-name">Fretboard &amp; <em>CAGED</em></div>
-      <p class="track-desc">Scale shapes &amp; chord-tone maps. A natural minor → pentatonic boxes → CAGED.</p>
-      <div class="track-meta"><span>10 min</span><span>Daily</span></div>
+      <p class="track-desc">Open C &amp; A minor → movable → pentatonic boxes → CAGED shapes → connect positions.</p>
+      <div class="track-meta"><span>Shapes</span><span>Daily</span></div>
     </article>
     <article class="track-card t-d">
-      <div class="track-tag"><span>Track D</span><span>Wk 3+</span></div>
+      <div class="track-tag"><span>Track D · 5 levels</span><span>After A·11</span></div>
       <div class="track-name">Hearing <em>Chord Changes</em></div>
-      <p class="track-desc">Identify what changed when the chord moves — I, IV, V, vi — in real time. Keeps you oriented inside any song.</p>
-      <div class="track-meta"><span>5–10 min</span><span>From Wk 3</span></div>
+      <p class="track-desc">Listen and identify I, IV, V, vi by ear — no “play the changes on guitar” level in the app.</p>
+      <div class="track-meta"><span>Ear only</span><span>When unlocked</span></div>
     </article>
     <article class="track-card t-e">
-      <div class="track-tag"><span>Track E</span><span>Wk 6+</span></div>
-      <div class="track-name">Hero <em>Solo</em></div>
-      <p class="track-desc">Mayer or Hazel. Learn by ear. Analyze through scale degrees and CAGED. Transpose. The deep lab.</p>
-      <div class="track-meta"><span>15–20 min</span><span>From Wk 6</span></div>
+      <div class="track-tag"><span>Track E · 17 levels</span><span>After A·11</span></div>
+      <div class="track-name"><em>Intervals</em></div>
+      <p class="track-desc">Consonance-first: unison → 5th → 3rd → … through the full set, then mixed drills.</p>
+      <div class="track-meta"><span>Ear</span><span>When unlocked</span></div>
     </article>
     <article class="track-card t-f">
-      <div class="track-tag"><span>Track F · NEW</span><span>Wk 5+</span></div>
-      <div class="track-name">Song <em>Vocabulary</em></div>
-      <p class="track-desc">A new song every 2–3 weeks. Light analysis. The volume layer that keeps theory tied to real music.</p>
-      <div class="track-meta"><span>15 min, rotating</span><span>From Wk 5</span></div>
+      <div class="track-tag"><span>Track F · 4 levels</span><span>A·11 + D·2</span></div>
+      <div class="track-name"><em>Improvisation</em></div>
+      <p class="track-desc">Chord-tone targeting on a backing track — roots, then 3rds/5ths, then full triad motion.</p>
+      <div class="track-meta"><span>Play</span><span>When unlocked</span></div>
     </article>
   </div>
 </section>
@@ -319,51 +337,197 @@
 
   <div class="par-seq-grid">
     <div class="par-seq-block parallel">
-      <h3>Run in Parallel</h3>
-      <div class="subhead">Across Tracks</div>
+      <h3>In the App (parallel)</h3>
+      <div class="subhead">Session builder mixes tracks</div>
       <ul class="par-seq-list">
-        <li><span class="marker">A+B</span><span><strong>Scale degrees + note finding.</strong> Different parts of the brain. Both run from Day 1.</span></li>
-        <li><span class="marker">+C</span><span><strong>Fretboard shapes.</strong> A natural minor shape needed for Wk 2 minor drone work — must start Wk 1.</span></li>
-        <li><span class="marker">+D</span><span><strong>Chord-change hearing.</strong> Joins Wk 3 once tonic recognition has set in.</span></li>
-        <li><span class="marker">+F</span><span><strong>Song vocabulary.</strong> Joins Wk 5, once you have the 1, 5, and 3 of a key.</span></li>
-        <li><span class="marker">+E</span><span><strong>Hero solo.</strong> Joins Wk 6 — analytical work needs Track A's stable tones in place.</span></li>
-        <li><span class="marker">∞</span><span><strong>Transposition.</strong> Recurring 5-min micro-practice from Wk 5 onward.</span></li>
+        <li><span class="marker">A+B+C</span><span><strong>From day one.</strong> Scale degrees, note finding, and shapes reinforce each other every session.</span></li>
+        <li><span class="marker">+D+E</span><span><strong>After A·11.</strong> Chord-change recognition and interval ear training unlock once major degrees are in place.</span></li>
+        <li><span class="marker">+F</span><span><strong>After A·11 and D·2.</strong> Improvisation needs stable degrees plus vi-by-ear.</span></li>
+        <li><span class="marker">∞</span><span><strong>Transposition</strong> (this manual) — optional 5-min bookend, not an app track.</span></li>
+        <li><span class="marker">★</span><span><strong>Hero solo + songs</strong> (Sections XI–XII) — personal practice outside the app.</span></li>
       </ul>
     </div>
     <div class="par-seq-block sequential">
-      <h3>Must Be Sequential</h3>
-      <div class="subhead">Within Each Track</div>
+      <h3>Level order (sequential)</h3>
+      <div class="subhead">Within each track</div>
       <ul class="par-seq-list">
-        <li><span class="marker">A</span><span><strong>Stable tones (1, 5, 3) before tense tones (7, 4, 2, 6).</strong> Chord tones are home base — tense tones only make sense as motion away.</span></li>
-        <li><span class="marker">A</span><span><strong>One-chord drones before two-chord vamps.</strong> Tracking moving chord tones requires fixed ones first.</span></li>
-        <li><span class="marker">C</span><span><strong>One shape solid before adding the next.</strong> Connection only works between fluent positions.</span></li>
-        <li><span class="marker">D</span><span><strong>I-IV-V before adding vi. Major before minor.</strong></span></li>
-        <li><span class="marker">E</span><span><strong>Learn the solo → analyze it → transpose it.</strong> Cannot be done out of order.</span></li>
-        <li><span class="marker">F</span><span><strong>Songs in roughly increasing complexity.</strong> Major-key clarity before minor-key blues phrasing.</span></li>
+        <li><span class="marker">A</span><span><strong>Major 1→7, then minor phase, then cross-key.</strong> A·12 needs C·2 (open A minor).</span></li>
+        <li><span class="marker">B</span><span><strong>One string at a time, then note-class on all strings, then chromatic speed.</strong> B·2 = A string only; B·3 = E+A mix.</span></li>
+        <li><span class="marker">C</span><span><strong>Open shapes → movable → pent boxes → CAGED → connect.</strong> C·7 needs A·4 (major 3rd by ear).</span></li>
+        <li><span class="marker">D</span><span><strong>I → IV → V → vi</strong> by listening only.</span></li>
+        <li><span class="marker">E</span><span><strong>Consonant intervals first</strong> (unison, 5th, 3rd, …), then wider and mixed sets.</span></li>
+        <li><span class="marker">F</span><span><strong>Root targets → triad tones → motion across changes.</strong></span></li>
       </ul>
     </div>
   </div>
 
   <div class="cross-dep">
-    <strong>The only meaningful cross-track dependency:</strong> Track E (hero solo <em>analysis</em>) is much more productive once Track A has reached at least the stable tones. You can <em>learn</em> the solo by ear before that — but the scale-degree analysis won't have anywhere to land.
+    <strong>Cross-track gates (app):</strong> D and E require <strong>A·11</strong>. F requires <strong>A·11</strong> and <strong>D·2</strong>. A·12 (minor tonic) requires <strong>C·2</strong>. C·7 requires <strong>A·4</strong>. The session builder adds warmup, SRS reviews, and track blocks A→F automatically — see Section XIV.
   </div>
 
-  <h4 class="subhead-h">Track Entry Timeline</h4>
+  <h4 class="subhead-h">When tracks unlock (app)</h4>
   <div class="timing-grid">
-    <div class="tg-cell head">Track</div><div class="tg-cell head">Wk 1–2</div><div class="tg-cell head">Wk 3–4</div><div class="tg-cell head">Wk 5</div><div class="tg-cell head">Wk 6</div><div class="tg-cell head">Wk 7–10</div><div class="tg-cell head">Wk 11–16</div>
-    <div class="tg-cell label">A · Degrees</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
-    <div class="tg-cell label">B · Notes</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
-    <div class="tg-cell label">C · Fretboard</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
-    <div class="tg-cell label">D · Changes</div><div class="tg-cell empty">—</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
-    <div class="tg-cell label">F · Songs</div><div class="tg-cell empty">—</div><div class="tg-cell empty">—</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
-    <div class="tg-cell label">E · Hero Solo</div><div class="tg-cell empty">—</div><div class="tg-cell empty">—</div><div class="tg-cell empty">—</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
-    <div class="tg-cell label">∞ Transpose</div><div class="tg-cell empty">—</div><div class="tg-cell empty">—</div><div class="tg-cell start">START</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div><div class="tg-cell active">active</div>
+    <div class="tg-cell head">Track</div><div class="tg-cell head">Start</div><div class="tg-cell head">Gate</div><div class="tg-cell head">Levels</div><div class="tg-cell head">Focus</div>
+    <div class="tg-cell label">A · Degrees</div><div class="tg-cell start">Day 1</div><div class="tg-cell active">—</div><div class="tg-cell active">22</div><div class="tg-cell active">Tonic → degrees → minor → keys</div>
+    <div class="tg-cell label">B · Notes</div><div class="tg-cell start">Day 1</div><div class="tg-cell active">—</div><div class="tg-cell active">18</div><div class="tg-cell active">Strings → note class → chromatic</div>
+    <div class="tg-cell label">C · Shapes</div><div class="tg-cell start">Day 1</div><div class="tg-cell active">C·7 ← A·4</div><div class="tg-cell active">14</div><div class="tg-cell active">Open → pent → CAGED</div>
+    <div class="tg-cell label">D · Changes</div><div class="tg-cell empty">—</div><div class="tg-cell start">A·11</div><div class="tg-cell active">5</div><div class="tg-cell active">Hear I / IV / V / vi</div>
+    <div class="tg-cell label">E · Intervals</div><div class="tg-cell empty">—</div><div class="tg-cell start">A·11</div><div class="tg-cell active">17</div><div class="tg-cell active">Relative pitch</div>
+    <div class="tg-cell label">F · Improv</div><div class="tg-cell empty">—</div><div class="tg-cell start">A·11 + D·2</div><div class="tg-cell active">4</div><div class="tg-cell active">Chord-tone soloing</div>
+  </div>
+</section>
+
+<section class="section" id="app-curriculum">
+  <div class="section-head">
+    <div class="section-num">IV</div>
+    <div class="section-title-block">
+      <div class="kicker">Authoritative in Tonic</div>
+      <h2>App curriculum <em>(80 levels)</em></h2>
+    </div>
+  </div>
+  <div class="track-detail">
+<!-- TONIC_CURRICULUM_AUTO -->
+<p class="lead">The <strong>Tonic</strong> app implements this curriculum in <code>lib/curriculum/levels.ts</code>. Levels advance by <em>mastery</em> (sessions + accuracy), not calendar weeks. <strong>[F]</strong> = concept explainer first; <strong>[P]</strong> = practice only.</p>
+<div class="cross-dep">
+<strong>Track entry in the app:</strong> A, B, C from day one. <strong>D</strong> and <strong>E</strong> unlock after <strong>A·11</strong> (full major diatonic by ear). <strong>F</strong> unlocks after <strong>A·11</strong> and <strong>D·2</strong> (vi chord by ear). <strong>A·12</strong> (minor tonic) also requires <strong>C·2</strong> (open A minor shape). <strong>C·7</strong> requires <strong>A·4</strong> (major 3rd by ear).
+</div>
+<p class="lead"><strong>Completion:</strong> each level needs ≥3 sessions, ≥12 graded cards at ≥90% weighted accuracy (hints count half). Explainer-only levels <strong>A·1</strong> and <strong>A·12</strong> complete after the concept is seen.</p>
+<h4 class="subhead-h">Track A — Scale degrees (22 levels)</h4>
+<div class="level-table-wrap">
+<table class="level-table">
+<thead><tr><th>Level</th><th>Type</th><th>Name</th><th>Requires</th></tr></thead>
+<tbody>
+<tr><td class="level-id">A·1</td><td>Foundation</td><td>Tonic (C major)</td><td>—</td></tr>
+<tr><td class="level-id">A·2</td><td>Foundation</td><td>The Root</td><td>A·1</td></tr>
+<tr><td class="level-id">A·3</td><td>Foundation</td><td>The 5th</td><td>A·2</td></tr>
+<tr><td class="level-id">A·4</td><td>Foundation</td><td>The 3rd (major)</td><td>A·3</td></tr>
+<tr><td class="level-id">A·5</td><td>Practice</td><td>Stable Tones Consolidation</td><td>A·4</td></tr>
+<tr><td class="level-id">A·6</td><td>Foundation</td><td>The 7th (leading tone)</td><td>A·5</td></tr>
+<tr><td class="level-id">A·7</td><td>Foundation</td><td>The 4th</td><td>A·6</td></tr>
+<tr><td class="level-id">A·8</td><td>Practice</td><td>Mid-tension Consolidation</td><td>A·7</td></tr>
+<tr><td class="level-id">A·9</td><td>Foundation</td><td>The 2nd</td><td>A·8</td></tr>
+<tr><td class="level-id">A·10</td><td>Foundation</td><td>The 6th</td><td>A·9</td></tr>
+<tr><td class="level-id">A·11</td><td>Practice</td><td>Full Major Diatonic</td><td>A·10</td></tr>
+<tr><td class="level-id">A·12</td><td>Foundation</td><td>Tonic (A minor)</td><td>A·11, C·2</td></tr>
+<tr><td class="level-id">A·13</td><td>Practice</td><td>Re-orient (Root + 5th in minor)</td><td>A·12</td></tr>
+<tr><td class="level-id">A·14</td><td>Foundation</td><td>The Flat 3rd</td><td>A·13</td></tr>
+<tr><td class="level-id">A·15</td><td>Foundation</td><td>The Flat 7</td><td>A·14</td></tr>
+<tr><td class="level-id">A·16</td><td>Foundation</td><td>The Flat 6 + 2 (in minor)</td><td>A·15</td></tr>
+<tr><td class="level-id">A·17</td><td>Practice</td><td>Full Minor Diatonic</td><td>A·16</td></tr>
+<tr><td class="level-id">A·18</td><td>Practice</td><td>Cross-mode Consolidation</td><td>A·17</td></tr>
+<tr><td class="level-id">A·19</td><td>Foundation</td><td>G and D major</td><td>A·18</td></tr>
+<tr><td class="level-id">A·20</td><td>Practice</td><td>All Major Keys</td><td>A·19</td></tr>
+<tr><td class="level-id">A·21</td><td>Foundation</td><td>E and D minor</td><td>A·20</td></tr>
+<tr><td class="level-id">A·22</td><td>Practice</td><td>All Keys, All Modes</td><td>A·21</td></tr>
+</tbody>
+</table>
+</div>
+<h4 class="subhead-h">Track B — Note finding (18 levels)</h4>
+<div class="level-table-wrap">
+<table class="level-table">
+<thead><tr><th>Level</th><th>Type</th><th>Name</th><th>Requires</th></tr></thead>
+<tbody>
+<tr><td class="level-id">B·1</td><td>Foundation</td><td>Low E String</td><td>—</td></tr>
+<tr><td class="level-id">B·2</td><td>Foundation</td><td>A String</td><td>B·1</td></tr>
+<tr><td class="level-id">B·3</td><td>Practice</td><td>E + A Mix</td><td>B·2</td></tr>
+<tr><td class="level-id">B·4</td><td>Foundation</td><td>D String</td><td>B·3</td></tr>
+<tr><td class="level-id">B·5</td><td>Practice</td><td>G String</td><td>B·4</td></tr>
+<tr><td class="level-id">B·6</td><td>Foundation</td><td>B String (2nd)</td><td>B·5</td></tr>
+<tr><td class="level-id">B·7</td><td>Practice</td><td>High E String</td><td>B·6</td></tr>
+<tr><td class="level-id">B·8</td><td>Foundation</td><td>C Note — All Strings</td><td>B·7</td></tr>
+<tr><td class="level-id">B·9</td><td>Practice</td><td>G Note — All Strings</td><td>B·8</td></tr>
+<tr><td class="level-id">B·10</td><td>Practice</td><td>D Note — All Strings</td><td>B·9</td></tr>
+<tr><td class="level-id">B·11</td><td>Practice</td><td>A Note — All Strings</td><td>B·10</td></tr>
+<tr><td class="level-id">B·12</td><td>Practice</td><td>E Note — All Strings</td><td>B·11</td></tr>
+<tr><td class="level-id">B·13</td><td>Practice</td><td>F Note — All Strings</td><td>B·12</td></tr>
+<tr><td class="level-id">B·14</td><td>Practice</td><td>B Note — All Strings</td><td>B·13</td></tr>
+<tr><td class="level-id">B·15</td><td>Foundation</td><td>Sharps and Flats</td><td>B·14</td></tr>
+<tr><td class="level-id">B·16</td><td>Practice</td><td>Mixed Naturals</td><td>B·15</td></tr>
+<tr><td class="level-id">B·17</td><td>Practice</td><td>Mixed Chromatic</td><td>B·16</td></tr>
+<tr><td class="level-id">B·18</td><td>Practice</td><td>Speed (Under 2s)</td><td>B·17</td></tr>
+</tbody>
+</table>
+</div>
+<h4 class="subhead-h">Track C — Fretboard & CAGED (14 levels)</h4>
+<div class="level-table-wrap">
+<table class="level-table">
+<thead><tr><th>Level</th><th>Type</th><th>Name</th><th>Requires</th></tr></thead>
+<tbody>
+<tr><td class="level-id">C·1</td><td>Foundation</td><td>Open C Major Scale</td><td>—</td></tr>
+<tr><td class="level-id">C·2</td><td>Foundation</td><td>Open A Minor Scale</td><td>C·1</td></tr>
+<tr><td class="level-id">C·3</td><td>Foundation</td><td>Movable Major Scale (E-shape)</td><td>C·2</td></tr>
+<tr><td class="level-id">C·4</td><td>Foundation</td><td>Movable Minor Scale (E-shape)</td><td>C·3</td></tr>
+<tr><td class="level-id">C·5</td><td>Foundation</td><td>Minor Pentatonic Box 1</td><td>C·4</td></tr>
+<tr><td class="level-id">C·6</td><td>Foundation</td><td>Box 1 — Roots</td><td>C·5</td></tr>
+<tr><td class="level-id">C·7</td><td>Foundation</td><td>Box 1 — All Chord Tones</td><td>C·6, A·4</td></tr>
+<tr><td class="level-id">C·8</td><td>Foundation</td><td>E-shape CAGED — Major Chord Tones</td><td>C·7</td></tr>
+<tr><td class="level-id">C·9</td><td>Foundation</td><td>E-shape CAGED — Minor Chord Tones</td><td>C·8</td></tr>
+<tr><td class="level-id">C·10</td><td>Foundation</td><td>Minor Pentatonic Box 2</td><td>C·9</td></tr>
+<tr><td class="level-id">C·11</td><td>Foundation</td><td>Box 2 — Chord Tones</td><td>C·10</td></tr>
+<tr><td class="level-id">C·12</td><td>Foundation</td><td>A-shape CAGED — Chord Tones</td><td>C·11</td></tr>
+<tr><td class="level-id">C·13</td><td>Foundation</td><td>Major Scale Around A-shape</td><td>C·12</td></tr>
+<tr><td class="level-id">C·14</td><td>Practice</td><td>Connect Box 1 + Box 2</td><td>C·13</td></tr>
+</tbody>
+</table>
+</div>
+<h4 class="subhead-h">Track D — Chord changes (5 levels)</h4>
+<div class="level-table-wrap">
+<table class="level-table">
+<thead><tr><th>Level</th><th>Type</th><th>Name</th><th>Requires</th></tr></thead>
+<tbody>
+<tr><td class="level-id">D·1</td><td>Foundation</td><td>I-IV-V Recognition</td><td>A·11</td></tr>
+<tr><td class="level-id">D·2</td><td>Foundation</td><td>The vi Chord</td><td>D·1</td></tr>
+<tr><td class="level-id">D·3</td><td>Foundation</td><td>The ii Chord</td><td>D·2</td></tr>
+<tr><td class="level-id">D·4</td><td>Foundation</td><td>Minor Key Changes</td><td>D·3</td></tr>
+<tr><td class="level-id">D·5</td><td>Practice</td><td>Real Songs</td><td>D·4</td></tr>
+</tbody>
+</table>
+</div>
+<h4 class="subhead-h">Track E — Intervals (17 levels)</h4>
+<div class="level-table-wrap">
+<table class="level-table">
+<thead><tr><th>Level</th><th>Type</th><th>Name</th><th>Requires</th></tr></thead>
+<tbody>
+<tr><td class="level-id">E·1</td><td>Foundation</td><td>Perfect 5th</td><td>A·11</td></tr>
+<tr><td class="level-id">E·2</td><td>Foundation</td><td>Perfect 4th</td><td>E·1</td></tr>
+<tr><td class="level-id">E·3</td><td>Foundation</td><td>Major 3rd</td><td>E·2</td></tr>
+<tr><td class="level-id">E·4</td><td>Practice</td><td>P4 / P5 / M3 Consolidation</td><td>E·3</td></tr>
+<tr><td class="level-id">E·5</td><td>Foundation</td><td>Major 2nd</td><td>E·4</td></tr>
+<tr><td class="level-id">E·6</td><td>Foundation</td><td>Major 6th</td><td>E·5</td></tr>
+<tr><td class="level-id">E·7</td><td>Foundation</td><td>Major 7th</td><td>E·6</td></tr>
+<tr><td class="level-id">E·8</td><td>Practice</td><td>Ascending Majors Consolidation</td><td>E·7</td></tr>
+<tr><td class="level-id">E·9</td><td>Foundation</td><td>Minor 3rd</td><td>E·8</td></tr>
+<tr><td class="level-id">E·10</td><td>Foundation</td><td>Minor 7th</td><td>E·9</td></tr>
+<tr><td class="level-id">E·11</td><td>Foundation</td><td>Minor 6th</td><td>E·10</td></tr>
+<tr><td class="level-id">E·12</td><td>Foundation</td><td>Minor 2nd</td><td>E·11</td></tr>
+<tr><td class="level-id">E·13</td><td>Foundation</td><td>Tritone</td><td>E·12</td></tr>
+<tr><td class="level-id">E·14</td><td>Practice</td><td>All Ascending Consolidation</td><td>E·13</td></tr>
+<tr><td class="level-id">E·15</td><td>Foundation</td><td>Descending — major anchors</td><td>E·14</td></tr>
+<tr><td class="level-id">E·16</td><td>Foundation</td><td>Descending — remaining intervals</td><td>E·15</td></tr>
+<tr><td class="level-id">E·17</td><td>Practice</td><td>Mixed Direction Consolidation</td><td>E·16</td></tr>
+</tbody>
+</table>
+</div>
+<h4 class="subhead-h">Track F — Improvisation (4 levels)</h4>
+<div class="level-table-wrap">
+<table class="level-table">
+<thead><tr><th>Level</th><th>Type</th><th>Name</th><th>Requires</th></tr></thead>
+<tbody>
+<tr><td class="level-id">F·1</td><td>Foundation</td><td>Major chord tones (1, 3, 5)</td><td>A·11, D·2</td></tr>
+<tr><td class="level-id">F·2</td><td>Foundation</td><td>Minor chord tones (1, b3, 5)</td><td>F·1</td></tr>
+<tr><td class="level-id">F·3</td><td>Practice</td><td>Chord tone vs. non-chord-tone</td><td>F·2</td></tr>
+<tr><td class="level-id">F·4</td><td>Practice</td><td>Freeplay capstone</td><td>F·3</td></tr>
+</tbody>
+</table>
+</div>
+<p style="font-size: 15px; color: var(--ink-mute); margin-top: 24px;">Regenerate this block: <code>npm run inject-manual</code> (runs automatically before dev/build).</p>
+<!-- /TONIC_CURRICULUM_AUTO -->
   </div>
 </section>
 
 <section class="section" id="track-a">
   <div class="section-head">
-    <div class="section-num">IV</div>
+    <div class="section-num">V</div>
     <div class="section-title-block">
       <div class="kicker">Track A — The Spine</div>
       <h2>Scale <em>Degrees</em></h2>
@@ -371,65 +535,42 @@
   </div>
   <div class="track-detail">
     <p class="lead">Each scale degree has a fixed <em>character</em> — stable, tense, sweet, pulling, restless, home. Learn the seven sounds once and they apply in every key forever. This is the layer that makes "hear it → play it" possible.</p>
-    <div class="end-state"><strong>End State · Wk 16</strong>Over a backing track in any common key, you can hear any in-key note and instantly know its degree. You can target chord tones (1, 3, 5, b7) when soloing, using the rest of the scale as connective tissue.</div>
+    <div class="end-state"><strong>App end state · A·22</strong> Hear any in-key note in common keys and name its degree. Minor phase (A·12+) needs <strong>C·2</strong> (open A minor shape). Full level list in Section IV.</div>
 
     <div class="phase">
-      <div class="phase-weeks">Weeks 1–2 · Hear the Tonic</div>
-      <div class="phase-title">Lock the key center into your ear.</div>
+      <div class="phase-weeks">A·1–A·5 · Major foundation</div>
+      <div class="phase-title">Tonic → root → 5th → 3rd → stable consolidation.</div>
       <div class="phase-body">
+        <p>Drone in C major. Each level: sing the degree, feel its character, find it on the neck. <strong>A·1</strong> and <strong>A·12</strong> are explainer-only (complete when seen).</p>
         <ul>
-          <li><strong>10 min:</strong> loop a C major drone (YouTube). Listen, hum along, let C lodge into your ear.</li>
-          <li><strong>5 min:</strong> play random notes from the C major scale over the drone. Feel how each one pulls or rests. Don't name them yet.</li>
-          <li><strong>Week 2:</strong> repeat with an A minor drone, using the A natural minor shape from Track C.</li>
-        </ul>
-        <p><em>The missing skill that makes everything else work. Most people skip it.</em></p>
-      </div>
-    </div>
-
-    <div class="phase">
-      <div class="phase-weeks">Weeks 3–5 · Stable Tones (1, 5, 3)</div>
-      <div class="phase-title">The chord tones. The home base of every solo.</div>
-      <div class="phase-body">
-        <ul>
-          <li><strong>Week 3 — The Root (1):</strong> drone in C, sing the root, find every C on the fretboard. The <em>"home, arrived"</em> feeling.</li>
-          <li><strong>Week 4 — The 5th:</strong> sing G over C drone. Find every G. The <em>"stable, hovering"</em> character.</li>
-          <li><strong>Week 5 — The 3rd:</strong> sing E over C drone. The <em>color</em> note — what makes major sound major. Then repeat 1-5-3 in A minor (A, E, C — note the b3 sound).</li>
+          <li><strong>A·1</strong> Tonic — lock the key center.</li>
+          <li><strong>A·2–A·4</strong> Root, 5th, major 3rd (C·7 later needs A·4).</li>
+          <li><strong>A·5</strong> Practice — stable tones together.</li>
         </ul>
       </div>
     </div>
 
     <div class="phase">
-      <div class="phase-weeks">Weeks 6–9 · Tense Tones (7, 4, 2, 6)</div>
-      <div class="phase-title">The in-between notes that create motion.</div>
+      <div class="phase-weeks">A·6–A·11 · Complete major scale</div>
+      <div class="phase-title">7th, 4th, 2nd, 6th, then full diatonic.</div>
       <div class="phase-body">
-        <ul>
-          <li><strong>Week 6 — The 7:</strong> sits a half-step under the root and pulls hard toward it. The b7 is the bluesy/Hazel sound.</li>
-          <li><strong>Week 7 — The 4:</strong> suspended, leans into the 3.</li>
-          <li><strong>Week 8 — The 2:</strong> light tension, easy to resolve in either direction.</li>
-          <li><strong>Week 9 — The 6:</strong> wistful in major, dark in minor (b6).</li>
-        </ul>
-        <p>Same drill each week: drone in the key, sing the degree, feel its character, find every instance on the fretboard. Use <strong>Functional Ear Trainer</strong> (free) for 5 min/day reinforcement.</p>
+        <p>Tense tones as motion away from chord tones. <strong>A·11</strong> unlocks tracks D and E.</p>
       </div>
     </div>
 
     <div class="phase">
-      <div class="phase-weeks">Weeks 10–13 · Escape Pentatonic Purgatory</div>
-      <div class="phase-title">From "pool of equal notes" to <em>chord tones with connectors.</em></div>
+      <div class="phase-weeks">A·12–A·18 · Minor + cross-mode</div>
+      <div class="phase-title">A minor tonic (needs C·2), b3, b7, b6, full minor, consolidation.</div>
       <div class="phase-body">
-        <ul>
-          <li><strong>Week 10:</strong> solo over an Am vamp using <em>only</em> chord tones (A, C, E). Three notes. Phrasing-driven. Restrictive on purpose.</li>
-          <li><strong>Week 11:</strong> add b7 (G). Four notes that define blues vocabulary.</li>
-          <li><strong>Week 12:</strong> add the rest of the minor pentatonic — but as <em>passing tones between chord tones</em>, not equal members.</li>
-          <li><strong>Week 13:</strong> two-chord vamp (Am → Dm). Chord tones now <em>move</em> when the chord changes.</li>
-        </ul>
+        <p>Use the open A minor shape from Track C while droning Am. Pentatonic “escape” work lives in <strong>Track F</strong> once D·2 is done.</p>
       </div>
     </div>
 
     <div class="phase">
-      <div class="phase-weeks">Weeks 14–16 · Integration</div>
-      <div class="phase-title">Solo over real progressions, naming chord-tone targets in advance.</div>
+      <div class="phase-weeks">A·19–A·22 · Cross-key</div>
+      <div class="phase-title">G/D major, all major keys, E/D minor, all keys and modes.</div>
       <div class="phase-body">
-        <p>Record yourself. Listen back. Identify which scale degree each phrase landed on. Notice when phrases resolve vs. just stop.</p>
+        <p>Same degree characters, new key centers — the app rotates keys; your ear carries the function.</p>
       </div>
     </div>
   </div>
@@ -437,52 +578,44 @@
 
 <section class="section" id="track-b">
   <div class="section-head">
-    <div class="section-num">V</div>
+    <div class="section-num">VI</div>
     <div class="section-title-block">
       <div class="kicker">Track B — Foundation</div>
       <h2>Note <em>Finding</em></h2>
     </div>
   </div>
   <div class="track-detail">
-    <p class="lead">Your original plan, untouched. Pure spatial recall — separate from ear training, both reinforce each other. <strong>Tools:</strong> Fretboard Trainer app, Fretuoso, Justin Guitar's note finder, or a deck of cards labeled with notes.</p>
-    <div class="end-state"><strong>End State · Wk 12</strong>Any note, any string, called out at random — under 2 seconds. Past Wk 12, drop to maintenance.</div>
+    <p class="lead">Spatial recall in the app (flashcards + SRS). Separate from ear training; both reinforce each other. Pedagogy: <strong>one string at a time</strong>, then <strong>note-class anywhere on the neck</strong>, then sharps/flats and speed.</p>
+    <div class="end-state"><strong>App end state · B·18</strong> Chromatic recall across the full neck under time pressure. Maintenance stays in session reviews after completion.</div>
 
     <div class="phase">
-      <div class="phase-weeks">Week 1</div>
-      <div class="phase-title">Solidify the E string.</div>
-      <div class="phase-body"><p>Chromatic scale on E daily: A — A♯ — B — C — C♯ — D — D♯ — E — F — F♯ — G — G♯. <strong>5 min/day.</strong></p></div>
+      <div class="phase-weeks">B·1–B·7 · String by string</div>
+      <div class="phase-title">Low E → A (alone) → E+A mix → D → G → B → high E.</div>
+      <div class="phase-body">
+        <ul>
+          <li><strong>B·1</strong> Low E — all naturals including open E.</li>
+          <li><strong>B·2</strong> A string only (not cross-string yet).</li>
+          <li><strong>B·3</strong> E + A mix — first cross-string recall.</li>
+          <li><strong>B·4–B·7</strong> D, G, B (2nd), high E strings.</li>
+        </ul>
+      </div>
     </div>
     <div class="phase">
-      <div class="phase-weeks">Weeks 2–3</div>
-      <div class="phase-title">Random recall on E and A.</div>
-      <div class="phase-body"><p>Someone calls "G" → you find it on E instantly → then on A. <strong>10 min/day.</strong> Goal: no hesitation, automatic retrieval.</p></div>
+      <div class="phase-weeks">B·8–B·14 · Note class (all strings)</div>
+      <div class="phase-title">Find every C, G, D, A, E, F, B — then mixed naturals.</div>
+      <div class="phase-body"><p>Labels use <em>note names</em>, not “A string” (that was B·2). Progressive cross-string mode in the app.</p></div>
     </div>
     <div class="phase">
-      <div class="phase-weeks">Week 4</div>
-      <div class="phase-title">Add C on all 6 strings.</div>
-      <div class="phase-body"><p>Random recall: "Find C on the G string." Chromatic scale on D, G, B, high E (incorporating C).</p></div>
-    </div>
-    <div class="phase">
-      <div class="phase-weeks">Weeks 5–6</div>
-      <div class="phase-title">Add F (Wk 5), then G (Wk 6).</div>
-      <div class="phase-body"><p>You now know E and A strings fully, plus C, F, G across all strings.</p></div>
-    </div>
-    <div class="phase">
-      <div class="phase-weeks">Weeks 7–9</div>
-      <div class="phase-title">Speed up — 2 notes per week.</div>
-      <div class="phase-body"><p>The pattern is obvious by now. Add D and A (Wk 7), B and F♯ (Wk 8), C♯ and remaining (Wk 9).</p></div>
-    </div>
-    <div class="phase">
-      <div class="phase-weeks">Weeks 10–12</div>
-      <div class="phase-title">Full fretboard random recall.</div>
-      <div class="phase-body"><p>Goal: any note, any string, under 2 seconds. After Wk 12, drop to maintenance — a few minutes daily to keep it sharp.</p></div>
+      <div class="phase-weeks">B·15–B·18 · Chromatic &amp; speed</div>
+      <div class="phase-title">Sharps, flats, mixed chromatic, timed full neck.</div>
+      <div class="phase-body"><p>Optional offline: chromatic drills on each string still help warm up before cards.</p></div>
     </div>
   </div>
 </section>
 
 <section class="section" id="track-c">
   <div class="section-head">
-    <div class="section-num">VI</div>
+    <div class="section-num">VII</div>
     <div class="section-title-block">
       <div class="kicker">Track C — The Bridge</div>
       <h2>Fretboard Map &amp; <em>CAGED</em></h2>
@@ -490,7 +623,7 @@
   </div>
   <div class="track-detail">
     <p class="lead">Knowing what note you want (Track A) is useless without a physical map of where it lives. This track builds that map: starting with one minor scale shape, then pentatonic boxes, then connecting them through CAGED — the system that ties chord shapes to chord tones across the entire neck.</p>
-    <div class="end-state"><strong>End State · Wk 16</strong>You can target chord tones (1, 3, 5) anywhere on the neck within at least three CAGED shapes (E-shape, A-shape, D-shape) and connect at least three pentatonic boxes fluently. The fretboard feels like one map, not five disconnected boxes.</div>
+    <div class="end-state"><strong>App end state · C·14</strong> Connect pentatonic boxes and CAGED regions — chord tones in E, A, and D shapes, moving between positions. <strong>C·2</strong> gates A·12; <strong>C·7</strong> needs <strong>A·4</strong>.</div>
 
     <div class="caged-explainer">
       <h4>CAGED, properly explained.</h4>
@@ -510,131 +643,116 @@
     </div>
 
     <div class="phase">
-      <div class="phase-weeks">Weeks 1–2 · Foundation Shape</div>
-      <div class="phase-title">A natural minor, one octave, in first position.</div>
-      <div class="phase-body">
-        <p>Memorize this as a physical fingering. Track A's minor drone work in Wk 2 depends on it.</p>
-        <ul>
-          <li>5th string open (A) — 5th string 2nd fret (B) — 5th string 3rd fret (C)</li>
-          <li>4th string open (D) — 4th string 2nd fret (E) — 4th string 3rd fret (F)</li>
-          <li>3rd string open (G) — 3rd string 2nd fret (A)</li>
-        </ul>
-        <p>That's one octave of A natural minor. Same notes as C major, centered on A. <strong>5 min/day.</strong></p>
-      </div>
+      <div class="phase-weeks">C·1–C·4 · Open chords &amp; movable roots</div>
+      <div class="phase-title">Open C, open A minor (gates A·12), movable major/minor roots.</div>
+      <div class="phase-body"><p>Get <strong>C·2</strong> early so A·12 can unlock. Physical shape memory before pentatonic boxes.</p></div>
     </div>
 
     <div class="phase">
-      <div class="phase-weeks">Weeks 3–5 · Pentatonic Box 1</div>
-      <div class="phase-title">The standard minor pentatonic shape — solidified, with chord tones identified.</div>
-      <div class="phase-body">
-        <p>The most-played shape on guitar. Likely already in your hands; this is about <em>knowing</em> it, not just playing it.</p>
-        <ul>
-          <li><strong>Wk 3:</strong> play it cleanly, two notes per string, root on the 6th string (e.g., A minor pentatonic at the 5th fret).</li>
-          <li><strong>Wk 4:</strong> identify every <em>root</em> within the box. Then every <em>b3</em>. Then every <em>5</em>. Then every <em>b7</em>.</li>
-          <li><strong>Wk 5:</strong> solo using only the chord tones within the box (1, b3, 5, b7). Then add the 4 as a passing tone.</li>
-        </ul>
-        <p>This is where Tracks A and C fuse for the first time: you hear the b3 (Track A) → you know it's the b3 of the box your hand is in (Track C) → you play it.</p>
-      </div>
+      <div class="phase-weeks">C·5–C·7 · Pentatonic boxes</div>
+      <div class="phase-title">Box 1 → Box 2 → chord tones inside the boxes.</div>
+      <div class="phase-body"><p>Identify roots, b3, 5, b7 inside each box — fuse with Track A degrees. <strong>C·7</strong> requires hearing the major 3rd (<strong>A·4</strong>).</p></div>
     </div>
 
     <div class="phase">
-      <div class="phase-weeks">Weeks 6–9 · CAGED Chord Tones (E-shape)</div>
-      <div class="phase-title">Map roots, 3rds, and 5ths within the E-shape barre.</div>
-      <div class="phase-body">
-        <p>The E-shape barre and Pentatonic Box 1 sit in the same fretboard region. They're sibling shapes.</p>
-        <ul>
-          <li><strong>Wk 6–7:</strong> for any major chord in E-shape, identify the root (strings 6, 4, 1), the 3rd (string 3), and the 5th (strings 5, 2).</li>
-          <li><strong>Wk 8–9:</strong> for any minor chord in E-shape, the 3rd flattens by a half-step. Same shape, b3 instead of 3.</li>
-        </ul>
-        <p>Drill: play the chord, then play <em>only</em> the roots. Then <em>only</em> the 3rds. Then <em>only</em> the 5ths.</p>
-      </div>
+      <div class="phase-weeks">C·8–C·13 · CAGED chord tones</div>
+      <div class="phase-title">E-shape → A-shape → D-shape (roots, 3rds, 5ths in each).</div>
+      <div class="phase-body"><p>Drill: play the chord, then only roots, only 3rds, only 5ths. Minor = flattened 3rd in the same shape.</p></div>
     </div>
 
     <div class="phase">
-      <div class="phase-weeks">Weeks 10–12 · Pentatonic Box 2 + A-shape CAGED</div>
-      <div class="phase-title">Add the next position up the neck.</div>
-      <div class="phase-body">
-        <p>The next pentatonic box sits a few frets above Box 1. The A-shape barre chord lives in the same area.</p>
-        <ul>
-          <li><strong>Wk 10:</strong> learn Box 2 cleanly, two notes per string.</li>
-          <li><strong>Wk 11:</strong> identify chord tones within Box 2 — same exercise as Box 1.</li>
-          <li><strong>Wk 12:</strong> A-shape CAGED chord tones — the root sits on strings 5 and 2, the 3rd on strings 4 and 1, the 5th on string 3.</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="phase">
-      <div class="phase-weeks">Weeks 13–16 · Connect &amp; Expand</div>
-      <div class="phase-title">Move fluidly between Box 1 and Box 2; introduce the D-shape.</div>
-      <div class="phase-body">
-        <ul>
-          <li><strong>Wk 13–14:</strong> connect Box 1 and Box 2 — practice phrases that move between them without breaking flow.</li>
-          <li><strong>Wk 15–16:</strong> add a third box (below Box 1) and the D-shape CAGED chord tones. The fretboard starts to feel like one continuous map.</li>
-        </ul>
-        <p>The remaining CAGED shapes (C and G) come later, naturally, once these three are fluent. Don't force them in 16 weeks.</p>
-      </div>
+      <div class="phase-weeks">C·14 · Connect positions</div>
+      <div class="phase-title">Move between boxes and CAGED regions without breaking phrasing.</div>
+      <div class="phase-body"><p>C and G CAGED shapes can come later in personal practice; the app focuses on E, A, D for soloing maps.</p></div>
     </div>
   </div>
 </section>
 
 <section class="section" id="track-d">
   <div class="section-head">
-    <div class="section-num">VII</div>
+    <div class="section-num">VIII</div>
     <div class="section-title-block">
       <div class="kicker">Track D — Context</div>
       <h2>Hearing <em>Chord Changes</em></h2>
     </div>
   </div>
   <div class="track-detail">
-    <p class="lead">A chord changes underneath you. Can you identify <em>what</em> changed — not just "something moved"? This is what keeps you oriented when soloing over real songs.</p>
-    <div class="end-state"><strong>End State · Wk 16</strong>You can listen to a Mayer or Hazel song and call out the chord changes (I-IV-V-vi in major, i-iv-v-bVII in minor) in real time, by ear, without a chart.</div>
+    <p class="lead">Listen-only in the app: identify <em>which</em> chord arrived when the harmony moves. Unlocks after <strong>A·11</strong>. <strong>D·2</strong> (vi chord) gates Track F improvisation.</p>
+    <div class="end-state"><strong>App end state · D·5</strong> Hear I, IV, V, and vi in major progressions without a chart. Apply on real songs in personal practice (Section XII).</div>
 
     <div class="phase">
-      <div class="phase-weeks">Weeks 3–5 · Feel the Moves Yourself</div>
-      <div class="phase-title">Three foundational chord movements.</div>
+      <div class="phase-weeks">D·1–D·5 · Major changes by ear</div>
+      <div class="phase-title">I → IV → V → vi → mixed recognition.</div>
       <div class="phase-body">
-        <ul>
-          <li><strong>I → IV (C → F):</strong> tonic to "lifted" sound</li>
-          <li><strong>I → V (C → G):</strong> tonic to "tense, wants-to-resolve" sound</li>
-          <li><strong>I → vi (C → Am):</strong> tonic to "sadder version of home"</li>
-        </ul>
-        <p>Play these on guitar yourself first. Feel each move's character before training your ear to recognize them passively.</p>
+        <p>Offline: strum I–IV–V–vi on guitar first so your body knows the moves; the app drills passive identification. Minor-key changes (i, iv, bVII) are worth extra ear work outside the app — not separate D levels yet.</p>
       </div>
-    </div>
-    <div class="phase">
-      <div class="phase-weeks">Weeks 6–8 · I, IV, V Recognition (App-Based)</div>
-      <div class="phase-title">80% of pop, rock, and blues lives here.</div>
-      <div class="phase-body"><p>Use <strong>Functional Ear Trainer</strong>'s chord-recognition mode. <strong>5 min/day</strong> in the app, plus <strong>5 min</strong> on guitar testing yourself with backing tracks.</p></div>
-    </div>
-    <div class="phase">
-      <div class="phase-weeks">Weeks 9–11 · Add the vi (the "sad" chord)</div>
-      <div class="phase-title">Four chords behind half of all popular music.</div>
-      <div class="phase-body"><p>Drill: put on a song, call out the changes in real time as I / IV / V / vi.</p></div>
-    </div>
-    <div class="phase">
-      <div class="phase-weeks">Weeks 12–13 · Minor Key Changes</div>
-      <div class="phase-title">i, iv, v (or V), bVII, bVI.</div>
-      <div class="phase-body"><p>Hazel and Mayer both use a lot of minor-key movement. Train this specifically.</p></div>
-    </div>
-    <div class="phase">
-      <div class="phase-weeks">Weeks 14–16 · Real Songs</div>
-      <div class="phase-title">Where it all fuses.</div>
-      <div class="phase-body"><p>Pick Mayer/Hazel songs. Listen, identify the changes by ear, verify with chord charts. You hear the chord change → you know which chord tones just became active → you know where they live → your scale-degree ear tells you which one to target.</p></div>
     </div>
   </div>
 </section>
 
 <section class="section" id="track-e">
   <div class="section-head">
-    <div class="section-num">VIII</div>
+    <div class="section-num">IX</div>
     <div class="section-title-block">
-      <div class="kicker">Track E — Deep Application</div>
+      <div class="kicker">Track E — In the app</div>
+      <h2><em>Intervals</em></h2>
+    </div>
+  </div>
+  <div class="track-detail">
+    <p class="lead">Relative pitch: hear the distance between two notes. Unlocks after <strong>A·11</strong>. Order is <em>consonance-first</em> (unison, perfect 5th, major 3rd, …) — not “count semitones from the root” first.</p>
+    <div class="end-state"><strong>App end state · E·17</strong> Identify common intervals in isolation and in short melodic fragments. Supports transcription and hero-solo analysis (Section XI).</div>
+
+    <div class="phase">
+      <div class="phase-weeks">E·1–E·10 · Consonant &amp; core intervals</div>
+      <div class="phase-title">Unison through octave — build the palette.</div>
+      <div class="phase-body"><p>Each level adds one interval quality; consolidation levels mix the set learned so far. See Section IV for exact names.</p></div>
+    </div>
+    <div class="phase">
+      <div class="phase-weeks">E·11–E·17 · Wider &amp; mixed</div>
+      <div class="phase-title">Tritone, compound intervals, real-world drills.</div>
+      <div class="phase-body"><p>Optional reinforcement: Functional Ear Trainer interval mode alongside app cards.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="track-f">
+  <div class="section-head">
+    <div class="section-num">X</div>
+    <div class="section-title-block">
+      <div class="kicker">Track F — In the app</div>
+      <h2><em>Improvisation</em></h2>
+    </div>
+  </div>
+  <div class="track-detail">
+    <p class="lead">Play chord-tone targets over a backing track — the app grades whether you hit the requested degree. Unlocks after <strong>A·11</strong> and <strong>D·2</strong> (vi by ear).</p>
+    <div class="end-state"><strong>App end state · F·4</strong> Move chord tones (1, 3, 5) when harmony changes — pentatonic “escape” as passing motion, not a pool of equal notes.</div>
+
+    <div class="phase">
+      <div class="phase-weeks">F·1–F·4</div>
+      <div class="phase-title">Root → triad tones → motion across changes.</div>
+      <div class="phase-body">
+        <ul>
+          <li><strong>F·1</strong> Target roots over a static vamp.</li>
+          <li><strong>F·2–F·3</strong> Add 3rds and 5ths — restrict to chord tones first.</li>
+          <li><strong>F·4</strong> Chord tones that shift when the progression moves.</li>
+        </ul>
+        <p>Record yourself in personal practice; the app session may include freeplay after structured cards.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="hero-solo">
+  <div class="section-head">
+    <div class="section-num">XI</div>
+    <div class="section-title-block">
+      <div class="kicker">Outside the app</div>
       <h2>Hero <em>Solo</em></h2>
     </div>
   </div>
   <div class="track-detail">
-    <p class="lead">The deep lab. One solo, learned by ear, then dissected through scale degrees and CAGED, then transposed to multiple keys.</p>
-    <div class="end-state"><strong>End State · Wk 16</strong>You can play your hero solo cleanly in the original key and at least two other keys, using scale-degree thinking (not hand patterns) to transpose. You can name the function of every note in the solo.</div>
+    <p class="lead">Deep lab — not in Tonic's level graph. One Mayer or Hazel solo: learn by ear, analyze with scale degrees + CAGED, transpose. Most productive once <strong>A·11</strong> and core CAGED levels are underway.</p>
+    <div class="end-state"><strong>Personal goal</strong> Play the solo in the original key and two others by degree thinking; name the function of landmark notes.</div>
 
     <div class="solo-picks">
       <div class="solo-pick">
@@ -647,57 +765,41 @@
         <div class="num">ii.</div>
         <div class="song">Gravity</div>
         <div class="artist">John Mayer</div>
-        <div class="why">Acoustic clarity, heavy use of major 3rds and 4ths. Strong second choice.</div>
+        <div class="why">Acoustic clarity, major 3rds and 4ths. Strong second choice.</div>
       </div>
       <div class="solo-pick">
         <div class="num">iii.</div>
         <div class="song">Maggot Brain (intro 60–90s)</div>
         <div class="artist">Eddie Hazel</div>
-        <div class="why">Just the opening minute. Iconic, soulful, blues-based phrasing study.</div>
+        <div class="why">Opening minute only — soulful blues phrasing study.</div>
       </div>
     </div>
 
     <div class="phase">
-      <div class="phase-weeks">Weeks 6–8 · Learn It By Ear</div>
-      <div class="phase-title">Tabs only as backup.</div>
-      <div class="phase-body"><p>Don't memorize shapes — understand notes. Where does each phrase start? End? Where does the bend live?</p></div>
-    </div>
-    <div class="phase">
-      <div class="phase-weeks">Weeks 9–10 · Analyze Through Scale Degrees + CAGED</div>
-      <div class="phase-title">Real-world theory work.</div>
+      <div class="phase-weeks">Process</div>
+      <div class="phase-title">Learn → analyze → transpose → second solo.</div>
       <div class="phase-body">
         <ul>
-          <li>What scale degree does each phrase start on? End on?</li>
-          <li>Which CAGED shape is his hand in for each phrase?</li>
-          <li>When he bends, what degree → what degree?</li>
-          <li>Where are the chord tones vs. passing tones?</li>
+          <li>Learn by ear; tabs only to verify.</li>
+          <li>Phrase start/end degrees; CAGED shape per phrase; bends as degree → degree.</li>
+          <li>Transpose with scale-degree thinking (Section XIII).</li>
         </ul>
       </div>
-    </div>
-    <div class="phase">
-      <div class="phase-weeks">Weeks 11–12 · Transpose</div>
-      <div class="phase-title">Two new keys. Use scale-degree thinking, not hand patterns.</div>
-      <div class="phase-body"><p>This is the test of whether Track A is actually working: hear the function → know the location in the new key → play it.</p></div>
-    </div>
-    <div class="phase">
-      <div class="phase-weeks">Weeks 13–16 · Add a Second Solo</div>
-      <div class="phase-title">Same process, faster — the framework is in place.</div>
-      <div class="phase-body"><p>You're not learning the solo; you're learning <em>how he thinks</em>.</p></div>
     </div>
   </div>
 </section>
 
-<section class="section" id="track-f">
+<section class="section" id="song-vocab">
   <div class="section-head">
-    <div class="section-num">IX</div>
+    <div class="section-num">XII</div>
     <div class="section-title-block">
-      <div class="kicker">Track F — The Volume Layer</div>
+      <div class="kicker">Outside the app</div>
       <h2>Song <em>Vocabulary</em></h2>
     </div>
   </div>
   <div class="track-detail">
-    <p class="lead">The hero solo gets deep analytical attention. Track F gets <em>volume</em>. A new song every 2–3 weeks, learned by ear, played for fun, lightly analyzed. Builds the muscle memory of recognizing chord-tone phrases across many contexts.</p>
-    <div class="end-state"><strong>End State · Wk 16</strong>Five to six new songs in your playable repertoire. Each one analyzed lightly: what key, what chord changes, what scale degrees the main melodic phrases land on.</div>
+    <p class="lead">Volume layer — repertoire and light analysis, not graded in Tonic. A new song every 2–3 weeks: changes by ear, melody by ear, note which degrees the hooks land on.</p>
+    <div class="end-state"><strong>Personal goal</strong> Five to six playable songs with known key, changes, and main phrase degrees.</div>
 
     <div class="song-vocab">
       <div class="song-row head">
@@ -768,7 +870,7 @@
 
 <section class="section" id="transpose">
   <div class="section-head">
-    <div class="section-num">X</div>
+    <div class="section-num">XIII</div>
     <div class="section-title-block">
       <div class="kicker">Recurring Micro-Practice</div>
       <h2>Transposition <em>Practice</em></h2>
@@ -792,12 +894,12 @@
       <div class="stage">
         <div class="num">iii.</div>
         <div class="name">Song Phrases</div>
-        <div class="detail">Transpose phrases from songs you're learning in Track F.</div>
+        <div class="detail">Transpose phrases from songs in Section XII (song vocabulary).</div>
       </div>
       <div class="stage">
         <div class="num">iv.</div>
         <div class="name">Hero Solo</div>
-        <div class="detail">The full Track E transposition exercise — multiple keys, scale-degree thinking only.</div>
+        <div class="detail">The full hero-solo transposition exercise — multiple keys, scale-degree thinking only.</div>
       </div>
     </div>
 
@@ -807,43 +909,40 @@
 
 <section class="section" id="daily">
   <div class="section-head">
-    <div class="section-num">XI</div>
+    <div class="section-num">XIV</div>
     <div class="section-title-block">
-      <div class="kicker">Daily Practice</div>
-      <h2>The 45-<em>Minute</em> Session</h2>
+      <div class="kicker">In Tonic</div>
+      <h2>Built <em>sessions</em></h2>
     </div>
   </div>
-  <p class="lead">Six tracks won't fit every day. The core (A, B, C) runs daily; D, E, and F rotate. Aim for 5 sessions per week.</p>
+  <p class="lead">The app builds each session automatically (~11–18 cards for a new user): <strong>warmup</strong> → maintenance / SRS reviews / resurfaced cards → track blocks <strong>A through F</strong> (only unlocked tracks) → <strong>afterglow</strong>. You don't pick the daily menu — progress through levels and the builder balances tracks.</p>
   <div class="daily-grid">
     <div class="schedule-table">
       <div class="schedule-row header">
-        <div class="schedule-time">Time</div>
-        <div class="schedule-track">Track</div>
-        <div class="schedule-activity">Activity</div>
+        <div class="schedule-time">Block</div>
+        <div class="schedule-track">Source</div>
+        <div class="schedule-activity">What happens</div>
       </div>
-      <div class="schedule-row section-divider">Daily Core (~25 min)</div>
-      <div class="schedule-row"><div class="schedule-time">5–7 min</div><div class="schedule-track">B</div><div class="schedule-activity">Note-finding drill</div></div>
-      <div class="schedule-row"><div class="schedule-time">10–15 min</div><div class="schedule-track">A</div><div class="schedule-activity">Scale-degree work — drone + current degree</div></div>
-      <div class="schedule-row"><div class="schedule-time">10 min</div><div class="schedule-track">C</div><div class="schedule-activity">Fretboard shapes / CAGED chord tones</div></div>
-      <div class="schedule-row section-divider">Rotating (~15–20 min)</div>
-      <div class="schedule-row"><div class="schedule-time">5–10 min</div><div class="schedule-track">D</div><div class="schedule-activity">Chord-change ear training <em>(Wk 3+)</em></div></div>
-      <div class="schedule-row"><div class="schedule-time">15–20 min</div><div class="schedule-track">E</div><div class="schedule-activity">Hero solo deep work <em>(Wk 6+)</em></div></div>
-      <div class="schedule-row"><div class="schedule-time">15 min</div><div class="schedule-track">F</div><div class="schedule-activity">Song vocabulary <em>(Wk 5+)</em></div></div>
-      <div class="schedule-row section-divider">Optional Bookend (~5 min)</div>
-      <div class="schedule-row"><div class="schedule-time">5 min</div><div class="schedule-track">∞</div><div class="schedule-activity">Transposition practice <em>(Wk 5+)</em></div></div>
+      <div class="schedule-row section-divider">Session flow</div>
+      <div class="schedule-row"><div class="schedule-time">Warmup</div><div class="schedule-track">Builder</div><div class="schedule-activity">Light cards to get hands and ears online</div></div>
+      <div class="schedule-row"><div class="schedule-time">Reviews</div><div class="schedule-track">SRS</div><div class="schedule-activity">Due cards from completed levels (spaced repetition)</div></div>
+      <div class="schedule-row"><div class="schedule-time">Tracks</div><div class="schedule-track">A→F</div><div class="schedule-activity">Current-level cards per unlocked track (flashcards, ear, improv)</div></div>
+      <div class="schedule-row"><div class="schedule-time">Afterglow</div><div class="schedule-track">Builder</div><div class="schedule-activity">Optional freeplay / lighter finish</div></div>
+      <div class="schedule-row section-divider">Mastery (per level)</div>
+      <div class="schedule-row"><div class="schedule-time">3×</div><div class="schedule-track">Sessions</div><div class="schedule-activity">Minimum sessions at that level</div></div>
+      <div class="schedule-row"><div class="schedule-time">12+</div><div class="schedule-track">Cards</div><div class="schedule-activity">Graded cards at ≥90% weighted accuracy (hints at 50%)</div></div>
     </div>
     <div class="daily-side">
-      <h3>Weeks 1–2 will run shorter — about 25 min.</h3>
-      <p>Only A, B, and C are running. Use the extra time to over-invest in the foundation. Sit with the C drone longer than feels necessary. Tonic recognition pays back tenfold.</p>
-      <p><strong>Frequency:</strong> 5×/week is the target. 4×/week works. 3×/week is a slow build but still moves the needle.</p>
+      <h3>Manual add-ons (~45 min total if you do both)</h3>
+      <p>Outside the app: hero solo (Section XI), song vocabulary (XII), transposition bookend (XIII), extra drone time for the current A level. <strong>5×/week</strong> in the app is a solid target; personal depth work can rotate on off-nights.</p>
       <div class="week-pattern">
-        <div class="label">A Sample Week (Wk 6+)</div>
+        <div class="label">Sample week (app + personal)</div>
         <ol>
-          <li><strong>Core + D (chord changes) + E (hero solo)</strong></li>
-          <li><strong>Core + F (new song)</strong></li>
-          <li><strong>Core + D + E + transposition</strong></li>
-          <li><strong>Core + F + record yourself improvising</strong></li>
-          <li><strong>Core + E + freeplay over backing track</strong></li>
+          <li><strong>Tonic session</strong> + 10 min drone on current A degree</li>
+          <li><strong>Tonic session</strong> + song vocabulary (new phrase)</li>
+          <li><strong>Tonic session</strong> + hero solo by ear</li>
+          <li><strong>Tonic session</strong> + record improv (F skills)</li>
+          <li><strong>Tonic session</strong> + transposition warmup</li>
         </ol>
       </div>
     </div>
@@ -852,33 +951,33 @@
 
 <section class="section" id="weeks">
   <div class="section-head">
-    <div class="section-num">XII</div>
+    <div class="section-num">XV</div>
     <div class="section-title-block">
-      <div class="kicker">The Map</div>
-      <h2>Week-by-Week <em>Milestones</em></h2>
+      <div class="kicker">Optional pacing</div>
+      <h2>Week-by-week <em>guide</em></h2>
     </div>
   </div>
-  <div class="week-grid-note">This grid shows <em>where you should be</em> by the end of each week — not what to do every single day. With six tracks rotating, no single day touches everything. Use this as a check-in, not a checklist.</div>
+  <div class="week-grid-note"><strong>Not authoritative.</strong> Tonic advances by level mastery (Section IV), not calendar weeks. This grid is a rough check-in if you want ~16-week pacing alongside the app — repeat a row if a level isn't sticking.</div>
   <div class="week-grid-wrap">
     <table class="week-grid">
-      <thead><tr><th>Wk</th><th>A · Degrees</th><th>B · Notes</th><th>C · Fretboard</th><th>D · Changes</th><th>F · Songs</th><th>E · Hero Solo</th><th>∞ Transpose</th></tr></thead>
+      <thead><tr><th>Wk</th><th>A · Degrees</th><th>B · Notes</th><th>C · Fretboard</th><th>D · Ear</th><th>E · Intervals</th><th>F · Improv</th><th>Personal</th></tr></thead>
       <tbody>
-        <tr><td class="week-num">1</td><td>Tonic — C drone</td><td>E string</td><td>A nat. minor (1 oct)</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
-        <tr><td class="week-num">2</td><td>Tonic — Am drone</td><td>E + A random</td><td>A nat. minor solid</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
-        <tr><td class="week-num">3</td><td>The Root (1)</td><td>E + A random</td><td>Pent. Box 1 clean</td><td>I-IV-V on guitar</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
-        <tr><td class="week-num">4</td><td>The 5th</td><td>+ C all strings</td><td>Box 1 — find roots</td><td>I-IV-V on guitar</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
-        <tr><td class="week-num">5</td><td>The 3rd</td><td>+ F all strings</td><td>Box 1 — b3, 5, b7</td><td>I-IV-V app</td><td>Song 1 start</td><td class="empty">—</td><td>Stage 1</td></tr>
-        <tr><td class="week-num">6</td><td>The 7th</td><td>+ G all strings</td><td>E-shape chord tones</td><td>I-IV-V app</td><td>Song 1 finish</td><td>Pick solo, start</td><td>Stage 1</td></tr>
-        <tr><td class="week-num">7</td><td>The 4th</td><td>+ 2 notes</td><td>E-shape chord tones</td><td>I-IV-V drill</td><td>Song 2 start</td><td>Learn solo</td><td>Stage 1</td></tr>
-        <tr><td class="week-num">8</td><td>The 2nd</td><td>+ 2 notes</td><td>E-shape minor</td><td>I-IV-V mastery</td><td>Song 2 finish</td><td>Learn solo</td><td>Stage 2</td></tr>
-        <tr><td class="week-num">9</td><td>The 6th</td><td>+ 2 notes</td><td>E-shape minor solid</td><td>+ vi chord</td><td>Song 3 start</td><td>Finish learning</td><td>Stage 2</td></tr>
-        <tr><td class="week-num">10</td><td>Chord tones only</td><td>Full fretboard</td><td>Pent. Box 2 clean</td><td>I-IV-V-vi real</td><td>Song 3 analyze</td><td>Analyze degrees</td><td>Stage 2</td></tr>
-        <tr><td class="week-num">11</td><td>+ b7</td><td>Full fretboard</td><td>Box 2 chord tones</td><td>Minor keys</td><td>Song 4 start</td><td>Analyze CAGED</td><td>Stage 3</td></tr>
-        <tr><td class="week-num">12</td><td>+ passing tones</td><td>Full fretboard</td><td>A-shape chord tones</td><td>Minor keys</td><td>Song 4 finish</td><td>Transpose key 1</td><td>Stage 3</td></tr>
-        <tr><td class="week-num">13</td><td>2-chord vamp</td><td>Maintenance</td><td>Connect Box 1+2</td><td>Real songs</td><td>Song 5 start</td><td>Transpose key 2</td><td>Stage 3</td></tr>
-        <tr><td class="week-num">14</td><td>Integration</td><td>Maintenance</td><td>Connect + 3rd box</td><td>Real songs</td><td>Song 5 finish</td><td>New solo</td><td>Stage 4</td></tr>
-        <tr><td class="week-num">15</td><td>Integration</td><td>Maintenance</td><td>D-shape chord tones</td><td>Real songs</td><td>Song 6 start</td><td>New solo</td><td>Stage 4</td></tr>
-        <tr><td class="week-num">16</td><td>Integration</td><td>Maintenance</td><td>Full integration</td><td>Real songs</td><td>Song 6 finish</td><td>New solo</td><td>Stage 4</td></tr>
+        <tr><td class="week-num">1</td><td>A·1 tonic</td><td>B·1 low E</td><td>C·1 open C</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td>Drone habit</td></tr>
+        <tr><td class="week-num">2</td><td>A·2 root</td><td>B·2 A string</td><td>C·2 Am (→ A·12)</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+        <tr><td class="week-num">3</td><td>A·3 5th</td><td>B·3 E+A mix</td><td>C·3 movable</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+        <tr><td class="week-num">4</td><td>A·4 3rd</td><td>B·4 D string</td><td>C·4–C·5 pent</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td></tr>
+        <tr><td class="week-num">5</td><td>A·5 stable</td><td>B·5–B·6</td><td>C·6 box 2</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td>Song 1 · transpose I</td></tr>
+        <tr><td class="week-num">6</td><td>A·6–A·7</td><td>B·7 high E</td><td>C·7 (needs A·4)</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td>Pick hero solo</td></tr>
+        <tr><td class="week-num">7</td><td>A·8 mid</td><td>B·8–B·9 note class</td><td>C·8 E-CAGED</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td>Learn solo</td></tr>
+        <tr><td class="week-num">8</td><td>A·9–A·10</td><td>B·10–B·11</td><td>C·9–C·10</td><td class="empty">—</td><td class="empty">—</td><td class="empty">—</td><td>Song 2</td></tr>
+        <tr><td class="week-num">9</td><td>A·11 major ✓</td><td>B·12–B·13</td><td>C·11 A-CAGED</td><td>D·1–D·2 unlock</td><td>E·1–E·3 unlock</td><td class="empty">—</td><td>Analyze solo</td></tr>
+        <tr><td class="week-num">10</td><td>A·12 minor</td><td>B·14 mixed</td><td>C·12 D-CAGED</td><td>D·3–D·4</td><td>E·4–E·7</td><td>F·1 unlock</td><td>Song 3</td></tr>
+        <tr><td class="week-num">11</td><td>A·14–A·15</td><td>B·15 sharps</td><td>C·13</td><td>D·5</td><td>E·8–E·11</td><td>F·2</td><td>Song 4</td></tr>
+        <tr><td class="week-num">12</td><td>A·16–A·17</td><td>B·16 flats</td><td>C·14 connect</td><td>D done</td><td>E·12–E·14</td><td>F·3</td><td>Transpose solo</td></tr>
+        <tr><td class="week-num">13</td><td>A·18 cross-mode</td><td>B·17 chromatic</td><td>Review CAGED</td><td>Real songs</td><td>E·15–E·16</td><td>F·4</td><td>Song 5</td></tr>
+        <tr><td class="week-num">14</td><td>A·19–A·20 keys</td><td>B·18 speed</td><td>Connect drill</td><td>Real songs</td><td>E·17</td><td>Improv record</td><td>2nd solo</td></tr>
+        <tr><td class="week-num">15</td><td>A·21 minor keys</td><td>Maintenance</td><td>Maintenance</td><td>Real songs</td><td>Maintenance</td><td>Freeplay</td><td>Song 6</td></tr>
+        <tr><td class="week-num">16</td><td>A·22 all keys</td><td>Maintenance</td><td>Maintenance</td><td>Maintenance</td><td>Maintenance</td><td>Maintenance</td><td>Repertoire polish</td></tr>
       </tbody>
     </table>
   </div>
@@ -886,7 +985,7 @@
 
 <section class="section" id="priorities">
   <div class="section-head">
-    <div class="section-num">XIII</div>
+    <div class="section-num">XVI</div>
     <div class="section-title-block">
       <div class="kicker">Honest Notes</div>
       <h2>Priorities &amp; <em>Permissions</em></h2>
@@ -894,9 +993,9 @@
   </div>
   <div class="callout">
     <div class="callout-eyebrow">If a week feels overwhelming</div>
-    <h3>Drop in this order: <em>F → D → E → C</em>. Never drop A or B.</h3>
-    <p>Track F (songs) is the volume layer — skipping a song cycle costs you nothing structural. Track D (chord changes) can pause for a week or two. Track E (hero solo) is precious but can wait. Track C is the bridge — losing it for a week is recoverable.</p>
-    <p>Tracks A (scale degrees) and B (note finding) are the spine. If those fall, the rest doesn't have anything to attach to. Protect them.</p>
+    <h3>In the app: protect <em>A and B</em>. Personal work drops first.</h3>
+    <p>Skip song vocabulary or hero solo weeks before skipping Tonic sessions. Within the app, if you're overloaded, the builder still prioritizes current levels — but don't let weeks pass with zero A/B cards.</p>
+    <p>Tracks A (degrees) and B (note finding) are the spine. C is the bridge. D, E, F unlock when ready — pausing personal repertoire is fine; pausing A·progress is not.</p>
   </div>
 
   <div class="phase">
@@ -911,8 +1010,8 @@
   </div>
   <div class="phase">
     <div class="phase-weeks">A note on the timeline</div>
-    <div class="phase-title">Week numbers are scaffolding, not gospel.</div>
-    <div class="phase-body"><p>If a stage isn't sticking, repeat the week. If it's clicking faster than expected, push ahead. The plan exists to serve the practice, not the other way around.</p></div>
+    <div class="phase-title">Levels beat weeks.</div>
+    <div class="phase-body"><p>If mastery gates aren't met, stay on the level — the app won't advance you early. Section XV weeks are optional pacing hints only.</p></div>
   </div>
 </section>
 
@@ -921,7 +1020,7 @@
   <p>Every note is measured against the tonic.</p>
   <p>Every phrase resolves toward a chord tone.</p>
   <p>Every solo begins with a sound in your head.</p>
-  <div class="colophon">A practice manual · Second edition · 16 weeks · Hear it. Find it. Play it.</div>
+  <div class="colophon">Practice manual · Third edition · Tonic app + personal depth · Hear it. Find it. Play it.</div>
 </footer>
 
 </div>

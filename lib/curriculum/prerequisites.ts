@@ -62,6 +62,16 @@ export function currentLevelIdForTrack(
  *     need full major diatonic + the vi chord by ear before chord-tone
  *     improv really pays off.
  */
+/** Level ids unlocked for a track given cross-track completion state. */
+export function unlockedLevelIdsForTrack(
+  trackId: TrackId,
+  byTrack: ProgressByTrack,
+): string[] {
+  return getLevelsForTrack(trackId)
+    .filter((l) => isLevelUnlocked(l.id, byTrack))
+    .map((l) => l.id);
+}
+
 export function isTrackEntered(
   trackId: TrackId,
   byTrack: ProgressByTrack,

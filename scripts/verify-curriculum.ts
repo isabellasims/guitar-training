@@ -18,6 +18,7 @@ import {
   currentLevelIdForTrack,
   isLevelUnlocked,
   isTrackEntered,
+  unlockedLevelIdsForTrack,
   type ProgressByTrack,
 } from "@/lib/curriculum/prerequisites";
 import {
@@ -52,7 +53,7 @@ function emptyProgress(trackId: TrackId): TrackProgress {
 }
 
 function freshProgress(): ProgressByTrack {
-  return {
+  const p: ProgressByTrack = {
     A: emptyProgress("A"),
     B: emptyProgress("B"),
     C: emptyProgress("C"),
@@ -60,6 +61,11 @@ function freshProgress(): ProgressByTrack {
     E: emptyProgress("E"),
     F: emptyProgress("F"),
   };
+  for (const id of ["A", "B", "C", "D", "E", "F"] as const) {
+    const row = p[id];
+    if (row) row.unlockedNodeIds = unlockedLevelIdsForTrack(id, p);
+  }
+  return p;
 }
 
 function clone(p: ProgressByTrack): ProgressByTrack {
@@ -218,7 +224,7 @@ function markComplete(p: ProgressByTrack, levelId: string) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Test 2 — Track D card cannot surface before A-5 is complete.
+// Test 2 — Track D card cannot surface before A-11 is complete.
 // ──────────────────────────────────────────────────────────────────────────────
 {
   const byTrack = freshProgress();
@@ -317,8 +323,8 @@ function markComplete(p: ProgressByTrack, levelId: string) {
     "A-1 explainer is not re-shown after first time",
   );
   log(
-    !needsExplainer(byTrack.B, "B-2"),
-    "B-2 (practice level) never needs an explainer",
+    !needsExplainer(byTrack.B, "B-3"),
+    "B-3 (practice level) never needs an explainer",
   );
 }
 
@@ -562,7 +568,7 @@ function markComplete(p: ProgressByTrack, levelId: string) {
 // ──────────────────────────────────────────────────────────────────────────────
 {
   const cleanlyComplete = emptyProgress("B");
-  cleanlyComplete.levelSessionCounts["B-2"] = COMPLETION_CRITERIA.minSessions;
+  cleanlyComplete.levelSessionCounts["B-3"] = COMPLETION_CRITERIA.minSessions;
   // Spread clean-correct results across minSessions distinct sessions so
   // the distinct-session gate is satisfied.
   for (let s = 0; s < COMPLETION_CRITERIA.minSessions; s++) {
@@ -571,15 +577,15 @@ function markComplete(p: ProgressByTrack, levelId: string) {
     );
     for (let i = 0; i < perSession; i++) {
       cleanlyComplete.recentResults.push({
-        levelId: "B-2",
+        levelId: "B-3",
         correct: true,
         ts: `2024-01-0${s + 1}T00:00:0${i}Z`,
       });
     }
   }
   log(
-    levelMeetsCompletion(cleanlyComplete, "B-2"),
-    "B-2 complete on a full clean-correct window (sanity)",
+    levelMeetsCompletion(cleanlyComplete, "B-3"),
+    "B-3 complete on a full clean-correct window (sanity)",
   );
 
   // Even with the same number of cards, a single marathon session must not
@@ -587,28 +593,28 @@ function markComplete(p: ProgressByTrack, levelId: string) {
   // All cards inside one session share a `ts` (the session's completedAt),
   // so the test uses one timestamp for every result.
   const oneSession = emptyProgress("B");
-  oneSession.levelSessionCounts["B-2"] = COMPLETION_CRITERIA.minSessions;
+  oneSession.levelSessionCounts["B-3"] = COMPLETION_CRITERIA.minSessions;
   for (let i = 0; i < COMPLETION_CRITERIA.minGraded + 4; i++) {
     oneSession.recentResults.push({
-      levelId: "B-2",
+      levelId: "B-3",
       correct: true,
       ts: "2024-01-01T00:00:00.000Z",
     });
   }
   log(
-    !levelMeetsCompletion(oneSession, "B-2"),
-    "B-2 NOT complete from a single marathon session (mastery requires distinct sessions)",
+    !levelMeetsCompletion(oneSession, "B-3"),
+    "B-3 NOT complete from a single marathon session (mastery requires distinct sessions)",
   );
 
   const hintAssisted = emptyProgress("B");
-  hintAssisted.levelSessionCounts["B-2"] = COMPLETION_CRITERIA.minSessions;
+  hintAssisted.levelSessionCounts["B-3"] = COMPLETION_CRITERIA.minSessions;
   for (let s = 0; s < COMPLETION_CRITERIA.minSessions; s++) {
     const perSession = Math.ceil(
       COMPLETION_CRITERIA.minGraded / COMPLETION_CRITERIA.minSessions,
     );
     for (let i = 0; i < perSession; i++) {
       hintAssisted.recentResults.push({
-        levelId: "B-2",
+        levelId: "B-3",
         correct: true,
         usedHint: true,
         ts: `2024-01-0${s + 1}T00:00:0${i}Z`,
@@ -616,8 +622,8 @@ function markComplete(p: ProgressByTrack, levelId: string) {
     }
   }
   log(
-    !levelMeetsCompletion(hintAssisted, "B-2"),
-    "B-2 NOT complete when every recent result used the hint (50% < 90%)",
+    !levelMeetsCompletion(hintAssisted, "B-3"),
+    "B-3 NOT complete when every recent result used the hint (50% < 90%)",
   );
 }
 

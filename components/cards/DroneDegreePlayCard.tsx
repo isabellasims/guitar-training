@@ -140,6 +140,7 @@ export function DroneDegreePlayCard({
     rmsMin: 0.025,
     requireFreshAttack: "always",
     armingDelayMs: 300,
+    droneTonicPitchClass: params.tonicMidi % 12,
   });
 
   if (!hydrated) {

@@ -54,7 +54,7 @@ function resultWeight(r: LevelResult): number {
  * Whether the level meets both completion conditions.
  * Returns false if there aren’t yet enough graded cards in the window.
  *
- * Special case: explainer-only levels (e.g. A-1, A-2) have no graded practice
+ * Special case: explainer-only levels (A-1, A-12) have no graded practice
  * cards. They complete once the explainer has been seen at least once and
  * the level has appeared in `minSessions` sessions.
  */
