@@ -193,6 +193,12 @@ export function MelodicDictationCard({
           <LessonDroneToggle
             tonicMidi={params.tonicMidi}
             keyLabel={params.keyLabel}
+            micListening={
+              pitchOn &&
+              armed &&
+              (listener.phase === "listening" ||
+                listener.phase === "requesting")
+            }
           />
         ) : null}
 

@@ -16,9 +16,11 @@ type CurrentByTrack = Partial<Record<TrackId, string | null>>;
 
 export function TodayStrip() {
   const [streak, setStreak] = useState<Streak | null>(null);
-  const [counts, setCounts] = useState<{ full: number; quick: number } | null>(
-    null,
-  );
+  const [counts, setCounts] = useState<{
+    m5: number;
+    m15: number;
+    m30: number;
+  } | null>(null);
   const [current, setCurrent] = useState<CurrentByTrack>({});
 
   useEffect(() => {
@@ -59,11 +61,16 @@ export function TodayStrip() {
     loadStreak();
     loadCurrent();
     void Promise.all([
-      buildNewSession({ quick: false }),
-      buildNewSession({ quick: true }),
+      buildNewSession({ minutes: 5 }),
+      buildNewSession({ minutes: 15 }),
+      buildNewSession({ minutes: 30 }),
     ])
-      .then(([full, q]) => {
-        setCounts({ full: full.cards.length, quick: q.cards.length });
+      .then(([s5, s15, s30]) => {
+        setCounts({
+          m5: s5.cards.length,
+          m15: s15.cards.length,
+          m30: s30.cards.length,
+        });
       })
       .catch((err) => {
         // eslint-disable-next-line no-console
@@ -122,7 +129,7 @@ export function TodayStrip() {
       ) : null}
       {counts ? (
         <span>
-          Full session: {counts.full} cards · Quick: {counts.quick}
+          Cards: 5m={counts.m5} · 15m={counts.m15} · 30m={counts.m30}
         </span>
       ) : null}
       {lineA ? (

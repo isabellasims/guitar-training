@@ -39,9 +39,18 @@ import {
   saveCompletedSession,
 } from "@/lib/db/sessionOps";
 import { pushSkippedCard } from "@/lib/db/index";
-import { buildNewSession } from "@/lib/session-builder/buildSession";
+import {
+  buildNewSession,
+  estimateSessionSeconds,
+  formatSessionEstimate,
+} from "@/lib/session-builder/buildSession";
+import { pendingFoundationExplainers } from "@/lib/session-builder/explainerPreflight";
+import type { PendingExplainer } from "@/lib/session-builder/explainerPreflight";
 import { getLevel } from "@/lib/curriculum/levels";
 import { explainerForLevel } from "@/lib/curriculum/cardsForLevel";
+import type { ProgressByTrack } from "@/lib/curriculum/prerequisites";
+import { getTrackProgress } from "@/lib/db/index";
+import { markExplainerSeen } from "@/lib/db/trackProgressOps";
 
 const TRACK_NAMES: Record<TrackId, string> = {
   A: "Track A · Scale Degrees",
@@ -309,6 +318,12 @@ function LevelUpScreen({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
+          {outcome.newlyCompleted.some((c) => c.levelId === "A-11") ? (
+            <p className="rounded-md border border-gold/40 bg-paper-soft px-3 py-3 text-sm text-ink">
+              You unlocked <strong>Track D</strong> (chord changes) and can
+              keep going on <strong>Track E</strong> (intervals) in parallel.
+            </p>
+          ) : null}
           <ul className="space-y-3">
             {outcome.newlyCompleted.map((c) => (
               <li
@@ -340,6 +355,48 @@ function LevelUpScreen({
   );
 }
 
+function SessionCompleteScreen({
+  cardCount,
+  onClose,
+}: {
+  cardCount: number;
+  onClose: () => void;
+}) {
+  return (
+    <main className="px-4 py-12">
+      <Card>
+        <CardHeader>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-rust">
+            Session complete
+          </p>
+          <CardTitle>Nice work.</CardTitle>
+          <CardDescription>
+            {cardCount} card{cardCount === 1 ? "" : "s"} finished. Reviews are
+            in the Review queue when you want them.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button type="button" variant="rust" onClick={onClose}>
+            Continue
+          </Button>
+        </CardContent>
+      </Card>
+    </main>
+  );
+}
+
+async function loadAllTrackProgress(): Promise<ProgressByTrack> {
+  const [a, b, c, d, e, f] = await Promise.all([
+    getTrackProgress("A"),
+    getTrackProgress("B"),
+    getTrackProgress("C"),
+    getTrackProgress("D"),
+    getTrackProgress("E"),
+    getTrackProgress("F"),
+  ]);
+  return { A: a, B: b, C: c, D: d, E: e, F: f };
+}
+
 const SLOT_LABEL: Record<string, string> = {
   warmup: "Warmup",
   "track-intro": "Track introduction",
@@ -354,27 +411,102 @@ const SLOT_LABEL: Record<string, string> = {
   afterglow: "Afterglow",
 };
 
-export function SessionRunner({ quick }: { quick: boolean }) {
+type SessionPhase =
+  | "loading"
+  | "explainers"
+  | "preflight"
+  | "running"
+  | "complete"
+  | "levelup";
+
+export function SessionRunner({
+  sessionMinutes,
+  prebuiltSession = null,
+  onSessionFinished,
+}: {
+  sessionMinutes: 5 | 15 | 30;
+  prebuiltSession?: Session | null;
+  onSessionFinished?: () => void;
+}) {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
+  const finish = onSessionFinished ?? (() => router.push("/"));
+  const [phase, setPhase] = useState<SessionPhase>(
+    prebuiltSession ? "running" : "loading",
+  );
+  const [session, setSession] = useState<Session | null>(prebuiltSession);
+  const [preflightEstimate, setPreflightEstimate] = useState<string | null>(
+    null,
+  );
+  const [pendingExplainers, setPendingExplainers] = useState<PendingExplainer[]>(
+    [],
+  );
+  const [explainerIndex, setExplainerIndex] = useState(0);
   const [index, setIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<SessionApplyOutcome | null>(null);
-  /** When true, render the level's original explainer instead of the card. */
   const [showExplainer, setShowExplainer] = useState(false);
 
   useEffect(() => {
+    if (prebuiltSession) {
+      setSession(prebuiltSession);
+      setPhase("running");
+      return;
+    }
     let cancelled = false;
-    void buildNewSession({ quick }).then((s) => {
-      if (!cancelled) {
-        setSession(s);
-        setIndex(0);
+    void (async () => {
+      const byTrack = await loadAllTrackProgress();
+      const pending = pendingFoundationExplainers(byTrack);
+      if (cancelled) return;
+      if (pending.length > 0) {
+        setPendingExplainers(pending);
+        setPhase("explainers");
+        return;
       }
-    });
+      const s = await buildNewSession({ minutes: sessionMinutes });
+      if (cancelled) return;
+      setPreflightEstimate(
+        formatSessionEstimate(estimateSessionSeconds(s.cards)),
+      );
+      setSession(s);
+      setPhase("preflight");
+    })();
     return () => {
       cancelled = true;
     };
-  }, [quick]);
+  }, [sessionMinutes, prebuiltSession]);
+
+  const advanceAfterExplainers = useCallback(async () => {
+    const s = await buildNewSession({ minutes: sessionMinutes });
+    setPreflightEstimate(
+      formatSessionEstimate(estimateSessionSeconds(s.cards)),
+    );
+    setSession(s);
+    setPendingExplainers([]);
+    setPhase("preflight");
+  }, [sessionMinutes]);
+
+  const onExplainerContinue = useCallback(async () => {
+    const current = pendingExplainers[explainerIndex];
+    if (!current) return;
+    setBusy(true);
+    try {
+      await markExplainerSeen(current.levelId);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[session] markExplainerSeen failed", err);
+    }
+    const next = explainerIndex + 1;
+    if (next >= pendingExplainers.length) {
+      await advanceAfterExplainers();
+    } else {
+      setExplainerIndex(next);
+    }
+    setBusy(false);
+  }, [
+    advanceAfterExplainers,
+    explainerIndex,
+    pendingExplainers,
+  ]);
 
   const card = session?.cards[index];
   const n = session?.cards.length ?? 0;
@@ -473,8 +605,9 @@ export function SessionRunner({ quick }: { quick: boolean }) {
         setBusy(false);
         if (result.newlyCompleted.length > 0) {
           setOutcome(result);
+          setPhase("levelup");
         } else {
-          router.push("/");
+          setPhase("complete");
         }
         return;
       }
@@ -484,14 +617,83 @@ export function SessionRunner({ quick }: { quick: boolean }) {
       setShowExplainer(false);
       setBusy(false);
     },
-    [card, busy, session, index, n, router],
+    [card, busy, session, index, n],
   );
 
-  if (outcome) {
-    return <LevelUpScreen outcome={outcome} onClose={() => router.push("/")} />;
+  if (phase === "levelup" && outcome) {
+    return <LevelUpScreen outcome={outcome} onClose={finish} />;
   }
 
-  if (!session) {
+  if (phase === "complete" && session) {
+    return (
+      <SessionCompleteScreen
+        cardCount={session.cards.length}
+        onClose={finish}
+      />
+    );
+  }
+
+  if (phase === "explainers" && pendingExplainers.length > 0) {
+    const pe = pendingExplainers[explainerIndex]!;
+    const params = pe.explainer
+      .parameters as CardTemplateParams["concept-explainer"];
+    const lvl = getLevel(pe.levelId);
+    return (
+      <main className="px-4 py-8">
+        <p className="mb-4 font-mono text-[10px] uppercase tracking-widest text-rust">
+          New concept · {pe.trackId}·{lvl?.level ?? "?"}
+        </p>
+        <ConceptExplainerCard
+          params={params}
+          onContinue={() => void onExplainerContinue()}
+        />
+        <p className="mt-4 text-xs text-ink-mute">
+          {explainerIndex + 1} of {pendingExplainers.length} before practice
+        </p>
+      </main>
+    );
+  }
+
+  if (phase === "preflight" && session) {
+    const nCards = session.cards.length;
+    return (
+      <main className="px-4 py-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Today&apos;s session</CardTitle>
+            <CardDescription>
+              {sessionMinutes} minutes · practice focus (reviews optional on the
+              Review page)
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="font-mono text-sm text-ink">
+              {nCards} card{nCards === 1 ? "" : "s"}
+              {preflightEstimate ? ` · ${preflightEstimate}` : ""}
+            </p>
+            {nCards === 0 ? (
+              <p className="text-sm text-ink-soft">
+                No practice cards right now — check Tracks or try Review.
+              </p>
+            ) : (
+              <Button
+                type="button"
+                variant="rust"
+                onClick={() => setPhase("running")}
+              >
+                Start
+              </Button>
+            )}
+            <Button type="button" variant="ghost" onClick={finish}>
+              Cancel
+            </Button>
+          </CardContent>
+        </Card>
+      </main>
+    );
+  }
+
+  if (phase === "loading" || !session) {
     return (
       <main className="px-4 py-8">
         <p className="text-sm text-ink-mute">Building your session…</p>

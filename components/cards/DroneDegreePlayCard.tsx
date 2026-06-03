@@ -200,6 +200,9 @@ export function DroneDegreePlayCard({
         <LessonDroneToggle
           tonicMidi={params.tonicMidi}
           keyLabel={params.keyLabel}
+          micListening={
+            listener.phase === "listening" || listener.phase === "requesting"
+          }
         />
         <ShowPositionsToggle
           enabled={showPositions}

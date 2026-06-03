@@ -8,9 +8,10 @@ import { join } from "node:path";
 const root = process.cwd();
 const htmlPath = join(root, "guitar-practice-plan.html");
 
-const { LEVELS, getLevelsForTrack } = await import(
-  "../lib/curriculum/levels.ts"
-);
+const { getLevelsForTrack } = await import("../lib/curriculum/levels.ts");
+
+/** Keep in sync with lib/curriculum/completion.ts (cannot import — uses @/ paths). */
+const COMPLETION = { minSessions: 2, minGraded: 8, minAccuracyPct: 85 };
 
 const TRACKS = [
   ["A", "Scale degrees"],
@@ -53,9 +54,9 @@ ${rows}
 
 const body = `<p class="lead">The <strong>Tonic</strong> app implements this curriculum in <code>lib/curriculum/levels.ts</code>. Levels advance by <em>mastery</em> (sessions + accuracy), not calendar weeks. <strong>[F]</strong> = concept explainer first; <strong>[P]</strong> = practice only.</p>
 <div class="cross-dep">
-<strong>Track entry in the app:</strong> A, B, C from day one. <strong>D</strong> and <strong>E</strong> unlock after <strong>A·11</strong> (full major diatonic by ear). <strong>F</strong> unlocks after <strong>A·11</strong> and <strong>D·2</strong> (vi chord by ear). <strong>A·12</strong> (minor tonic) also requires <strong>C·2</strong> (open A minor shape). <strong>C·7</strong> requires <strong>A·4</strong> (major 3rd by ear).
+<strong>Track entry in the app:</strong> A, B, C from day one. <strong>E</strong> after <strong>A·5</strong>. <strong>D</strong> after <strong>A·11</strong>. <strong>F</strong> after <strong>A·11</strong> and <strong>D·2</strong>. <strong>C·7</strong> requires <strong>A·4</strong> (major 3rd by ear). Practice sessions = pacer; SRS = Review page.
 </div>
-<p class="lead"><strong>Completion:</strong> each level needs ≥3 sessions, ≥12 graded cards at ≥90% weighted accuracy (hints count half). Explainer-only levels <strong>A·1</strong> and <strong>A·12</strong> complete after the concept is seen.</p>
+<p class="lead"><strong>Completion:</strong> each level needs ≥${COMPLETION.minSessions} distinct sessions, ≥${COMPLETION.minGraded} graded cards at ≥${COMPLETION.minAccuracyPct}% weighted accuracy (hints count half). Explainer-only levels <strong>A·1</strong> and <strong>A·12</strong> complete after the concept is seen.</p>
 ${TRACKS.map(([id, title]) => tableForTrack(id, title)).join("\n")}
 <p style="font-size: 15px; color: var(--ink-mute); margin-top: 24px;">Regenerate this block: <code>npm run inject-manual</code> (runs automatically before dev/build).</p>`;
 

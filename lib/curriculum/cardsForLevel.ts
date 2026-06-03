@@ -318,7 +318,8 @@ export function explainerForLevel(levelId: string): BuiltCard | null {
         ],
         body: [
           "A minor uses the same seven pitches as C major, but home is now A. The mood shifts even though the notes are the same.",
-          "Use the A natural minor shape from Track C while you listen. Hum or play A wherever feels like home.",
+          "Open-position A natural minor (one octave): 5th string open (A) → 2nd fret (B) → 3rd fret (C); 4th string open (D) → 2nd fret (E) → 3rd fret (F); 3rd string open (G) → 2nd fret (A). Same notes as C major, centered on A.",
+          "Hum or play A wherever feels like home while the drone runs.",
         ],
         droneTonicMidi: A_MINOR.tonicMidi,
         droneKeyLabel: A_MINOR.keyLabel,

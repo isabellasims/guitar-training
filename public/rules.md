@@ -8,7 +8,7 @@ This document is the **source of truth** for curriculum logic in the app. It mir
 
 Every level is either:
 
-- **[F] Foundation** — introduces a new concept. Includes a `concept-explainer` card. The explainer must be completed once before practice cards from that level appear in sessions.
+- **[F] Foundation** — introduces a new concept. Includes a `concept-explainer` card shown **before practice** (pre-session gate on the Tracks page or at session start), not as a graded card in the session queue.
 - **[P] Practice** — drills only; no explainer gate.
 
 ---
@@ -32,7 +32,7 @@ A level cannot appear in **any** session (including reviews and warmups) until *
 | A·9 | F | The 2nd | A·8 |
 | A·10 | F | The 6th | A·9 |
 | A·11 | P | Full Major Diatonic | A·10 |
-| A·12 | F | Tonic (A minor) | A·11, **C·2** |
+| A·12 | F | Tonic (A minor) | A·11 |
 | A·13 | P | Re-orient (Root + 5th in minor) | A·12 |
 | A·14 | F | The Flat 3rd | A·13 |
 | A·15 | F | The Flat 7 | A·14 |
@@ -44,7 +44,7 @@ A level cannot appear in **any** session (including reviews and warmups) until *
 | A·21 | F | E and D minor | A·20 |
 | A·22 | P | All Keys, All Modes | A·21 |
 
-**Phases:** A·1–11 major diatonic by ear → A·12–18 minor (blocked until **C·2**) → A·19–22 cross-key.
+**Phases:** A·1–11 major diatonic by ear → A·12–18 minor (open A minor shape taught in A·12 explainer) → A·19–22 cross-key.
 
 **Explainer-only levels (no graded practice):** A·1, A·12 — complete after explainer seen + minimum sessions.
 
@@ -104,7 +104,7 @@ No cross-track prerequisites. Existing saves remap old B·2…B·13 completions 
 | C·13 | F | Major Scale Around A-shape | C·12 |
 | C·14 | P | Connect Box 1 + Box 2 | C·13 |
 
-**Cross-track:** C·7 requires **A·4** (user knows 3rd/5th names). **C·2** unblocks **A·12**.
+**Cross-track:** C·7 requires **A·4** (user knows 3rd/5th names).
 
 ### Track D — Hearing chord changes (5 levels)
 
@@ -122,25 +122,12 @@ No cross-track prerequisites. Existing saves remap old B·2…B·13 completions 
 
 | Level | Type | Name | Prerequisites |
 |-------|------|------|---------------|
-| E·1 | F | Perfect 5th | **A·11** |
+| E·1 | F | Perfect 5th | **A·5** |
 | E·2 | F | Perfect 4th | E·1 |
-| E·3 | F | Major 3rd | E·2 |
-| E·4 | P | P4 / P5 / M3 Consolidation | E·3 |
-| E·5 | F | Major 2nd | E·4 |
-| E·6 | F | Major 6th | E·5 |
-| E·7 | F | Major 7th | E·6 |
-| E·8 | P | Ascending Majors Consolidation | E·7 |
-| E·9 | F | Minor 3rd | E·8 |
-| E·10 | F | Minor 7th | E·9 |
-| E·11 | F | Minor 6th | E·10 |
-| E·12 | F | Minor 2nd | E·11 |
-| E·13 | F | Tritone | E·12 |
-| E·14 | P | All Ascending Consolidation | E·13 |
-| E·15 | F | Descending — major anchors | E·14 |
-| E·16 | F | Descending — remaining intervals | E·15 |
+| … | … | … | … |
 | E·17 | P | Mixed Direction Consolidation | E·16 |
 
-**Track entry:** same as D — after **A·11**.
+**Track entry:** after **A·5** (stable major tones) — parallel with degree work, not after A·11.
 
 ### Track F — Improvisation (4 levels)
 
@@ -158,13 +145,11 @@ No cross-track prerequisites. Existing saves remap old B·2…B·13 completions 
 ## 3. Cross-track diagram
 
 ```text
-A·1 → … → A·11 (full major diatonic)
-              ├→ D·1…D·5 (chord changes)
-              ├→ E·1…E·17 (intervals)
-              └→ (with D·2) F·1…F·4 (improv)
+A·1 → … → A·5 ─────────────→ E·1…E·17 (intervals)
+         … → A·11 ─┬→ D·1…D·5 (chord changes)
+                   └→ (with D·2) F·1…F·4 (improv)
 
-C·1 → C·2 ──────────────→ unlocks A·12
-C·… → C·7 ← needs A·4 (3rd)
+C·7 ← needs A·4 (3rd)
 ```
 
 ---
@@ -174,25 +159,27 @@ C·… → C·7 ← needs A·4 (3rd)
 | Track | When cards can appear |
 |-------|------------------------|
 | A, B, C | Day one |
-| D, E | **A·11** complete |
+| E | **A·5** complete |
+| D | **A·11** complete |
 | F | **A·11** and **D·2** complete |
 
 ---
 
-## 5. Session composition
+## 5. Session composition (practice pacer)
 
-Built in `lib/session-builder/buildSession.ts` when the user starts a session. Order:
+Built in `lib/session-builder/buildSession.ts`. **Practice sessions** are forward-looking: current-level work only.
 
-1. **Warmup** — highest-priority due review, or drone-listen (~35s) in current Track A key.
-2. **Maintenance warmups** (optional, not on quick sessions) — up to 2 reps from **completed** levels.
-3. **Reviews** — due SRS items (prerequisite-safe); up to 8 total including warmup review.
-4. **Resurfaced** — cards skipped last session (never trimmed).
-5. **Per-track blocks** (A → B → C → D → E → F if entered): optional **track intro** → **foundation explainer** if needed → **1–3 practice cards** (Track A mixes production + recognition when possible; Track D may prepend chord-listen preflight).
-6. **Afterglow** — `freeplay-afterglow` (~90s), always last.
+**Order:**
 
-**Trim** (if over target × 1.2): drop reviews → maintenance warmups → second card of F/D/E/C/B → third card of A. Never drop: warmup, track intros, foundation gates, first practice card per block, resurfaced, afterglow.
+1. **Resurfaced** (optional) — up to **3** cards skipped last session (rest stay queued).
+2. **Per-track blocks** — **A** first, **F** last when present; **B/C/D/E** shuffled in the middle: optional **track intro** → **practice cards** (counts scale with session length: 5 / 15 / 30 minutes).
+3. **Reviews** — **not** included by default. Use **Review queue** (`/reviews`) for SRS.
 
-**Card duration estimates** — see `CARD_DURATION_SEC` in `buildSession.ts`.
+**Not in practice sessions:** drone-listen warmup, maintenance reps from old levels, in-session foundation explainers (pre-session gate instead), freeplay afterglow (session complete screen instead).
+
+**Trim** (if over target × 1.2): drop optional reviews → trim extra practice cards from F→A. Resurfaced capped at 3 at build time.
+
+**Preflight:** session start shows estimated time and card count before **Start**.
 
 ---
 
@@ -202,16 +189,14 @@ From `lib/curriculum/completion.ts`:
 
 | Rule | Value |
 |------|--------|
-| Minimum sessions level appeared in | **3** |
-| Minimum graded cards in rolling window | **12** |
-| Accuracy window size | **12** |
-| Required accuracy (weighted) | **90%** |
+| Minimum sessions level appeared in | **2** |
+| Minimum graded cards in rolling window | **8** |
+| Accuracy window size | **8** |
+| Required accuracy (weighted) | **85%** |
 | Hint-assisted correct | **50%** credit |
-| Distinct sessions in window | Must be **≥ 3** (one marathon session does not suffice) |
+| Distinct sessions in window | Must be **≥ 2** |
 
-Level-up UI runs **at session end**, not mid-session.
-
-Blocked levels show the blocking prerequisite on the Tracks screen.
+Level-up UI runs **at session end**. **Bypass** available on Tracks for test-out.
 
 ---
 
@@ -219,18 +204,15 @@ Blocked levels show the blocking prerequisite on the Tracks screen.
 
 - **Identify** cards never use the tonic as an answer option (drone = home).
 - **Recognition prompts** for a level are **deterministic** (seeded per level in `cardsForLevel.ts`) so SRS rows stay stable.
-- Card copy lives in `lib/curriculum/cardsForLevel.ts`; level metadata in `lib/curriculum/levels.ts`; track blurbs in `lib/tracks/tracks.ts`.
+- Card copy lives in `lib/curriculum/cardsForLevel.ts`; level metadata in `lib/curriculum/levels.ts`.
 
 ---
 
 ## 8. Verification checklist (`npm run verify`)
 
-- [x] New user: warmup, A·1/B·1/C·1 explainers + practice, no D/E/F; A·1 has no practice cards.
-- [x] No card from a level before its prerequisites are met.
-- [x] No Track D/E before A·11; no Track F before A·11 + D·2.
-- [x] Foundation explainers before practice on first encounter.
-- [x] A·12 blocked until C·2; unlocks after C·2.
-- [x] Trim preserves warmup, intros, foundation gates, afterglow.
+- [x] New user: practice cards for A/B/C; no D before A·11; no E before A·5; no F before gates.
+- [x] No warmup / afterglow / in-session explainers in practice assembly.
+- [x] A·12 unlocks after A·11 without C·2.
 - [x] Hint-only accuracy cannot complete a level.
 - [x] All prerequisite IDs resolve.
 
@@ -239,7 +221,6 @@ Blocked levels show the blocking prerequisite on the Tracks screen.
 ## 9. Explicit non-goals
 
 - Calendar-based “week N” unlocking.
-- Skipping foundation explainers.
 - Server-side progress (local Dexie only).
 
-Optional later: MP3 drone loops (`public/audio/`), recorded chord bank for Track D.
+Optional later: expand Track F improv levels; compress Track B; MP3 drone loops.

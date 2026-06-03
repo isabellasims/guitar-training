@@ -104,26 +104,23 @@ function markComplete(p: ProgressByTrack, levelId: string) {
 {
   const byTrack = freshProgress();
   const session = assembleSession({
-    quick: false,
     targetMinutes: 30,
     byTrack,
     dueReviews: [],
   });
-  const ids = session.cards.map((c) => c.cardTemplateId);
   const slots = session.cards.map((c) => c.slot);
 
-  // Per-track grouping: warmup → due reviews (if any) → track blocks (A…E) → afterglow.
-  log(slots[0] === "warmup", "first session: starts with warmup");
   log(
-    slots[slots.length - 1] === "afterglow",
-    "first session: ends with afterglow",
+    !slots.includes("warmup"),
+    "first session: no drone warmup slot",
   );
-
-  const foundationCount = slots.filter((s) => s === "foundation-gate").length;
   log(
-    foundationCount === 3,
-    "first session: 3 foundation gates (A·1, B·1, C·1)",
-    `actual=${foundationCount}`,
+    !slots.includes("afterglow"),
+    "first session: no afterglow card",
+  );
+  log(
+    !slots.includes("foundation-gate"),
+    "first session: explainers are pre-session, not in cards",
   );
   const introCount = slots.filter((s) => s === "track-intro").length;
   log(
@@ -135,7 +132,7 @@ function markComplete(p: ProgressByTrack, levelId: string) {
   // Within a track block, ordering is: track-intro → foundation-gate → practice.
   // Across tracks, order is A → B → C.
   const tracksInOrder = session.cards
-    .filter((c) => c.slot !== "warmup" && c.slot !== "afterglow" && c.slot !== "review")
+    .filter((c) => c.slot !== "review")
     .map((c) => c.trackId as string);
   const firstIdxOf = (t: string) => tracksInOrder.indexOf(t);
   const lastIdxOf = (t: string) =>
@@ -149,42 +146,7 @@ function markComplete(p: ProgressByTrack, levelId: string) {
   const hasD = session.cards.some((c) => c.trackId === "D");
   const hasE = session.cards.some((c) => c.trackId === "E");
   log(!hasD, "first session: no Track D cards (entry condition)");
-  log(!hasE, "first session: no Track E cards (entry condition)");
-  // The maintenance warmup tier samples from completed levels only — a
-  // brand-new user has none, so the warmup block should be empty beyond
-  // the standard drone-listen warmup card.
-  const warmupCardCount = session.cards.filter((c) => c.slot === "warmup")
-    .length;
-  log(
-    warmupCardCount === 1,
-    "first session: only the drone-listen warmup (no maintenance reps for a new user)",
-    `actual=${warmupCardCount}`,
-  );
-
-  // Foundation explainer must precede practice cards within the same level.
-  // A-1 is explainer-only (no practice), so it's not in this list.
-  for (const lvlId of ["B-1", "C-1"]) {
-    const explainerIdx = session.cards.findIndex(
-      (c) =>
-        c.cardTemplateId === "concept-explainer" && c.nodeId === lvlId,
-    );
-    const firstPractice = session.cards.findIndex(
-      (c) =>
-        c.cardTemplateId !== "concept-explainer" &&
-        c.cardTemplateId !== "drone-listen-warmup" &&
-        c.cardTemplateId !== "freeplay-afterglow" &&
-        c.nodeId === lvlId,
-    );
-    if (explainerIdx === -1 || firstPractice === -1) {
-      log(false, `${lvlId}: explainer or practice missing`);
-      continue;
-    }
-    log(
-      explainerIdx < firstPractice,
-      `${lvlId}: explainer comes before practice`,
-      `explainerIdx=${explainerIdx}, firstPractice=${firstPractice}`,
-    );
-  }
+  log(!hasE, "first session: no Track E cards (needs A·5)");
 
   // A-1 must NOT contain any drone-degree-identify (or other practice) cards
   // — it is explainer-only.
@@ -220,7 +182,6 @@ function markComplete(p: ProgressByTrack, levelId: string) {
     );
   }
 
-  void ids;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -235,7 +196,7 @@ function markComplete(p: ProgressByTrack, levelId: string) {
   );
   log(
     !isTrackEntered("E", byTrack),
-    "Track E not entered before A-11 complete",
+    "Track E not entered before A-5 complete",
   );
   log(
     !isTrackEntered("F", byTrack),
@@ -256,10 +217,10 @@ function markComplete(p: ProgressByTrack, levelId: string) {
     totalReviews: 1,
   };
   const session = assembleSession({
-    quick: false,
     targetMinutes: 30,
     byTrack,
     dueReviews: [fakeReview],
+    includeReviews: true,
   });
   const surfaced = session.cards.some(
     (c) => c.trackId === "D" || c.cardTemplateId === "chord-change-mc",
@@ -268,13 +229,10 @@ function markComplete(p: ProgressByTrack, levelId: string) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Test 3 — Cross-track prereq: A-12 (Tonic A minor) requires C-2 (open A minor
-// scale) before unlocking, since the user needs the minor scale shape to
-// actually hear minor "home".
+// Test 3 — A-12 unlocks after A-11 (minor shape taught inline in explainer).
 // ──────────────────────────────────────────────────────────────────────────────
 {
   const byTrack = freshProgress();
-  // Finish all of A-1..A-11 (Phase 1 major) without touching C-2.
   for (const id of [
     "A-1",
     "A-2",
@@ -287,25 +245,13 @@ function markComplete(p: ProgressByTrack, levelId: string) {
     "A-9",
     "A-10",
     "A-11",
-    "C-1",
   ]) {
     markComplete(byTrack, id);
   }
-  log(
-    !isLevelUnlocked("A-12", byTrack),
-    "A-12 is locked when Phase 1 is done but C-2 is not",
-  );
-  log(
-    currentLevelIdForTrack("A", byTrack) === null,
-    "currentLevelIdForTrack returns null for A when A-12 is blocked by C-2",
-  );
-
-  // Now finish C-2 — A-12 unlocks.
-  markComplete(byTrack, "C-2");
-  log(isLevelUnlocked("A-12", byTrack), "A-12 unlocks once C-2 is complete");
+  log(isLevelUnlocked("A-12", byTrack), "A-12 unlocks after A-11 (no C-2 gate)");
   log(
     currentLevelIdForTrack("A", byTrack) === "A-12",
-    "currentLevelIdForTrack(A) advances to A-12 after C-2 done",
+    "currentLevelIdForTrack(A) advances to A-12 after Phase 1 major",
   );
 }
 
@@ -399,11 +345,11 @@ function markComplete(p: ProgressByTrack, levelId: string) {
   ]) {
     markComplete(byTrack, id);
   }
+  markComplete(byTrack, "A-5");
+  log(isTrackEntered("E", byTrack), "Track E entered after A-5");
   log(isTrackEntered("D", byTrack), "Track D entered after A-11 complete");
-  log(isTrackEntered("E", byTrack), "Track E entered after A-11 complete");
   const session = assembleSession({
-    quick: false,
-    targetMinutes: 45, // generous so trim doesn't drop D/E
+    targetMinutes: 45,
     byTrack,
     dueReviews: [],
   });
@@ -451,30 +397,21 @@ function markComplete(p: ProgressByTrack, levelId: string) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Test 7 — Trim never drops warmup, foundation gates, or afterglow.
+// Test 7 — Tight session still has practice; no warmup/afterglow.
 // ──────────────────────────────────────────────────────────────────────────────
 {
   const byTrack = freshProgress();
-  // Force a tight session — 1 minute target.
   const session = assembleSession({
-    quick: false,
-    targetMinutes: 1,
+    targetMinutes: 5,
     byTrack,
     dueReviews: [],
   });
   const slots = session.cards.map((c) => c.slot);
-  log(slots[0] === "warmup", "tight session: warmup retained");
+  log(!slots.includes("warmup"), "5m session: no warmup");
+  log(!slots.includes("afterglow"), "5m session: no afterglow");
   log(
-    slots[slots.length - 1] === "afterglow",
-    "tight session: afterglow retained",
-  );
-  log(
-    slots.includes("foundation-gate"),
-    "tight session: at least one foundation gate retained",
-  );
-  log(
-    slots.includes("track-intro"),
-    "tight session: track-intro cards retained",
+    session.cards.some((c) => c.slot?.startsWith("track-")),
+    "5m session: has practice cards",
   );
 }
 
@@ -490,7 +427,6 @@ function markComplete(p: ProgressByTrack, levelId: string) {
   }
   // Generous quotas so both ascending+descending fit in the same block.
   const session = assembleSession({
-    quick: false,
     targetMinutes: 90,
     byTrack,
     dueReviews: [],
@@ -623,7 +559,7 @@ function markComplete(p: ProgressByTrack, levelId: string) {
   }
   log(
     !levelMeetsCompletion(hintAssisted, "B-3"),
-    "B-3 NOT complete when every recent result used the hint (50% < 90%)",
+    "B-3 NOT complete when every recent result used the hint (50% < 85%)",
   );
 }
 

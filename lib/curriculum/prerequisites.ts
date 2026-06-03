@@ -54,10 +54,9 @@ export function currentLevelIdForTrack(
 /**
  * Track entry gates:
  *   - A, B, C: always entered.
- *   - D (chord functions) + E (intervals): enter when A-11 is complete
- *     (full major diatonic recognition). Chord-function and interval
- *     recognition both build on top of scale-degree recognition — don't
- *     drill "hear the IV chord" before "hear the 4th degree."
+ *   - D (chord functions): enter when A-11 is complete.
+ *   - E (intervals): enter when A-5 is complete (stable major tones) so
+ *     interval work reinforces degree work in parallel.
  *   - F (improvisation): enters when A-11 + D-2 are both complete. You
  *     need full major diatonic + the vi chord by ear before chord-tone
  *     improv really pays off.
@@ -77,8 +76,11 @@ export function isTrackEntered(
   byTrack: ProgressByTrack,
 ): boolean {
   if (trackId === "A" || trackId === "B" || trackId === "C") return true;
-  if (trackId === "D" || trackId === "E") {
+  if (trackId === "D") {
     return isCompleted(byTrack, "A-11");
+  }
+  if (trackId === "E") {
+    return isCompleted(byTrack, "A-5");
   }
   if (trackId === "F") {
     return isCompleted(byTrack, "A-11") && isCompleted(byTrack, "D-2");

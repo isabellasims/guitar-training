@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { PitchDetector as PitchDetectorClass } from "pitchy";
 import { Mic, MicOff } from "lucide-react";
 
-import { setDroneDucked } from "@/lib/audio/drone";
+import { beginPitchMicDuck, endPitchMicDuck } from "@/lib/audio/drone";
 import {
   frequencyToMidi,
   matchesPitch,
@@ -81,7 +81,7 @@ export function PitchMicPanel({
     allowedPitchClasses != null && allowedPitchClasses.length > 0;
 
   const cleanupAudio = useCallback(() => {
-    setDroneDucked(false);
+    endPitchMicDuck();
     if (rafRef.current != null) {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
@@ -130,7 +130,7 @@ export function PitchMicPanel({
       detectorRef.current = detector;
       const data = new Float32Array(analyser.fftSize);
 
-      setDroneDucked(true);
+      beginPitchMicDuck();
       setPhase("arming");
       await new Promise((r) => setTimeout(r, DELAY_MS));
       setPhase("listening");

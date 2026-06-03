@@ -31,17 +31,25 @@ export default function HomePage() {
           <CardHeader>
             <CardTitle className="text-paper">Today</CardTitle>
             <CardDescription className="text-paper-deep">
-              Until you finish the first Track&nbsp;A block, a full session stays
-              on that lesson in order (then reviews). After that, B–D samples
-              mix in. Finishing updates progress and your streak.
+              Practice sessions focus on your current levels — no warmup drone,
+              no SRS pile-up. Reviews live on the Review page. Finishing updates
+              progress and your streak.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3 sm:flex-row">
-            <Button asChild variant="rust" className="bg-gold-soft text-ink hover:bg-gold">
-              <Link href="/session">Start session</Link>
-            </Button>
-            <Button asChild variant="outline" className="border-paper-deep text-paper hover:bg-ink-soft">
-              <Link href="/session?quick=1">5 minutes today</Link>
+          <CardContent className="flex flex-col gap-3">
+            <div className="flex flex-wrap gap-2">
+              <Button asChild variant="rust" className="bg-gold-soft text-ink hover:bg-gold">
+                <Link href="/session?minutes=15">15 min session</Link>
+              </Button>
+              <Button asChild variant="outline" className="border-paper-deep text-paper hover:bg-ink-soft">
+                <Link href="/session?minutes=30">30 min</Link>
+              </Button>
+              <Button asChild variant="outline" className="border-paper-deep text-paper hover:bg-ink-soft">
+                <Link href="/session?minutes=5">5 min</Link>
+              </Button>
+            </div>
+            <Button asChild variant="ghost" className="w-fit px-0 text-paper-deep hover:text-paper">
+              <Link href="/reviews">Review queue (SRS)</Link>
             </Button>
             <TodayStrip />
           </CardContent>
@@ -151,7 +159,8 @@ export default function HomePage() {
           <CardHeader>
             <CardTitle>Practice manual</CardTitle>
             <CardDescription>
-              Sixteen-week pedagogy and track definitions (source of truth).
+              Pedagogy and optional pacing — level truth lives in the app and{" "}
+              <code className="text-xs">public/rules.md</code>.
             </CardDescription>
           </CardHeader>
           <CardContent>

@@ -430,24 +430,24 @@ export const SHAPES: ShapeDefinition[] = [
     defaultRootPitchClass: 0,
     defaultKeyLabel: "C",
     steps: [
-      { stringIndex: 4, fret: 3 },
-      { stringIndex: 3, fret: 0 },
-      { stringIndex: 3, fret: 2 },
-      { stringIndex: 3, fret: 3 },
-      { stringIndex: 2, fret: 0 },
-      { stringIndex: 2, fret: 2 },
-      { stringIndex: 1, fret: 0 },
-      { stringIndex: 1, fret: 1 },
+      { stringIndex: 4, fret: 3, finger: 3, degree: "1" },
+      { stringIndex: 3, fret: 0, degree: "2" },
+      { stringIndex: 3, fret: 2, finger: 2, degree: "3" },
+      { stringIndex: 3, fret: 3, finger: 4, degree: "4" },
+      { stringIndex: 2, fret: 0, degree: "5" },
+      { stringIndex: 2, fret: 2, finger: 2, degree: "6" },
+      { stringIndex: 1, fret: 0, degree: "7" },
+      { stringIndex: 1, fret: 1, finger: 1, degree: "1" },
     ],
     descending: [
-      { stringIndex: 1, fret: 1 },
-      { stringIndex: 1, fret: 0 },
-      { stringIndex: 2, fret: 2 },
-      { stringIndex: 2, fret: 0 },
-      { stringIndex: 3, fret: 3 },
-      { stringIndex: 3, fret: 2 },
-      { stringIndex: 3, fret: 0 },
-      { stringIndex: 4, fret: 3 },
+      { stringIndex: 1, fret: 1, finger: 1, degree: "1" },
+      { stringIndex: 1, fret: 0, degree: "7" },
+      { stringIndex: 2, fret: 2, finger: 2, degree: "6" },
+      { stringIndex: 2, fret: 0, degree: "5" },
+      { stringIndex: 3, fret: 3, finger: 4, degree: "4" },
+      { stringIndex: 3, fret: 2, finger: 2, degree: "3" },
+      { stringIndex: 3, fret: 0, degree: "2" },
+      { stringIndex: 4, fret: 3, finger: 3, degree: "1" },
     ],
   },
   // ── C·2 ────────────────────────────────────────────────────
@@ -517,24 +517,24 @@ export const SHAPES: ShapeDefinition[] = [
     defaultKeyLabel: "G",
     libraryOnly: true,
     steps: [
-      { stringIndex: 5, fret: 3 },
-      { stringIndex: 5, fret: 5 },
-      { stringIndex: 5, fret: 7 },
-      { stringIndex: 4, fret: 3 },
-      { stringIndex: 4, fret: 5 },
-      { stringIndex: 4, fret: 7 },
-      { stringIndex: 3, fret: 4 },
-      { stringIndex: 3, fret: 5 },
+      { stringIndex: 5, fret: 3, finger: 2 },
+      { stringIndex: 5, fret: 5, finger: 4 },
+      { stringIndex: 5, fret: 7, finger: 1 },
+      { stringIndex: 4, fret: 3, finger: 2 },
+      { stringIndex: 4, fret: 5, finger: 4 },
+      { stringIndex: 4, fret: 7, finger: 1 },
+      { stringIndex: 3, fret: 4, finger: 3 },
+      { stringIndex: 3, fret: 5, finger: 4 },
     ],
     descending: [
-      { stringIndex: 3, fret: 5 },
-      { stringIndex: 3, fret: 4 },
-      { stringIndex: 4, fret: 7 },
-      { stringIndex: 4, fret: 5 },
-      { stringIndex: 4, fret: 3 },
-      { stringIndex: 5, fret: 7 },
-      { stringIndex: 5, fret: 5 },
-      { stringIndex: 5, fret: 3 },
+      { stringIndex: 3, fret: 5, finger: 4 },
+      { stringIndex: 3, fret: 4, finger: 3 },
+      { stringIndex: 4, fret: 7, finger: 1 },
+      { stringIndex: 4, fret: 5, finger: 4 },
+      { stringIndex: 4, fret: 3, finger: 2 },
+      { stringIndex: 5, fret: 7, finger: 1 },
+      { stringIndex: 5, fret: 5, finger: 4 },
+      { stringIndex: 5, fret: 3, finger: 2 },
     ],
   },
   // ── C·4 ────────────────────────────────────────────────────
@@ -551,24 +551,24 @@ export const SHAPES: ShapeDefinition[] = [
     defaultRootFret: 5,
     defaultKeyLabel: "A minor",
     steps: [
-      { stringIndex: 5, fret: 5 },
-      { stringIndex: 5, fret: 7 },
-      { stringIndex: 5, fret: 8 },
-      { stringIndex: 4, fret: 5 },
-      { stringIndex: 4, fret: 7 },
-      { stringIndex: 4, fret: 8 },
-      { stringIndex: 3, fret: 5 },
-      { stringIndex: 3, fret: 7 },
+      { stringIndex: 5, fret: 5, finger: 2 },
+      { stringIndex: 5, fret: 7, finger: 4 },
+      { stringIndex: 5, fret: 8, finger: 1 },
+      { stringIndex: 4, fret: 5, finger: 2 },
+      { stringIndex: 4, fret: 7, finger: 4 },
+      { stringIndex: 4, fret: 8, finger: 1 },
+      { stringIndex: 3, fret: 5, finger: 2 },
+      { stringIndex: 3, fret: 7, finger: 4 },
     ],
     descending: [
-      { stringIndex: 3, fret: 7 },
-      { stringIndex: 3, fret: 5 },
-      { stringIndex: 4, fret: 8 },
-      { stringIndex: 4, fret: 7 },
-      { stringIndex: 4, fret: 5 },
-      { stringIndex: 5, fret: 8 },
-      { stringIndex: 5, fret: 7 },
-      { stringIndex: 5, fret: 5 },
+      { stringIndex: 3, fret: 7, finger: 4 },
+      { stringIndex: 3, fret: 5, finger: 2 },
+      { stringIndex: 4, fret: 8, finger: 1 },
+      { stringIndex: 4, fret: 7, finger: 4 },
+      { stringIndex: 4, fret: 5, finger: 2 },
+      { stringIndex: 5, fret: 8, finger: 1 },
+      { stringIndex: 5, fret: 7, finger: 4 },
+      { stringIndex: 5, fret: 5, finger: 2 },
     ],
   },
   // ── C·5 ────────────────────────────────────────────────────
@@ -631,12 +631,12 @@ export const SHAPES: ShapeDefinition[] = [
     defaultRootFret: 3,
     defaultKeyLabel: "G",
     steps: [
-      { stringIndex: 5, fret: 3 },
-      { stringIndex: 4, fret: 5 },
-      { stringIndex: 3, fret: 5 },
-      { stringIndex: 2, fret: 4 },
-      { stringIndex: 1, fret: 3 },
-      { stringIndex: 0, fret: 3 },
+      { stringIndex: 5, fret: 3, degree: "1" },
+      { stringIndex: 4, fret: 5, degree: "5" },
+      { stringIndex: 3, fret: 5, degree: "3" },
+      { stringIndex: 2, fret: 4, degree: "5" },
+      { stringIndex: 1, fret: 3, degree: "1" },
+      { stringIndex: 0, fret: 3, degree: "1" },
     ],
   },
   // ── C·9 ────────────────────────────────────────────────────
@@ -652,12 +652,12 @@ export const SHAPES: ShapeDefinition[] = [
     defaultRootFret: 3,
     defaultKeyLabel: "G minor",
     steps: [
-      { stringIndex: 5, fret: 3 },
-      { stringIndex: 4, fret: 5 },
-      { stringIndex: 3, fret: 5 },
-      { stringIndex: 2, fret: 3 },
-      { stringIndex: 1, fret: 3 },
-      { stringIndex: 0, fret: 3 },
+      { stringIndex: 5, fret: 3, degree: "1" },
+      { stringIndex: 4, fret: 5, degree: "5" },
+      { stringIndex: 3, fret: 5, degree: "b3" },
+      { stringIndex: 2, fret: 3, degree: "5" },
+      { stringIndex: 1, fret: 3, degree: "1" },
+      { stringIndex: 0, fret: 3, degree: "1" },
     ],
   },
   // ── C·10 ───────────────────────────────────────────────────
@@ -755,10 +755,10 @@ export const SHAPES: ShapeDefinition[] = [
     defaultRootFret: 3,
     defaultKeyLabel: "C",
     steps: [
-      { stringIndex: 4, fret: 3 },
-      { stringIndex: 3, fret: 5 },
-      { stringIndex: 2, fret: 5 },
-      { stringIndex: 1, fret: 5 },
+      { stringIndex: 4, fret: 3, degree: "1" },
+      { stringIndex: 3, fret: 5, degree: "5" },
+      { stringIndex: 2, fret: 5, degree: "1" },
+      { stringIndex: 1, fret: 5, degree: "3" },
     ],
   },
   // ── C·13 ───────────────────────────────────────────────────
@@ -774,14 +774,14 @@ export const SHAPES: ShapeDefinition[] = [
     defaultRootFret: 3,
     defaultKeyLabel: "C",
     steps: [
-      { stringIndex: 4, fret: 3 },
-      { stringIndex: 4, fret: 5 },
-      { stringIndex: 3, fret: 2 },
-      { stringIndex: 3, fret: 3 },
-      { stringIndex: 3, fret: 5 },
-      { stringIndex: 2, fret: 2 },
-      { stringIndex: 2, fret: 4 },
-      { stringIndex: 2, fret: 5 },
+      { stringIndex: 4, fret: 3, finger: 2 },
+      { stringIndex: 4, fret: 5, finger: 4 },
+      { stringIndex: 3, fret: 2, finger: 1 },
+      { stringIndex: 3, fret: 3, finger: 2 },
+      { stringIndex: 3, fret: 5, finger: 4 },
+      { stringIndex: 2, fret: 2, finger: 1 },
+      { stringIndex: 2, fret: 4, finger: 3 },
+      { stringIndex: 2, fret: 5, finger: 4 },
     ],
     descending: [
       { stringIndex: 2, fret: 5 },
@@ -829,18 +829,19 @@ export function transposeSteps(
   steps: ShapeRecallStep[],
   semitoneOffset: number,
 ): ShapeRecallStep[] {
+  const shiftFrets = (list: ShapeRecallStep[], delta: number) =>
+    list.map((s) => ({ ...s, fret: s.fret + delta }));
+
   if (semitoneOffset === 0) return steps.map((s) => ({ ...s }));
-  const shifted = steps.map((s) => ({
-    stringIndex: s.stringIndex,
-    fret: s.fret + semitoneOffset,
-  }));
+
+  let shifted = shiftFrets(steps, semitoneOffset);
   const minFret = shifted.reduce((m, s) => Math.min(m, s.fret), 0);
   if (minFret < 0) {
-    return shifted.map((s) => ({ ...s, fret: s.fret + 12 }));
+    shifted = shiftFrets(shifted, 12);
   }
   const maxFret = shifted.reduce((m, s) => Math.max(m, s.fret), 0);
   if (maxFret > 17) {
-    return shifted.map((s) => ({ ...s, fret: s.fret - 12 }));
+    shifted = shiftFrets(shifted, -12);
   }
   return shifted;
 }

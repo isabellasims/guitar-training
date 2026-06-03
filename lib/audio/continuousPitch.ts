@@ -6,7 +6,9 @@ import { frequencyToMidi } from "@/lib/audio/noteUtils";
 import {
   DRONE_DUCK_LINEAR_DEFAULT,
   DRONE_DUCK_LINEAR_VS_TONIC,
-  setDroneDucked,
+  beginPitchMicDuck,
+  endPitchMicDuck,
+  updatePitchMicDuckLevel,
 } from "@/lib/audio/drone";
 import type { PitchDetector as PitchDetectorClass } from "pitchy";
 
@@ -196,7 +198,7 @@ export function useContinuousPitchListener(
         tonicPc != null && newPc === tonicPc
           ? DRONE_DUCK_LINEAR_VS_TONIC
           : DRONE_DUCK_LINEAR_DEFAULT;
-      setDroneDucked(true, duckLinear);
+      updatePitchMicDuckLevel(duckLinear);
     }
   }, [
     opts.targetMidi,
@@ -219,7 +221,7 @@ export function useContinuousPitchListener(
     let cancelled = false;
 
     const cleanup = () => {
-      setDroneDucked(false);
+      endPitchMicDuck();
       if (rafRef.current != null) {
         cancelAnimationFrame(rafRef.current);
         rafRef.current = null;
@@ -288,7 +290,7 @@ export function useContinuousPitchListener(
           targetPc === tonicPc
             ? DRONE_DUCK_LINEAR_VS_TONIC
             : DRONE_DUCK_LINEAR_DEFAULT;
-        setDroneDucked(true, duckLinear);
+        beginPitchMicDuck(duckLinear);
         setPhase("listening");
 
         const tick = () => {

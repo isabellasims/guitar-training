@@ -289,7 +289,7 @@
     <article class="track-card t-a">
       <div class="track-tag"><span>Track A · 22 levels</span><span>Day 1</span></div>
       <div class="track-name">Scale <em>Degrees</em></div>
-      <p class="track-desc">Major degrees A·1–11, minor from A·12 (needs C·2), cross-key A·19–22. Hear function against the tonic.</p>
+      <p class="track-desc">Major degrees A·1–11, minor from A·12 (shape in explainer), cross-key A·19–22. Hear function against the tonic.</p>
       <div class="track-meta"><span>App + drone</span><span>Daily</span></div>
     </article>
     <article class="track-card t-b">
@@ -311,7 +311,7 @@
       <div class="track-meta"><span>Ear only</span><span>When unlocked</span></div>
     </article>
     <article class="track-card t-e">
-      <div class="track-tag"><span>Track E · 17 levels</span><span>After A·11</span></div>
+      <div class="track-tag"><span>Track E · 17 levels</span><span>After A·5</span></div>
       <div class="track-name"><em>Intervals</em></div>
       <p class="track-desc">Consonance-first: unison → 5th → 3rd → … through the full set, then mixed drills.</p>
       <div class="track-meta"><span>Ear</span><span>When unlocked</span></div>
@@ -351,7 +351,7 @@
       <h3>Level order (sequential)</h3>
       <div class="subhead">Within each track</div>
       <ul class="par-seq-list">
-        <li><span class="marker">A</span><span><strong>Major 1→7, then minor phase, then cross-key.</strong> A·12 needs C·2 (open A minor).</span></li>
+        <li><span class="marker">A</span><span><strong>Major 1→7, then minor phase, then cross-key.</strong> A·12 teaches open A minor inline.</span></li>
         <li><span class="marker">B</span><span><strong>One string at a time, then note-class on all strings, then chromatic speed.</strong> B·2 = A string only; B·3 = E+A mix.</span></li>
         <li><span class="marker">C</span><span><strong>Open shapes → movable → pent boxes → CAGED → connect.</strong> C·7 needs A·4 (major 3rd by ear).</span></li>
         <li><span class="marker">D</span><span><strong>I → IV → V → vi</strong> by listening only.</span></li>
@@ -362,7 +362,7 @@
   </div>
 
   <div class="cross-dep">
-    <strong>Cross-track gates (app):</strong> D and E require <strong>A·11</strong>. F requires <strong>A·11</strong> and <strong>D·2</strong>. A·12 (minor tonic) requires <strong>C·2</strong>. C·7 requires <strong>A·4</strong>. The session builder adds warmup, SRS reviews, and track blocks A→F automatically — see Section XIV.
+    <strong>Cross-track gates (app):</strong> <strong>E</strong> after <strong>A·5</strong>; <strong>D</strong> and <strong>F</strong> after <strong>A·11</strong> (F also needs <strong>D·2</strong>). <strong>C·7</strong> needs <strong>A·4</strong>. Practice sessions are a pacer (current levels only); SRS is on the Review page — see Section XIV.
   </div>
 
   <h4 class="subhead-h">When tracks unlock (app)</h4>
@@ -372,7 +372,7 @@
     <div class="tg-cell label">B · Notes</div><div class="tg-cell start">Day 1</div><div class="tg-cell active">—</div><div class="tg-cell active">18</div><div class="tg-cell active">Strings → note class → chromatic</div>
     <div class="tg-cell label">C · Shapes</div><div class="tg-cell start">Day 1</div><div class="tg-cell active">C·7 ← A·4</div><div class="tg-cell active">14</div><div class="tg-cell active">Open → pent → CAGED</div>
     <div class="tg-cell label">D · Changes</div><div class="tg-cell empty">—</div><div class="tg-cell start">A·11</div><div class="tg-cell active">5</div><div class="tg-cell active">Hear I / IV / V / vi</div>
-    <div class="tg-cell label">E · Intervals</div><div class="tg-cell empty">—</div><div class="tg-cell start">A·11</div><div class="tg-cell active">17</div><div class="tg-cell active">Relative pitch</div>
+        <div class="tg-cell label">E · Intervals</div><div class="tg-cell empty">—</div><div class="tg-cell start">A·5</div><div class="tg-cell active">17</div><div class="tg-cell active">Relative pitch</div>
     <div class="tg-cell label">F · Improv</div><div class="tg-cell empty">—</div><div class="tg-cell start">A·11 + D·2</div><div class="tg-cell active">4</div><div class="tg-cell active">Chord-tone soloing</div>
   </div>
 </section>
@@ -389,9 +389,9 @@
 <!-- TONIC_CURRICULUM_AUTO -->
 <p class="lead">The <strong>Tonic</strong> app implements this curriculum in <code>lib/curriculum/levels.ts</code>. Levels advance by <em>mastery</em> (sessions + accuracy), not calendar weeks. <strong>[F]</strong> = concept explainer first; <strong>[P]</strong> = practice only.</p>
 <div class="cross-dep">
-<strong>Track entry in the app:</strong> A, B, C from day one. <strong>D</strong> and <strong>E</strong> unlock after <strong>A·11</strong> (full major diatonic by ear). <strong>F</strong> unlocks after <strong>A·11</strong> and <strong>D·2</strong> (vi chord by ear). <strong>A·12</strong> (minor tonic) also requires <strong>C·2</strong> (open A minor shape). <strong>C·7</strong> requires <strong>A·4</strong> (major 3rd by ear).
+<strong>Track entry in the app:</strong> A, B, C from day one. <strong>E</strong> after <strong>A·5</strong>. <strong>D</strong> after <strong>A·11</strong>. <strong>F</strong> after <strong>A·11</strong> and <strong>D·2</strong>. <strong>C·7</strong> requires <strong>A·4</strong> (major 3rd by ear). Practice sessions = pacer; SRS = Review page.
 </div>
-<p class="lead"><strong>Completion:</strong> each level needs ≥3 sessions, ≥12 graded cards at ≥90% weighted accuracy (hints count half). Explainer-only levels <strong>A·1</strong> and <strong>A·12</strong> complete after the concept is seen.</p>
+<p class="lead"><strong>Completion:</strong> each level needs ≥2 distinct sessions, ≥8 graded cards at ≥85% weighted accuracy (hints count half). Explainer-only levels <strong>A·1</strong> and <strong>A·12</strong> complete after the concept is seen.</p>
 <h4 class="subhead-h">Track A — Scale degrees (22 levels)</h4>
 <div class="level-table-wrap">
 <table class="level-table">
@@ -408,7 +408,7 @@
 <tr><td class="level-id">A·9</td><td>Foundation</td><td>The 2nd</td><td>A·8</td></tr>
 <tr><td class="level-id">A·10</td><td>Foundation</td><td>The 6th</td><td>A·9</td></tr>
 <tr><td class="level-id">A·11</td><td>Practice</td><td>Full Major Diatonic</td><td>A·10</td></tr>
-<tr><td class="level-id">A·12</td><td>Foundation</td><td>Tonic (A minor)</td><td>A·11, C·2</td></tr>
+<tr><td class="level-id">A·12</td><td>Foundation</td><td>Tonic (A minor)</td><td>A·11</td></tr>
 <tr><td class="level-id">A·13</td><td>Practice</td><td>Re-orient (Root + 5th in minor)</td><td>A·12</td></tr>
 <tr><td class="level-id">A·14</td><td>Foundation</td><td>The Flat 3rd</td><td>A·13</td></tr>
 <tr><td class="level-id">A·15</td><td>Foundation</td><td>The Flat 7</td><td>A·14</td></tr>
@@ -488,7 +488,7 @@
 <table class="level-table">
 <thead><tr><th>Level</th><th>Type</th><th>Name</th><th>Requires</th></tr></thead>
 <tbody>
-<tr><td class="level-id">E·1</td><td>Foundation</td><td>Perfect 5th</td><td>A·11</td></tr>
+<tr><td class="level-id">E·1</td><td>Foundation</td><td>Perfect 5th</td><td>A·5</td></tr>
 <tr><td class="level-id">E·2</td><td>Foundation</td><td>Perfect 4th</td><td>E·1</td></tr>
 <tr><td class="level-id">E·3</td><td>Foundation</td><td>Major 3rd</td><td>E·2</td></tr>
 <tr><td class="level-id">E·4</td><td>Practice</td><td>P4 / P5 / M3 Consolidation</td><td>E·3</td></tr>
@@ -535,7 +535,7 @@
   </div>
   <div class="track-detail">
     <p class="lead">Each scale degree has a fixed <em>character</em> — stable, tense, sweet, pulling, restless, home. Learn the seven sounds once and they apply in every key forever. This is the layer that makes "hear it → play it" possible.</p>
-    <div class="end-state"><strong>App end state · A·22</strong> Hear any in-key note in common keys and name its degree. Minor phase (A·12+) needs <strong>C·2</strong> (open A minor shape). Full level list in Section IV.</div>
+    <div class="end-state"><strong>App end state · A·22</strong> Hear any in-key note in common keys and name its degree. Minor phase starts at A·12 (open A minor taught in explainer). Full level list in Section IV.</div>
 
     <div class="phase">
       <div class="phase-weeks">A·1–A·5 · Major foundation</div>
@@ -554,15 +554,15 @@
       <div class="phase-weeks">A·6–A·11 · Complete major scale</div>
       <div class="phase-title">7th, 4th, 2nd, 6th, then full diatonic.</div>
       <div class="phase-body">
-        <p>Tense tones as motion away from chord tones. <strong>A·11</strong> unlocks tracks D and E.</p>
+        <p>Tense tones as motion away from chord tones. <strong>A·5</strong> unlocks Track E; <strong>A·11</strong> unlocks Track D.</p>
       </div>
     </div>
 
     <div class="phase">
       <div class="phase-weeks">A·12–A·18 · Minor + cross-mode</div>
-      <div class="phase-title">A minor tonic (needs C·2), b3, b7, b6, full minor, consolidation.</div>
+      <div class="phase-title">A minor tonic, b3, b7, b6, full minor, consolidation.</div>
       <div class="phase-body">
-        <p>Use the open A minor shape from Track C while droning Am. Pentatonic “escape” work lives in <strong>Track F</strong> once D·2 is done.</p>
+        <p>Open A minor is in the A·12 explainer; Track C still deepens the shape. Pentatonic “escape” work lives in <strong>Track F</strong> once D·2 is done.</p>
       </div>
     </div>
 
@@ -623,7 +623,7 @@
   </div>
   <div class="track-detail">
     <p class="lead">Knowing what note you want (Track A) is useless without a physical map of where it lives. This track builds that map: starting with one minor scale shape, then pentatonic boxes, then connecting them through CAGED — the system that ties chord shapes to chord tones across the entire neck.</p>
-    <div class="end-state"><strong>App end state · C·14</strong> Connect pentatonic boxes and CAGED regions — chord tones in E, A, and D shapes, moving between positions. <strong>C·2</strong> gates A·12; <strong>C·7</strong> needs <strong>A·4</strong>.</div>
+    <div class="end-state"><strong>App end state · C·14</strong> Connect pentatonic boxes and CAGED regions — chord tones in E, A, and D shapes, moving between positions. <strong>C·7</strong> needs <strong>A·4</strong>.</div>
 
     <div class="caged-explainer">
       <h4>CAGED, properly explained.</h4>
@@ -645,7 +645,7 @@
     <div class="phase">
       <div class="phase-weeks">C·1–C·4 · Open chords &amp; movable roots</div>
       <div class="phase-title">Open C, open A minor (gates A·12), movable major/minor roots.</div>
-      <div class="phase-body"><p>Get <strong>C·2</strong> early so A·12 can unlock. Physical shape memory before pentatonic boxes.</p></div>
+      <div class="phase-body"><p>Open C and A minor shapes — physical memory before pentatonic boxes.</p></div>
     </div>
 
     <div class="phase">
@@ -699,7 +699,7 @@
     </div>
   </div>
   <div class="track-detail">
-    <p class="lead">Relative pitch: hear the distance between two notes. Unlocks after <strong>A·11</strong>. Order is <em>consonance-first</em> (unison, perfect 5th, major 3rd, …) — not “count semitones from the root” first.</p>
+    <p class="lead">Relative pitch: hear the distance between two notes. Unlocks after <strong>A·5</strong> (parallel with degree work). Order is <em>consonance-first</em> (unison, perfect 5th, major 3rd, …) — not “count semitones from the root” first.</p>
     <div class="end-state"><strong>App end state · E·17</strong> Identify common intervals in isolation and in short melodic fragments. Supports transcription and hero-solo analysis (Section XI).</div>
 
     <div class="phase">
@@ -915,7 +915,7 @@
       <h2>Built <em>sessions</em></h2>
     </div>
   </div>
-  <p class="lead">The app builds each session automatically (~11–18 cards for a new user): <strong>warmup</strong> → maintenance / SRS reviews / resurfaced cards → track blocks <strong>A through F</strong> (only unlocked tracks) → <strong>afterglow</strong>. You don't pick the daily menu — progress through levels and the builder balances tracks.</p>
+  <p class="lead">Practice sessions are a <strong>pacer</strong>: preflight shows time estimate, then current-level cards per track (A first, F last, middle tracks shuffled). Up to <strong>3</strong> resurfaced skips. <strong>No</strong> drone warmup, maintenance pile, or afterglow. Foundation explainers run <em>before</em> Start. SRS lives on the <strong>Review queue</strong> page.</p>
   <div class="daily-grid">
     <div class="schedule-table">
       <div class="schedule-row header">
@@ -929,8 +929,8 @@
       <div class="schedule-row"><div class="schedule-time">Tracks</div><div class="schedule-track">A→F</div><div class="schedule-activity">Current-level cards per unlocked track (flashcards, ear, improv)</div></div>
       <div class="schedule-row"><div class="schedule-time">Afterglow</div><div class="schedule-track">Builder</div><div class="schedule-activity">Optional freeplay / lighter finish</div></div>
       <div class="schedule-row section-divider">Mastery (per level)</div>
-      <div class="schedule-row"><div class="schedule-time">3×</div><div class="schedule-track">Sessions</div><div class="schedule-activity">Minimum sessions at that level</div></div>
-      <div class="schedule-row"><div class="schedule-time">12+</div><div class="schedule-track">Cards</div><div class="schedule-activity">Graded cards at ≥90% weighted accuracy (hints at 50%)</div></div>
+      <div class="schedule-row"><div class="schedule-time">2×</div><div class="schedule-track">Sessions</div><div class="schedule-activity">Minimum distinct sessions at that level</div></div>
+      <div class="schedule-row"><div class="schedule-time">8+</div><div class="schedule-track">Cards</div><div class="schedule-activity">Graded cards at ≥85% weighted accuracy (hints at 50%)</div></div>
     </div>
     <div class="daily-side">
       <h3>Manual add-ons (~45 min total if you do both)</h3>

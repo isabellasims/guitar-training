@@ -19,6 +19,10 @@ import {
   semitoneOffsetForPitchClass,
   transposeSteps,
 } from "@/lib/curriculum/shapeLibrary";
+import {
+  enrichShapeSteps,
+  inferScaleKind,
+} from "@/lib/fretboard/enrichShapeSteps";
 import { midiToHashPitchLabel } from "@/lib/audio/noteUtils";
 import { cn } from "@/lib/utils";
 
@@ -32,28 +36,22 @@ export default function ScaleDrillPage() {
   );
   const [round, setRound] = useState(0);
 
-  /**
-   * Two transposition paths:
-   *   - Pattern-based shapes (e.g. the new movable major E-shape) re-resolve
-   *     the relative-offset pattern at the chosen tonic. This preserves
-   *     finger / degree metadata so the Fingers + Degrees label modes work
-   *     identically across keys — exactly the lesson the toggle is meant
-   *     to teach.
-   *   - Legacy transposable shapes without a pattern fall back to the
-   *     existing semitone-shift helper. They still work, they just don't
-   *     carry finger / degree data, so those toggle modes will fall back
-   *     to note names.
-   */
+  /** Pattern resolve or semitone shift, then fill any missing degree labels. */
   const steps = useMemo(() => {
     if (!shape) return [];
+    let raw: typeof shape.steps;
     if (shape.pattern && shape.transposable) {
-      return resolvePatternToSteps(shape.pattern, tonicPc);
-    }
-    if (shape.transposable) {
+      raw = resolvePatternToSteps(shape.pattern, tonicPc);
+    } else if (shape.transposable) {
       const offset = semitoneOffsetForPitchClass(shape, tonicPc);
-      return transposeSteps(shape.steps, offset);
+      raw = transposeSteps(shape.steps, offset);
+    } else {
+      raw = shape.steps;
     }
-    return shape.steps;
+    const tonicForDegrees = shape.transposable
+      ? tonicPc
+      : shape.defaultRootPitchClass;
+    return enrichShapeSteps(raw, tonicForDegrees, inferScaleKind(shape));
   }, [shape, tonicPc]);
 
   if (!shape) return notFound();

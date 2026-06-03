@@ -27,7 +27,7 @@ The field manual [`guitar-practice-plan.html`](./guitar-practice-plan.html) (*He
 | Next.js 14, TypeScript, Tailwind, PWA | Done |
 | Tracks **A–F** (80 levels total) | Done (`levels.ts`, `cardsForLevel.ts`) |
 | Session builder + trim + maintenance warmups | Done (`buildSession.ts`) |
-| Level completion (3 sessions, 90% / 12-card window, hint penalty) | Done (`completion.ts`) |
+| Level completion (2 sessions, 85% / 8-card window, hint penalty) | Done (`completion.ts`) |
 | SRS reviews (stable card defs) | Done (`reviewOps.ts`) |
 | Fretboard, shapes, CAGED, pentatonic | Done (`shapeLibrary.ts`) |
 | Custom flashcards + starred cards | Done (`/flashcards`) |

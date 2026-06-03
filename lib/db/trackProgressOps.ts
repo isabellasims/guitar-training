@@ -63,6 +63,19 @@ async function loadAllProgress(): Promise<ProgressByTrack> {
  * Mark a level complete without meeting session/accuracy gates — for manual
  * skip from the Tracks page. Advances that track's current level when needed.
  */
+/** Mark a foundation explainer as seen (e.g. pre-session gate, Tracks page). */
+export async function markExplainerSeen(levelId: string): Promise<void> {
+  const lvl = getLevel(levelId);
+  if (!lvl) return;
+  const prog = await getTrackProgress(lvl.trackId);
+  if (!prog) return;
+  if (prog.seenExplainerLevelIds.includes(levelId)) return;
+  await putTrackProgress({
+    ...prog,
+    seenExplainerLevelIds: [...prog.seenExplainerLevelIds, levelId],
+  });
+}
+
 export async function manuallyBypassLevel(levelId: string): Promise<boolean> {
   const lvl = getLevel(levelId);
   if (!lvl) return false;

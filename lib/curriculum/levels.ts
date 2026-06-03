@@ -26,8 +26,9 @@ export type Level = {
  *   - Cross-key generalization (Phase 3) only after both modes are owned.
  *   - Every few levels, a consolidation level [P] introduces no new content
  *     and pure-drills everything learned so far.
- *   - Track D (chord function) + E (intervals) enter after full major
- *     diatonic recognition (A-11).
+ *   - Track D (chord function) enters after full major diatonic (A-11).
+ *   - Track E (intervals) enters after stable major tones (A-5) — runs
+ *     parallel with degrees, not after A-11.
  *   - Track F (improvisation) enters once chord-tone recognition (A-11)
  *     plus the vi chord (D-2) are owned by ear.
  */
@@ -51,7 +52,7 @@ export const LEVELS: Level[] = [
   { id: "A-10", trackId: "A", level: 10, type: "F", name: "The 6th", prerequisiteLevelIds: ["A-9"] },
   { id: "A-11", trackId: "A", level: 11, type: "P", name: "Full Major Diatonic", prerequisiteLevelIds: ["A-10"] },
   // Phase 2 — Minor (A-12 cross-gates on C-2 for the A minor scale shape)
-  { id: "A-12", trackId: "A", level: 12, type: "F", name: "Tonic (A minor)", prerequisiteLevelIds: ["A-11", "C-2"] },
+  { id: "A-12", trackId: "A", level: 12, type: "F", name: "Tonic (A minor)", prerequisiteLevelIds: ["A-11"] },
   { id: "A-13", trackId: "A", level: 13, type: "P", name: "Re-orient (Root + 5th in minor)", prerequisiteLevelIds: ["A-12"] },
   { id: "A-14", trackId: "A", level: 14, type: "F", name: "The Flat 3rd", prerequisiteLevelIds: ["A-13"] },
   { id: "A-15", trackId: "A", level: 15, type: "F", name: "The Flat 7", prerequisiteLevelIds: ["A-14"] },
@@ -124,7 +125,7 @@ export const LEVELS: Level[] = [
   //   Phase 2 (E-9..E-14): Ascending minors + tritone
   //   Phase 3 (E-15..E-17): Descending
   // ─────────────────────────────────────────────────────────────────────
-  { id: "E-1", trackId: "E", level: 1, type: "F", name: "Perfect 5th", prerequisiteLevelIds: ["A-11"] },
+  { id: "E-1", trackId: "E", level: 1, type: "F", name: "Perfect 5th", prerequisiteLevelIds: ["A-5"] },
   { id: "E-2", trackId: "E", level: 2, type: "F", name: "Perfect 4th", prerequisiteLevelIds: ["E-1"] },
   { id: "E-3", trackId: "E", level: 3, type: "F", name: "Major 3rd", prerequisiteLevelIds: ["E-2"] },
   { id: "E-4", trackId: "E", level: 4, type: "P", name: "P4 / P5 / M3 Consolidation", prerequisiteLevelIds: ["E-3"] },

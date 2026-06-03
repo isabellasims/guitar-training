@@ -220,6 +220,7 @@ export function ShapeRecallPlayCard({
             maxFret={windowMax}
             highlights={highlights}
             leftHanded={leftHanded}
+            showFretNumbers
             aria-label={`${params.title} diagram`}
           />
         </div>

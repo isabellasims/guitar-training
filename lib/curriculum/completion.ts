@@ -7,16 +7,16 @@ export const COMPLETION_CRITERIA = {
    * Computed from distinct `ts` values in the level's recent results; a
    * single marathon session does not satisfy mastery.
    */
-  minSessions: 3,
+  minSessions: 2,
   /** Minimum accuracy across the most recent N graded cards from this level. */
-  minAccuracy: 0.9,
+  minAccuracy: 0.85,
   /** Window size for accuracy (looks at the last N graded cards). */
-  accuracyWindow: 12,
+  accuracyWindow: 8,
   /**
    * Minimum number of graded cards required before we'll evaluate accuracy.
    * Mastery threshold: must have actually drilled the level, not just brushed it.
    */
-  minGraded: 12,
+  minGraded: 8,
   /** Hard cap on stored per-level recent results, to keep Dexie rows small. */
   maxRetainedResultsPerLevel: 60,
   /**
